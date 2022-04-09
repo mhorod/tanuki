@@ -8,7 +8,7 @@ USER deno
 COPY app/deps.ts . 
 RUN deno cache deps.ts
 
-COPY app/* .
+COPY app/* /app/
 RUN deno cache main.ts
 EXPOSE 3000
 CMD ["run", "--allow-net", "--allow-read", "--unstable", "--watch", "main.ts"]
