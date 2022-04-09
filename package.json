@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "build:css": "npx tailwindcss -i ./css-src/main.css -o ./app/public/css/main.css",
+    "watch:css": "npx tailwindcss -i ./css-src/main.css -o ./app/public/css/main.css --watch"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.4",
+    "postcss": "^8.4.12",
+    "tailwindcss": "^3.0.23"
+  },
+  "dependencies": {
+    "tw-elements": "^1.0.0-alpha12"
+  }
+}

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <%- await include("views/common-head.ejs"); %>
+  <title>
+    Tanuki
+  </title>
+</head>
+
+<body class="bg-zinc-900"">
+  <%- await include("views/nav.ejs"); %>
+  <div class=" container mx-auto p-6">
+  <h2 class="text-4xl text-center mb-8 text-white"> Welcome to Tanuki! </h2>
+  <div class="flex gap-4 flex-row justify-center">
+    <a href="/log-in" class="border border-white text-white px-4 py-2
+    hover:bg-zinc-800
+    "> Log in </a>
+    <a href="/sign-up" class="border border-white text-white shadow-lg px-4 py-2
+    
+    hover:bg-zinc-800
+    "> Sign up </a>
+  </div>
+  </div>
+  <%- await include("views/common-scripts.ejs"); %>
+</body>
+
+</html>
