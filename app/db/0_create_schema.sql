@@ -1,8 +1,3 @@
--- Create db structure and populate it with dummy data
-CREATE DATABASE tanuki;
-
-\connect tanuki;
-
 DROP SCHEMA IF EXISTS tanuki CASCADE;
 
 CREATE SCHEMA IF NOT EXISTS tanuki;

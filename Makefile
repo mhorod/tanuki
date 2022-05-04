@@ -6,12 +6,23 @@
 SQL = $(shell find app/db -type f)
 TS = $(shell find app -type f -name "*.ts")
 
+.build/app: .build/volumes $(TS) docker-compose.yml Dockerfile
+	docker-compose --env-file=./app/.env -f docker-compose.yml build
+	mkdir -p .build
+	touch .build/app
+
 # Build whole app in dev mode
-.build/app.dev: .build/volumes $(TS)
-	docker-compose -f docker-compose.dev.yml build
+.build/app.dev: .build/volumes $(TS) docker-compose.dev.yml Dockerfile.dev
+	docker-compose --env-file=./app/.env -f docker-compose.dev.yml build
+
+	mkdir -p .build
 	touch .build/app.dev
 
 # Clean volumes to reload cached database config
 .build/volumes: $(SQL)
 	docker-compose down --volumes
+	mkdir -p .build
 	touch .build/volumes
+
+clean:
+	rm .build/*

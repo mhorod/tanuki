@@ -3,9 +3,9 @@ services:
   postgres:
     image: postgres
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     expose:
       - "5432"
     ports:
@@ -17,11 +17,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    environment:
-      - DB_SCHEMA=tanuki
-      - DB_USER=tanuki
-      - DB_PASSWORD=tanuki
-      - DB_HOST=postgres
     depends_on:
       - postgres
     ports:
