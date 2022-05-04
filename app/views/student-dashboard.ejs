@@ -37,16 +37,16 @@
         <% for (const submit of submits) { %>
         <tr class="odd:bg-zinc-800 even:bg-zinc-700 text-center">
           <td class="px-2 py-2">
-            <a href="/contest/<%= submit[1] %>/submit/<%= submit[0] %>" class="cursor-pointer py-2 
+            <a href="/contest/<%= submit[0] %>/submit/<%= submit[0] %>" class="cursor-pointer py-2 
             hover:text-slate-300">
               <%= submit[0] %>
             </a>
           </td>
           <td class="px-2 py-2">
-            <%= submit[3] %>
+            <%= submit[1] %>
           </td>
-          <td class="px-2 py-2 status-<%= submit[4] %>">
-            <%= submit[4] %>
+          <td class="px-2 py-2 status-<%= submit[2].toLowerCase() %>">
+            <%= submit[2] %>
           </td>
         </tr>
         <% } %>

@@ -11,7 +11,7 @@ services:
     volumes:
       - ./app/db/:/docker-entrypoint-initdb.d/
 
-  todo-app:
+  app:
     build:
       context: .
     environment:

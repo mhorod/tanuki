@@ -12,9 +12,9 @@ const dir = dirname(import.meta.url);
 
 const router = Router();
 const client = new Client({
-  user: "postgres",
-  password: "postgres",
-  database: "postgres",
+  user: "tanuki",
+  password: "tanuki",
+  database: "tanuki",
   hostname: "postgres",
   port: 5432,
 });
@@ -26,8 +26,19 @@ async function getContests() {
   return await client.queryArray("select * from contests;");
 }
 
+const submitQuery = `
+select 
+  s.id, 
+  p.name, 
+  st.name 
+from 
+  submits s 
+  join submit_results sr on s.id = sr.submit_id 
+  join statuses st on sr.status = st.id 
+  join problems p on s.problem_id = p.id;
+`;
 async function getSubmits() {
-  return await client.queryArray("select * from submits;");
+  return await client.queryArray(submitQuery);
 }
 
 router.get("/", (req, res, next) => {
@@ -65,6 +76,8 @@ app.set("view engine", "ejs");
 app.engine("ejs", renderFileToString);
 app.use(serveStatic(join(dir, "public")));
 app.use("/", router);
+
+// If router can't handle request send 404
 app.use((req, res, next) => {
   res.render("404");
 });

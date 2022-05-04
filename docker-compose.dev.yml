@@ -13,14 +13,14 @@ services:
     volumes:
       - ./app/db/:/docker-entrypoint-initdb.d/
 
-  todo-app:
+  app:
     build:
       context: .
       dockerfile: Dockerfile.dev
     environment:
-      - DB_SCHEMA=postgres
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
+      - DB_SCHEMA=tanuki
+      - DB_USER=tanuki
+      - DB_PASSWORD=tanuki
       - DB_HOST=postgres
     depends_on:
       - postgres
