@@ -13,4 +13,4 @@ make .build/app.dev
 npm run watch:css & 
 
 # Start application
-docker compose -f docker-compose.dev.yml up
+docker-compose -f docker-compose.dev.yml up

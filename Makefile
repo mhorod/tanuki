@@ -8,10 +8,10 @@ TS = $(shell find app -type f -name "*.ts")
 
 # Build whole app in dev mode
 .build/app.dev: .build/volumes $(TS)
-	docker compose -f docker-compose.dev.yml build
+	docker-compose -f docker-compose.dev.yml build
 	touch .build/app.dev
 
 # Clean volumes to reload cached database config
 .build/volumes: $(SQL)
-	docker compose down --volumes
+	docker-compose down --volumes
 	touch .build/volumes
