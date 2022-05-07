@@ -108,8 +108,7 @@ ADD tailwind-config .
 RUN npm install
 RUN chmod +x run-release.sh
 RUN apk add --no-cache bash
-
-CMD ["./run-release.sh"]
+RUN bash run-release.sh
 
 
 # Build app
