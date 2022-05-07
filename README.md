@@ -1,15 +1,38 @@
-# Tanuki - demo project in deno
+![logo](logo.png)
 
-## Dependencies necessary for development
+# Tanuki - Simple judge system
 
-- npm - for tailwindcss
+Project made as an assignment project for Data Engineering course 2021/22
+
+# Installation
+
+### Prerequisites
+
 - Docker
-- `docker-compose`
+- make
+- docker-compose
+
+### Installation
+
+```
+git clone https://github.com/mhorod/tanuki.git
+cd tanuki
+/bin/bash run-release.sh
+```
+
+You can then access the app on http://localhost:3000
+
+# Development
+
+### Prerequisites
+
+- Docker
+- docker-compose
 - make
 
-## Development
+## Starting the app
 
-To start app in development mode run `bash ./run-dev.sh`. It builds the image
-with `make` and `docker-compose` and then starts the app.
+To start app in development mode run `bash run-dev.sh`. It builds the image with
+`make` and `docker-compose` and then starts the app.
 
 App runs on port `3000` and postgres runs on port `5433`

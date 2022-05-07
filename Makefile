@@ -5,22 +5,24 @@
 
 SQL = $(shell find app/db -type f)
 TS = $(shell find app -type f -name "*.ts")
+DOCKER_DEV = $(shell find docker/dev -type f) app/.env docker-compose.dev.yml
+DOCKER = $(shell find docker/release -type f) app/.env docker-compose.yml
 
-.build/app: .build/volumes $(TS) docker-compose.yml Dockerfile
-	docker-compose --env-file=./app/.env -f docker-compose.yml build
+# Build whole app in release mode
+.build/app.release: .build/volumes $(TS) $(DOCKER)
+	docker-compose -f docker-compose.yml build
 	mkdir -p .build
-	touch .build/app
+	touch .build/app.release
 
 # Build whole app in dev mode
-.build/app.dev: .build/volumes $(TS) docker-compose.dev.yml Dockerfile.dev
-	docker-compose --env-file=./app/.env -f docker-compose.dev.yml build
-
+.build/app.dev: .build/volumes $(TS) $(DOCKER_DEV)
+	docker-compose -f docker-compose.dev.yml build
 	mkdir -p .build
 	touch .build/app.dev
 
 # Clean volumes to reload cached database config
 .build/volumes: $(SQL)
-	docker-compose down --volumes
+	docker-compose -f docker-compose.dev.yml down --volumes
 	mkdir -p .build
 	touch .build/volumes
 

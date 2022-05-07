@@ -7,7 +7,7 @@ if [ ! -z "${dangling}" ]; then
 fi
 
 # Build with make
-make .build/app.dev
+make .build/app.release
 
 # Start application
-docker-compose -f docker-compose.dev.yml up
+docker-compose -f docker-compose.yml up

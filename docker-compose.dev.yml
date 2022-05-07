@@ -1,3 +1,6 @@
+# Development version of docker-compose.yml
+# Exposes ports and volumes to enable work on the container
+
 version: "3.7"
 services:
   postgres:
@@ -13,12 +16,21 @@ services:
     volumes:
       - ./app/db/:/docker-entrypoint-initdb.d/
 
+  tailwind:
+    build:
+      context: .
+      dockerfile: docker/dev/Dockerfile.tailwind.dev
+    stdin_open: true
+    volumes:
+      - ./app:/wrapper/app
+
   app:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: docker/dev/Dockerfile.dev
     depends_on:
       - postgres
+      - tailwind
     ports:
       - '3000:3000'
     volumes:
