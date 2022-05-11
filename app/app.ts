@@ -4,10 +4,11 @@ import {
   renderFileToString,
   Router,
   serveStatic,
-  config
+  config,
 } from "./deps.ts";
 
 import { dirname, join } from "./deps.ts";
+
 
 const dir = dirname(import.meta.url);
 await config({ export: true });
@@ -45,7 +46,28 @@ async function getSubmits() {
 }
 
 router.get("/", (req, res, next) => {
-  res.render("index");
+  if (req.headers.get('upgrade') == 'websocket') {
+    const socket = req.upgrade();
+
+    const ok = Math.random() < 0.3;
+    setTimeout(
+      () => {
+        if (socket.readyState == socket.OPEN)
+          socket.send(ok ? 'OK' : 'ANS')
+
+
+        setTimeout(() => {
+          if (socket.readyState == socket.OPEN)
+            socket.send('REJ');
+          socket.close()
+        }, 1000)
+      },
+      2000
+    )
+  }
+  else {
+    res.render("index");
+  }
 });
 
 router.get("/dashboard", (req, res, next) => {
@@ -64,6 +86,11 @@ router.get("/dashboard/student", (req, res, next) => {
     },
   );
 });
+
+
+router.get('/que', (req, res, next) => {
+  res.render('que');
+})
 
 router.get("/dashboard/teacher", (req, res, next) => {
   res.render("teacher-dashboard");

@@ -1,5 +1,6 @@
 .status-tle,
-.status-rte {
+.status-rte,
+.status-ans {
     background: #ff6d7d;
 }
 
@@ -7,6 +8,11 @@
     background: #80D47c;
 }
 
-.status-cme {
+.status-que {
+    background: #F5CB73;
+}
+
+.status-cme,
+.status-rej {
     background: #2f4858;
 }
