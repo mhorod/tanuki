@@ -119,10 +119,7 @@ COPY --from=tailwind /wrapper/app /app
 
 USER deno
 
-# Cache dependencies
-COPY app/deps.ts . 
 RUN deno cache deps.ts
-
 RUN deno cache main.ts
 EXPOSE 3000
 CMD ["run", "--allow-env", "--allow-net", "--allow-read", "--unstable","main.ts"]
