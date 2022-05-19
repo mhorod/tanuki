@@ -27,7 +27,7 @@
 
     <div class="collapse navbar-collapse flex-grow items-center" id="navContent">
       <ul class="navbar-nav flex flex-col pl-0 list-style-none mr-auto">
-        <% if (typeof(user) == 'undefined') { %>
+        <% if (typeof(user) == 'undefined' || user == null) { %>
         <li class="nav-item p-2"> <a href="/log-in" class="hover:text-emerald-400">Log in</a></li>
         <li class="nav-item p-2"> <a href="/sign-up" class="hover:text-emerald-400">Sign up</a></li>
         <% } else { %>
