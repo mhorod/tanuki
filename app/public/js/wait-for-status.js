@@ -3,8 +3,8 @@
 
 host = window.location.hostname
 port = window.location.port
-
-const socket = new WebSocket('ws://' + host + ':' + port);
+protocol = window.protocol == 'https' ? 'wss' : 'ws';
+const socket = new WebSocket(protocol + '://' + host + ':' + port + '/ws');
 const element = document.getElementById('status')
 
 
