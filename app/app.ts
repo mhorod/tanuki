@@ -1,13 +1,20 @@
 import {
   Client,
-  opine,
   renderFileToString,
   Router,
   serveStatic,
   config,
 } from "./deps.ts";
 
+import {
+  opine,
+  json,
+  urlencoded,
+} from "./deps.ts"
+
 import { dirname, join } from "./deps.ts";
+
+import { authRouter, verifyRequest, authorizeUsing, redirectIfLoggedIn, getFrontendUserData } from "./auth.ts"
 
 
 const dir = dirname(import.meta.url);
@@ -45,8 +52,9 @@ async function getSubmits() {
   return await client.queryArray(submitQuery);
 }
 
-router.get("/", (req, res, next) => {
+router.get("/ws", (req, res, next) => {
   if (req.headers.get('upgrade') == 'websocket') {
+    console.log("Hello websocket!")
     const socket = req.upgrade();
 
     const ok = Math.random() < 0.3;
@@ -65,30 +73,29 @@ router.get("/", (req, res, next) => {
       2000
     )
   }
-  else {
-    res.render("index");
-  }
 });
+
+router.get("/", redirectIfLoggedIn('/dashboard'), (req, res, next) => res.render("index"));
 
 router.get("/dashboard", (req, res, next) => {
   res.redirect("/dashboard/student");
 });
 
-router.get("/dashboard/student", (req, res, next) => {
+router.get("/dashboard/student", async (req, res, next) => {
+  const user = await getFrontendUserData(req);
   Promise.all([getContests(), getSubmits()]).then(
     (results) => {
-      console.log("Contests\n", results[0]);
-      console.log("Submits\n", results[1]);
       res.render("student-dashboard", {
         contests: results[0].rows,
         submits: results[1].rows,
+        user: user
       });
     },
   );
 });
 
 
-router.get('/que', (req, res, next) => {
+router.get('/que', authorizeUsing(e => e.login === "admin"), (req, res, next) => {
   res.render('que');
 })
 
@@ -96,16 +103,23 @@ router.get("/dashboard/teacher", (req, res, next) => {
   res.render("teacher-dashboard");
 });
 
-router.get("/log-in", (req, res, next) => {
-  res.render("log-in");
-});
-
 const app = opine();
+
+import { handleSubmits } from "./submit.ts"
+handleSubmits(router);
+
+// Handling of incoming formats
+app.use(json())
+app.use(urlencoded())
+
+// Frontend configuration
 app.set("views", join(dir, "views"));
 app.set("view engine", "ejs");
 app.engine("ejs", renderFileToString);
 app.use(serveStatic(join(dir, "public")));
+
 app.use("/", router);
+app.use("/", authRouter);
 
 // If router can't handle request send 404
 app.use((req, res, next) => {
