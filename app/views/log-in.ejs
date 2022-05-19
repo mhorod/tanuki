@@ -12,7 +12,7 @@
   <%- await include("views/nav.ejs"); %>
   <div class=" container mx-auto p-6">
     <h2 class="text-4xl text-center mb-8"> Log in </h2>
-    <form method="post" action="" class="flex justify-center">
+    <form method="post" action="/log-in" class="flex justify-center">
       <div class="flex gap-4 flex-col max-w-sm align-middle">
         <label for="login" class="block uppercase tracking-wide
       "> login </label>
@@ -21,7 +21,6 @@
         border-white 
         bg-zinc-900
       ">
-
         <label for="login" class="block uppercase tracking-wide"> password </label>
         <input type="password" name="password" class="p-2
 
@@ -29,10 +28,14 @@
         border-white 
         bg-zinc-900
       ">
-        <button type="submit" class="block border-2 p-2 btn
-        hover:bg-zinc-800
-        border-emerald-600
-      ">
+
+        <span class="text-red-500">
+          <% if (typeof(error) != 'undefined') { %>
+          <%= error %>
+          <% } %>
+        </span>
+
+        <button type="submit" class="p-4 block text-white bg-emerald-600 hover:bg-emerald-500">
           Log in
         </button>
       </div>
