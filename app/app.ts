@@ -53,8 +53,8 @@ router.get("/", redirectIfLoggedIn('/dashboard'), (_, res, __) => res.render("in
 router.get("/dashboard", (_, res, __) => res.redirect("/dashboard/student"));
 
 router.get("/dashboard/student", async (req, res, _) => {
-  const contests = (await getContests()).rows;
-  const submits = (await getSubmits()).rows;
+  const contests = await getContests();
+  const submits = await getSubmits();
 
   renderWithUserData(req, res, "student-dashboard", {
     contests: contests,

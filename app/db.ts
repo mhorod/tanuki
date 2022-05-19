@@ -21,8 +21,15 @@ interface Contest {
 }
 
 
-async function getContests() {
-  return await client.queryArray("select * from contests;");
+async function getContests(): Promise<Array<Contest>> {
+  const rows: any[][] = (await client.queryArray("select * from contests;")).rows;
+  const contests = Array<Contest>();
+  for (const row of rows) {
+    const contest = { id: row[0], name: row[1], shortname: row[2], active: row[3] }
+    contests.push(contest);
+  }
+  return contests;
+
 }
 
 interface Submit {
@@ -43,8 +50,18 @@ from
   join statuses st on sr.status = st.id 
   join problems p on s.problem_id = p.id;
 `;
-async function getSubmits() {
-  return await client.queryArray(submitQuery);
+async function getSubmits(): Promise<Array<Submit>> {
+  const rows: any[][] = (await client.queryArray(submitQuery)).rows;
+  const submits = Array<Submit>();
+  for (const row of rows) {
+    const submit: Submit = {
+      id: row[0],
+      problem: row[1],
+      status: row[2]
+    }
+    submits.push(submit);
+  }
+  return submits;
 }
 
 export { getContests, getSubmits };
