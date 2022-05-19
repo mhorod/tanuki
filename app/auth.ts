@@ -3,6 +3,7 @@
 import { OpineRequest, OpineResponse, NextFunction, Router } from "./deps.ts"
 import { create, verify } from "./deps.ts"
 import { deleteCookie, setCookie, getCookies } from "./deps.ts"
+import { renderWithUserData } from "./utils.ts"
 
 const JWT_KEY = await crypto.subtle.generateKey(
     { name: "HMAC", hash: "SHA-512" },
@@ -93,23 +94,36 @@ async function createUserToken(credentials: Credentials) {
 }
 
 /**
+ * Create handler that allows further processing  of request only if the user making it 
+ * meets provided criteria, redirect to 403 otherwise 
  * 
- * @param hasAccess function that returns true if user with given credentials has access to a resource
+ * @param hasAccess function that returns true if user has access to a resource
  */
-function authorizeUsing(hasAccess: (credentials: UserData) => boolean) {
+function authorizeUsing(hasAccess: (userData: UserData) => boolean) {
     return async (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
         const userData = await verifyRequest(req);
-        if (userData === null || !hasAccess(userData))
-            res.render("403");
+        if (userData === null || !hasAccess(userData)) {
+            res.setStatus(403);
+            renderWithUserData(req, res, "403");
+        }
         else
             next();
     }
 }
 
-function redirectIfLoggedIn(to: string | null = null) {
+/**
+ * If user is logged in then redirect to another page
+ * Redirects to target if it's not null,
+ * otherwise redirect to GET parameter if it's not null
+ * otherwise redirect to root
+ *  
+ * @param target where to redirect
+ * @returns 
+ */
+function redirectIfLoggedIn(target: string | null = null) {
     return async (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
         const verified = await verifyRequest(req);
-        const redirect = to || req.query.redirect || '/';
+        const redirect = target || req.query.redirect || '/';
         if (verified != null)
             res.redirect(redirect);
         else
@@ -126,12 +140,6 @@ router.get("/sign-up", redirectIfLoggedIn(), (req, res, next) => res.render("sig
 router.post("/log-in",
     redirectIfLoggedIn(),
     async (req, res, next) => {
-        const redirect = req.query.redirect || '/';
-        const verified = await verifyRequest(req);
-        if (verified != null) {
-            console.log("user is logged in");
-            res.redirect(redirect);
-        }
 
         const credentials = getCredentials(req);
         if (credentialsAreEmpty(credentials))
@@ -143,9 +151,11 @@ router.post("/log-in",
             setCookie(res.headers, {
                 name: "token",
                 value: token,
-                //secure: true,
+                //secure: true, // TODO: Uncomment that in release version
                 httpOnly: true,
             });
+
+            const redirect = req.query.redirect || '/';
             res.redirect(redirect);
         }
 
