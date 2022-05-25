@@ -67,6 +67,14 @@ router.get('/que', authorizeUsing(e => e.login === "admin"), (req, res, _) => re
 
 router.get("/dashboard/teacher", (req, res, _) => renderWithUserData(req, res, "teacher-dashboard"));
 
+router.get("/statuses", (req, res, next) => {
+  res.render("statuses",
+    {
+      statuses: ["OK", "QUE", "ANS", "TLE", "RTE", "ERR", "REJ", "CME", "RUL", "INT"]
+    });
+})
+
+
 import { handleSubmits } from "./submit.ts"
 handleSubmits(router);
 

@@ -1,18 +1,21 @@
 .status-tle,
 .status-rte,
 .status-ans {
-    background: #ff6d7d;
+    background: #e03c26;
 }
 
 .status-ok {
-    background: #80D47c;
+    background: #10b981;
 }
 
 .status-que {
-    background: #F5CB73;
+    background-color: #ebd336;
 }
 
 .status-cme,
-.status-rej {
+.status-rej,
+.status-int,
+.status-rul,
+.status-err {
     background: #2f4858;
 }
