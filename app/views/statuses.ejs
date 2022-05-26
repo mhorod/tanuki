@@ -11,6 +11,8 @@
 <body class="bg-zinc-900 text-white">
   <%- await include("views/nav.ejs"); %>
 
+  <%- await include("views/nav.ejs", {user: user}); %>
+
   <div class="flex flex-col justify-center">
     <h2 class="text-4xl text-center mb-8 p-4"> List of statuses, with their colors </h2>
 
