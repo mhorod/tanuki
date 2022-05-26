@@ -13,10 +13,11 @@ import {
 
 import { dirname, join } from "./deps.ts";
 
-import { JWTAuthorizer, setUpAuthRouter, authorizeUsing, redirectIfAuthorized, } from "./auth.ts"
+import { Authorizer, DBAuthorizer, setUpAuthRouter, authorizeUsing, redirectIfAuthorized, } from "./auth.ts"
+import { JWTAuthorizer } from "./jwt.ts"
 import { renderWithUserData } from "./utils.ts"
 
-import { connectNewClient, PostgresContestDB } from "./db.ts"
+import { connectNewClient, PostgresContestDB, PostgresCredentialDB } from "./db.ts"
 
 const dir = dirname(import.meta.url);
 await config({ export: true });
@@ -35,7 +36,9 @@ const db = new PostgresContestDB(client);
 
 
 const router = Router();
-const authorizer = new JWTAuthorizer();
+const requestAuthorizer = new JWTAuthorizer();
+const credentialAuthorizer = new DBAuthorizer(new PostgresCredentialDB(client));
+const authorizer = new Authorizer(requestAuthorizer, credentialAuthorizer);
 setUpAuthRouter(router, authorizer);
 
 

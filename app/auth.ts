@@ -1,16 +1,10 @@
 // Handles logging in and signing up 
 
-import { OpineRequest, OpineResponse, NextFunction, Router, IRouter } from "./deps.ts"
-import { create, verify } from "./deps.ts"
-import { deleteCookie, setCookie, getCookies } from "./deps.ts"
+import { OpineRequest, OpineResponse, NextFunction, IRouter } from "./deps.ts"
+import { deleteCookie, setCookie } from "./deps.ts"
 import { renderWithUserData } from "./utils.ts"
-import type { User } from "./db.ts"
-
-const JWT_KEY = await crypto.subtle.generateKey(
-    { name: "HMAC", hash: "SHA-512" },
-    true,
-    ["sign", "verify"]
-);
+import { CredentialDB } from "./db.ts"
+import { createUserToken } from "./jwt.ts"
 
 /**
  * Credentials used to log into the system
@@ -24,43 +18,41 @@ interface UserData {
     login: string
 }
 
-interface CredentialDB {
-    findUser(credentials: Credentials): Promise<User | null>;
-}
 
-
-interface Authorizer {
+interface RequestAuthorizer {
     authorizeRequest(req: OpineRequest): Promise<UserData | null>;
+}
 
+interface CredentialAuthorizer {
+    authorizeCredentials(credentials: Credentials): Promise<UserData | null>;
 }
 
 
+class Authorizer implements RequestAuthorizer, CredentialAuthorizer {
+    requestAuthorizer: RequestAuthorizer;
+    credentialAuthorizer: CredentialAuthorizer
 
-class JWTAuthorizer implements Authorizer {
-
-    /**
-     * Extracts authorization data from request if it's valid
-     *  
-     * @param req  Request to authorized
-     * @returns authorization data, or null if the request cannot be verified
-     */
-    async authorizeRequest(req: OpineRequest): Promise<UserData | null> {
-        const cookie = getCookies(req.headers);
-        const token = cookie.token;
-
-        if (token == null) return null;
-
-        // We want `any` here, because we extract variables and create interface
-        // deno-lint-ignore no-explicit-any
-        let verified: any;
-        try {
-            verified = await verify(token, JWT_KEY);
-        }
-        catch {
-            return null
-        }
-        return { login: verified.data.login };
+    constructor(requestAuthorizer: RequestAuthorizer, credentialAuthorizer: CredentialAuthorizer) {
+        this.requestAuthorizer = requestAuthorizer;
+        this.credentialAuthorizer = credentialAuthorizer;
     }
+    async authorizeRequest(req: OpineRequest) {
+        return await this.requestAuthorizer.authorizeRequest(req);
+    }
+    async authorizeCredentials(credentials: Credentials) {
+        return await this.credentialAuthorizer.authorizeCredentials(credentials);
+    }
+}
+
+
+class DBAuthorizer implements CredentialAuthorizer {
+    credentialDB: CredentialDB;
+    constructor(credentialDB: CredentialDB) { this.credentialDB = credentialDB; }
+    async authorizeCredentials(credentials: Credentials) {
+        const user = await this.credentialDB.getUserByCredentials(credentials);
+        return user;
+    }
+
 }
 
 function getCredentials(req: OpineRequest): Credentials {
@@ -126,16 +118,6 @@ function credentialsAreEmpty(credentials: Credentials): boolean {
 
 
 /**
- * Create authorization token based on user credentials
- * Token contains all information necessary for later access authorization
- * 
- * @returns token that can be sent back to the user
- */
-async function createUserToken(data: UserData) {
-    return await create({ alg: "HS512", typ: "JWT" }, { data: data }, JWT_KEY);
-}
-
-/**
  * Create handler that allows further processing  of request only if the user making it 
  * meets provided criteria, redirect to 403 otherwise 
  * @param authorizer authorizer to be used
@@ -152,7 +134,6 @@ function authorizeUsing(authorizer: Authorizer, hasAccess: (userData: UserData) 
             next();
     }
 }
-
 
 
 function setUpAuthRouter(router: IRouter, authorizer: Authorizer) {
@@ -199,8 +180,7 @@ function setUpAuthRouter(router: IRouter, authorizer: Authorizer) {
 
 
 
-
 export { setUpAuthRouter };
 export { redirectIfAuthorized, redirectIfUnauthorized, authorizeUsing, getUserData };
-export { JWTAuthorizer };
-export type { Authorizer, CredentialDB, UserData };
+export { DBAuthorizer, Authorizer };
+export type { RequestAuthorizer, CredentialAuthorizer, Credentials, UserData };

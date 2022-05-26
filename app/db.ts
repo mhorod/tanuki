@@ -1,7 +1,7 @@
 // Functionality that connects to the database and retrieves data
 
 import { Client, ClientOptions } from "./deps.ts"
-
+import { Credentials } from "./auth.ts"
 
 /**
  * Creates new connection to the database
@@ -25,14 +25,7 @@ interface Contest {
 
 
 async function getContests(client: Client): Promise<Array<Contest>> {
-  const rows: any[][] = (await client.queryArray("select * from contests;")).rows;
-  const contests = Array<Contest>();
-  for (const row of rows) {
-    const contest = { id: row[0], name: row[1], shortname: row[2], active: row[3] }
-    contests.push(contest);
-  }
-  return contests;
-
+  return (await client.queryObject<Contest>("select * from contests;")).rows;
 }
 
 interface Submit {
@@ -53,8 +46,8 @@ interface User {
 const submitQuery = `
 select 
   s.id, 
-  p.name, 
-  st.name 
+  p.name "problem",
+  st.name "status"
 from 
   submits s 
   join submit_results sr on s.id = sr.submit_id 
@@ -62,18 +55,13 @@ from
   join problems p on s.problem_id = p.id;
 `;
 async function getSubmits(client: Client): Promise<Array<Submit>> {
-  const rows: any[][] = (await client.queryArray(submitQuery)).rows;
-  const submits = Array<Submit>();
-  for (const row of rows) {
-    const submit: Submit = {
-      id: row[0],
-      problem: row[1],
-      status: row[2]
-    }
-    submits.push(submit);
-  }
-  return submits;
+  return (await client.queryObject<Submit>(submitQuery)).rows;
 }
+
+async function getUser(client: Client, credentials: Credentials) {
+  return await null;
+}
+
 
 interface ContestDB {
   getContests(): Promise<Array<Contest>>;
@@ -82,6 +70,10 @@ interface ContestDB {
 
 interface UserDB {
   getUserByLogin(login: string): Promise<User | null>;
+}
+
+interface CredentialDB {
+  getUserByCredentials(credentials: Credentials): Promise<User | null>;
 }
 
 
@@ -97,7 +89,15 @@ class PostgresContestDB implements ContestDB {
   }
 }
 
+class PostgresCredentialDB implements CredentialDB {
 
+  client: Client;
 
-export type { ContestDB, UserDB, User };
-export { connectNewClient, PostgresContestDB };
+  constructor(client: Client) { this.client = client; }
+  async getUserByCredentials(credentials: Credentials): Promise<User | null> {
+    return await getUser(this.client, credentials);
+  }
+}
+
+export type { ContestDB, UserDB, CredentialDB, User };
+export { connectNewClient, PostgresContestDB, PostgresCredentialDB };
