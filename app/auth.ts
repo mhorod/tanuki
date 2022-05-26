@@ -1,10 +1,8 @@
 // Handles logging in and signing up 
 
 import { OpineRequest, OpineResponse, NextFunction, IRouter } from "./deps.ts"
-import { deleteCookie, setCookie } from "./deps.ts"
 import { renderWithUserData } from "./utils.ts"
 import { CredentialDB } from "./db.ts"
-import { createUserToken } from "./jwt.ts"
 
 /**
  * Credentials used to log into the system
@@ -27,21 +25,9 @@ interface CredentialAuthorizer {
     authorizeCredentials(credentials: Credentials): Promise<UserData | null>;
 }
 
-
-class Authorizer implements RequestAuthorizer, CredentialAuthorizer {
-    requestAuthorizer: RequestAuthorizer;
-    credentialAuthorizer: CredentialAuthorizer
-
-    constructor(requestAuthorizer: RequestAuthorizer, credentialAuthorizer: CredentialAuthorizer) {
-        this.requestAuthorizer = requestAuthorizer;
-        this.credentialAuthorizer = credentialAuthorizer;
-    }
-    async authorizeRequest(req: OpineRequest) {
-        return await this.requestAuthorizer.authorizeRequest(req);
-    }
-    async authorizeCredentials(credentials: Credentials) {
-        return await this.credentialAuthorizer.authorizeCredentials(credentials);
-    }
+interface Session extends RequestAuthorizer {
+    logIn(user: UserData, res: OpineResponse): any;
+    logOut(res: OpineResponse): any;
 }
 
 
@@ -67,7 +53,7 @@ function getCredentials(req: OpineRequest): Credentials {
  * @param target where to redirect
  * @returns function tat does the thing
  */
-function redirectIfAuthorized(authorizer: Authorizer, target: string | null = null) {
+function redirectIfAuthorized(authorizer: RequestAuthorizer, target: string | null = null) {
     return async (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
         const verified = await authorizer.authorizeRequest(req);
         const redirect = target || req.query.redirect || '/';
@@ -87,7 +73,7 @@ function redirectIfAuthorized(authorizer: Authorizer, target: string | null = nu
  * @param target where to redirect
  * @returns function tat does the thing
  */
-function redirectIfUnauthorized(authorizer: Authorizer, target: string | null = null) {
+function redirectIfUnauthorized(authorizer: RequestAuthorizer, target: string | null = null) {
     return async (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
         const verified = await authorizer.authorizeRequest(req);
         const redirect = target || req.query.redirect || '/';
@@ -98,7 +84,7 @@ function redirectIfUnauthorized(authorizer: Authorizer, target: string | null = 
     }
 }
 
-async function getUserData(authorizer: Authorizer, req: OpineRequest): Promise<UserData | null> {
+async function getUserData(authorizer: RequestAuthorizer, req: OpineRequest): Promise<UserData | null> {
     const verified = await authorizer.authorizeRequest(req);
     return verified ? { login: verified.login } : null;
 }
@@ -123,7 +109,7 @@ function credentialsAreEmpty(credentials: Credentials): boolean {
  * @param authorizer authorizer to be used
  * @param hasAccess function that returns true if user has access to a resource
  */
-function authorizeUsing(authorizer: Authorizer, hasAccess: (userData: UserData) => boolean) {
+function authorizeUsing(authorizer: RequestAuthorizer, hasAccess: (userData: UserData) => boolean) {
     return async (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
         const userData = await authorizer.authorizeRequest(req);
         if (userData === null || !hasAccess(userData)) {
@@ -136,32 +122,26 @@ function authorizeUsing(authorizer: Authorizer, hasAccess: (userData: UserData) 
 }
 
 
-function setUpAuthRouter(router: IRouter, authorizer: Authorizer) {
+function setUpAuthRouter(router: IRouter, session: Session, credentialAuthorizer: CredentialAuthorizer) {
 
-    router.get("/log-in", redirectIfAuthorized(authorizer), (req, res, next) => res.render("log-in"));
-    router.get("/sign-up", redirectIfAuthorized(authorizer), (req, res, next) => res.render("sign-up"));
+    router.get("/log-in", redirectIfAuthorized(session), (req, res, next) => res.render("log-in"));
+    router.get("/sign-up", redirectIfAuthorized(session), (req, res, next) => res.render("sign-up"));
 
     router.post("/log-in",
-        redirectIfAuthorized(authorizer),
+        redirectIfAuthorized(session),
         async (req, res, next) => {
-
-
             const credentials = getCredentials(req);
             if (credentialsAreEmpty(credentials))
                 res.render("log-in", { error: "empty login or password" });
             else {
-                // If credentials are valid send back a cookie with a token
-                const token = await createUserToken(credentials);
-                res.headers = new Headers();
-                setCookie(res.headers, {
-                    name: "token",
-                    value: token,
-                    //secure: true, // TODO: Uncomment that in release version
-                    httpOnly: true,
-                });
-
-                const redirect = req.query.redirect || '/';
-                res.redirect(redirect);
+                const user = await credentialAuthorizer.authorizeCredentials(credentials);
+                if (user == null)
+                    res.render("log-in", { error: "invalid login or password" });
+                else {
+                    await session.logIn(user, res);
+                    const redirect = req.query.redirect || '/';
+                    res.redirect(redirect);
+                }
             }
 
         });
@@ -170,9 +150,8 @@ function setUpAuthRouter(router: IRouter, authorizer: Authorizer) {
         console.log(req.parsedBody)
     });
 
-    router.get("/log-out", (req, res, next) => {
-        if (res.headers)
-            deleteCookie(res.headers, "token");
+    router.get("/log-out", async (req, res, next) => {
+        await session.logOut(res);
         res.redirect("/");
     })
 }
@@ -182,5 +161,5 @@ function setUpAuthRouter(router: IRouter, authorizer: Authorizer) {
 
 export { setUpAuthRouter };
 export { redirectIfAuthorized, redirectIfUnauthorized, authorizeUsing, getUserData };
-export { DBAuthorizer, Authorizer };
-export type { RequestAuthorizer, CredentialAuthorizer, Credentials, UserData };
+export { DBAuthorizer };
+export type { RequestAuthorizer, CredentialAuthorizer, Credentials, UserData, Session };

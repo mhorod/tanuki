@@ -13,8 +13,8 @@ import {
 
 import { dirname, join } from "./deps.ts";
 
-import { Authorizer, DBAuthorizer, setUpAuthRouter, authorizeUsing, redirectIfAuthorized, } from "./auth.ts"
-import { JWTAuthorizer } from "./jwt.ts"
+import { DBAuthorizer, setUpAuthRouter, authorizeUsing, redirectIfAuthorized, } from "./auth.ts"
+import { JWTSession } from "./jwt.ts"
 import { renderWithUserData } from "./utils.ts"
 
 import { connectNewClient, PostgresContestDB, PostgresCredentialDB } from "./db.ts"
@@ -36,10 +36,9 @@ const db = new PostgresContestDB(client);
 
 
 const router = Router();
-const requestAuthorizer = new JWTAuthorizer();
+const session = new JWTSession();
 const credentialAuthorizer = new DBAuthorizer(new PostgresCredentialDB(client));
-const authorizer = new Authorizer(requestAuthorizer, credentialAuthorizer);
-setUpAuthRouter(router, authorizer);
+setUpAuthRouter(router, session, credentialAuthorizer);
 
 
 router.get("/ws", (req, res, next) => {
@@ -65,7 +64,7 @@ router.get("/ws", (req, res, next) => {
   }
 });
 
-router.get("/", redirectIfAuthorized(authorizer, '/dashboard'), (_, res, __) => res.render("index"));
+router.get("/", redirectIfAuthorized(session, '/dashboard'), (_, res, __) => res.render("index"));
 
 router.get("/dashboard", (_, res, __) => res.redirect("/dashboard/student"));
 
@@ -73,16 +72,16 @@ router.get("/dashboard/student", async (req, res, next) => {
   const contests = await db.getContests();
   const submits = await db.getSubmits();
 
-  renderWithUserData(authorizer, "student-dashboard", {
+  renderWithUserData(session, "student-dashboard", {
     contests: contests,
     submits: submits
   })(req, res, next);
 });
 
 
-router.get('/que', authorizeUsing(authorizer, e => e.login === "admin"), renderWithUserData(authorizer, "que"));
+router.get('/que', authorizeUsing(session, e => e.login === "admin"), renderWithUserData(session, "que"));
 
-router.get("/dashboard/teacher", renderWithUserData(authorizer, "teacher-dashboard"));
+router.get("/dashboard/teacher", renderWithUserData(session, "teacher-dashboard"));
 
 router.get("/statuses", (req, res, next) => {
   res.render("statuses",
@@ -112,6 +111,6 @@ app.use("/", router);
 // If router can't handle request send 404
 app.use((req, res, next) => {
   res.setStatus(404);
-  renderWithUserData(authorizer, "404")(req, res, next);
+  renderWithUserData(session, "404")(req, res, next);
 });
 export default app;

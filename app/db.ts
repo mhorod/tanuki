@@ -58,8 +58,18 @@ async function getSubmits(client: Client): Promise<Array<Submit>> {
   return (await client.queryObject<Submit>(submitQuery)).rows;
 }
 
-async function getUser(client: Client, credentials: Credentials) {
-  return await null;
+function getUser(client: Client, credentials: Credentials): User | null {
+  if (credentials.login == "admin" && credentials.password == "admin")
+    return {
+      id: 0,
+      login: "admin",
+      name: "admin",
+      surname: "admin",
+      password_hash: "admin",
+      email: "admin"
+    }
+  else
+    return null;
 }
 
 

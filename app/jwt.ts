@@ -1,6 +1,8 @@
 import { OpineRequest } from "./deps.ts"
 import { create, verify, getCookies } from "./deps.ts"
-import { UserData, RequestAuthorizer } from "./auth.ts"
+import { UserData, Session } from "./auth.ts"
+import { OpineResponse } from "./deps.ts"
+import { deleteCookie, setCookie } from "./deps.ts"
 
 const JWT_KEY = await crypto.subtle.generateKey(
     { name: "HMAC", hash: "SHA-512" },
@@ -8,7 +10,23 @@ const JWT_KEY = await crypto.subtle.generateKey(
     ["sign", "verify"]
 );
 
-class JWTAuthorizer implements RequestAuthorizer {
+class JWTSession implements Session {
+    async logIn(user: UserData, res: OpineResponse) {
+        console.log(user)
+        // If credentials are valid send back a cookie with a token
+        const token = await createUserToken(user);
+        res.headers = new Headers();
+        setCookie(res.headers, {
+            name: "token",
+            value: token,
+            //secure: true, // TODO: Uncomment that in release version
+            httpOnly: true,
+        });
+    }
+    logOut(res: OpineResponse) {
+        if (res.headers)
+            deleteCookie(res.headers, "token");
+    }
 
     /**
      * Extracts authorization data from request if it's valid
@@ -45,4 +63,4 @@ async function createUserToken(data: UserData) {
     return await create({ alg: "HS512", typ: "JWT" }, { data: data }, JWT_KEY);
 }
 
-export { JWTAuthorizer, createUserToken }
+export { JWTSession }
