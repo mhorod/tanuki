@@ -12,6 +12,7 @@ export type { IRouter, OpineRequest, OpineResponse, NextFunction } from "https:/
 export { renderFileToString } from "https://deno.land/x/dejs@0.10.2/mod.ts";
 
 // Database connection
+export type { ClientOptions } from "https://deno.land/x/postgres/mod.ts";
 export { Client } from "https://deno.land/x/postgres/mod.ts";
 
 // Environment variables

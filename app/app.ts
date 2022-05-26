@@ -16,10 +16,22 @@ import { dirname, join } from "./deps.ts";
 import { authRouter, authorizeUsing, redirectIfLoggedIn, } from "./auth.ts"
 import { renderWithUserData } from "./utils.ts"
 
-import { getContests, getSubmits } from "./db.ts"
+import { connectNewClient, PostgresContestDB } from "./db.ts"
 
 const dir = dirname(import.meta.url);
 await config({ export: true });
+
+const clientOptions = {
+  user: Deno.env.get("DB_USER"),
+  password: Deno.env.get("DB_PASSWORD"),
+  database: Deno.env.get("DB_NAME"),
+  hostname: Deno.env.get("DB_HOST"),
+  port: 5432,
+};
+
+const client = await connectNewClient(clientOptions);
+console.log("Connected to the database!");
+const db = new PostgresContestDB(client);
 
 
 const router = Router();
@@ -53,8 +65,8 @@ router.get("/", redirectIfLoggedIn('/dashboard'), (_, res, __) => res.render("in
 router.get("/dashboard", (_, res, __) => res.redirect("/dashboard/student"));
 
 router.get("/dashboard/student", async (req, res, _) => {
-  const contests = await getContests();
-  const submits = await getSubmits();
+  const contests = await db.getContests();
+  const submits = await db.getSubmits();
 
   renderWithUserData(req, res, "student-dashboard", {
     contests: contests,
