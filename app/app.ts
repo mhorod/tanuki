@@ -13,7 +13,7 @@ import {
 
 import { dirname, join } from "./deps.ts";
 
-import { authRouter, authorizeUsing, redirectIfLoggedIn, } from "./auth.ts"
+import { JWTAuthorizer, setUpAuthRouter, authorizeUsing, redirectIfAuthorized, } from "./auth.ts"
 import { renderWithUserData } from "./utils.ts"
 
 import { connectNewClient, PostgresContestDB } from "./db.ts"
@@ -35,6 +35,8 @@ const db = new PostgresContestDB(client);
 
 
 const router = Router();
+const authorizer = new JWTAuthorizer();
+setUpAuthRouter(router, authorizer);
 
 
 router.get("/ws", (req, res, next) => {
@@ -60,24 +62,24 @@ router.get("/ws", (req, res, next) => {
   }
 });
 
-router.get("/", redirectIfLoggedIn('/dashboard'), (_, res, __) => res.render("index"));
+router.get("/", redirectIfAuthorized(authorizer, '/dashboard'), (_, res, __) => res.render("index"));
 
 router.get("/dashboard", (_, res, __) => res.redirect("/dashboard/student"));
 
-router.get("/dashboard/student", async (req, res, _) => {
+router.get("/dashboard/student", async (req, res, next) => {
   const contests = await db.getContests();
   const submits = await db.getSubmits();
 
-  renderWithUserData(req, res, "student-dashboard", {
+  renderWithUserData(authorizer, "student-dashboard", {
     contests: contests,
     submits: submits
-  });
+  })(req, res, next);
 });
 
 
-router.get('/que', authorizeUsing(e => e.login === "admin"), (req, res, _) => renderWithUserData(req, res, "que"));
+router.get('/que', authorizeUsing(authorizer, e => e.login === "admin"), renderWithUserData(authorizer, "que"));
 
-router.get("/dashboard/teacher", (req, res, _) => renderWithUserData(req, res, "teacher-dashboard"));
+router.get("/dashboard/teacher", renderWithUserData(authorizer, "teacher-dashboard"));
 
 router.get("/statuses", (req, res, next) => {
   res.render("statuses",
@@ -103,11 +105,10 @@ app.engine("ejs", renderFileToString);
 app.use(serveStatic(join(dir, "public")));
 
 app.use("/", router);
-app.use("/", authRouter);
 
 // If router can't handle request send 404
-app.use((req, res, __) => {
+app.use((req, res, next) => {
   res.setStatus(404);
-  renderWithUserData(req, res, "404");
+  renderWithUserData(authorizer, "404")(req, res, next);
 });
 export default app;

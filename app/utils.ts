@@ -1,10 +1,12 @@
-import { OpineRequest, OpineResponse } from "./deps.ts"
-import { getFrontendUserData } from "./auth.ts"
+import { OpineRequest, OpineResponse, NextFunction } from "./deps.ts"
+import { Authorizer, getUserData } from "./auth.ts"
 
-async function renderWithUserData(req: OpineRequest, res: OpineResponse, view: string, ctx: any = {}) {
-    const user = await getFrontendUserData(req);
-    ctx.user = user;
-    res.render(view, ctx);
+function renderWithUserData(authorizer: Authorizer, view: string, ctx: any = {}) {
+    return async (req: OpineRequest, res: OpineResponse, _: NextFunction) => {
+        const user = await getUserData(authorizer, req);
+        ctx.user = user;
+        res.render(view, ctx);
+    }
 }
 
 export { renderWithUserData };
