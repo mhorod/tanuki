@@ -1,3 +1,35 @@
+/* Remove blue outline on input focus */
+input:focus,
+textarea:focus {
+    outline: none;
+    border-color: #10b981;
+    border-width: 2px;
+}
+
+/* Status styling */
+.status-tle,
+.status-rte,
+.status-ans {
+    background: #e03c26;
+}
+
+.status-ok {
+    background: #10b981;
+}
+
+.status-que {
+    background-color: #ebd336;
+}
+
+.status-cme,
+.status-rej,
+.status-int,
+.status-rul,
+.status-err {
+    background: #2f4858;
+}
+
+/* Loading animation */
 .lds-dual-ring {
     display: inline-block;
     width: 32px;
