@@ -1,4 +1,4 @@
-// Handles logging in and signing up 
+// Handles logging in and signing up
 
 import { OpineRequest, OpineResponse, NextFunction, IRouter } from "./deps.ts"
 import { renderWithUserData } from "./utils.ts"
@@ -12,11 +12,18 @@ interface Credentials {
     password: string,
 }
 
+/**
+ * Data used to identify user making a request
+ */
 interface UserData {
     login: string
 }
 
 
+/**
+ * Extracts information about user making the request
+ * 
+ */
 interface RequestAuthorizer {
     authorizeRequest(req: OpineRequest): Promise<UserData | null>;
 }
@@ -25,6 +32,9 @@ interface CredentialAuthorizer {
     authorizeCredentials(credentials: Credentials): Promise<UserData | null>;
 }
 
+/**
+ * Manages request/response layer of user session
+ */
 interface Session extends RequestAuthorizer {
     logIn(user: UserData, res: OpineResponse): any;
     logOut(res: OpineResponse): any;
@@ -41,9 +51,13 @@ class DBAuthorizer implements CredentialAuthorizer {
 
 }
 
+/**
+ * Retrieves credentials from given request
+ */
 function getCredentials(req: OpineRequest): Credentials {
     return { login: req.parsedBody.login, password: req.parsedBody.password };
 }
+
 /**
  * If user is logged in then redirect to another page
  * Redirects to target if it's not null,
@@ -84,11 +98,6 @@ function redirectIfUnauthorized(authorizer: RequestAuthorizer, target: string | 
     }
 }
 
-async function getUserData(authorizer: RequestAuthorizer, req: OpineRequest): Promise<UserData | null> {
-    const verified = await authorizer.authorizeRequest(req);
-    return verified ? { login: verified.login } : null;
-}
-
 
 
 /**
@@ -100,8 +109,6 @@ function credentialsAreEmpty(credentials: Credentials): boolean {
     return credentials.login === undefined || credentials.password === undefined
         || credentials.login === "" || credentials.password === "";
 }
-
-
 
 /**
  * Create handler that allows further processing  of request only if the user making it 
@@ -122,6 +129,13 @@ function authorizeUsing(authorizer: RequestAuthorizer, hasAccess: (userData: Use
 }
 
 
+/**
+ * Connects authentication paths to the router
+ * handles GET and POST of routes `/log-in` and `/sign-up`
+ * @param router router to use
+ * @param session 
+ * @param credentialAuthorizer 
+ */
 function setUpAuthRouter(router: IRouter, session: Session, credentialAuthorizer: CredentialAuthorizer) {
 
     router.get("/log-in", redirectIfAuthorized(session), (req, res, next) => res.render("log-in"));
@@ -160,6 +174,6 @@ function setUpAuthRouter(router: IRouter, session: Session, credentialAuthorizer
 
 
 export { setUpAuthRouter };
-export { redirectIfAuthorized, redirectIfUnauthorized, authorizeUsing, getUserData };
+export { redirectIfAuthorized, redirectIfUnauthorized, authorizeUsing };
 export { DBAuthorizer };
 export type { RequestAuthorizer, CredentialAuthorizer, Credentials, UserData, Session };
