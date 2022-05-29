@@ -13,11 +13,11 @@ import {
 
 import { dirname, join } from "./deps.ts";
 
-import { DBAuthorizer, setUpAuthRouter, authorizeUsing, redirectIfAuthorized, } from "./auth.ts"
+import { setUpAuthRouter, redirectIfAuthenticated, authenticateUsing } from "./auth.ts"
 import { JWTSession } from "./jwt.ts"
 import { renderWithUserData } from "./utils.ts"
 
-import { connectNewClient, PostgresContestDB, PostgresCredentialDB } from "./db.ts"
+import { connectNewClient, PostgresContestDB, PostgresCredentialDB, PostgresUserDB } from "./db.ts"
 
 const dir = dirname(import.meta.url);
 await config({ export: true });
@@ -37,8 +37,14 @@ const db = new PostgresContestDB(client);
 
 const router = Router();
 const session = new JWTSession();
-const credentialAuthorizer = new DBAuthorizer(new PostgresCredentialDB(client));
-setUpAuthRouter(router, session, credentialAuthorizer);
+const credentialDB = new PostgresCredentialDB(client);
+const userDB = new PostgresUserDB(client);
+const authConfig = {
+  session: session,
+  credentialDB: credentialDB,
+  userDB: userDB
+};
+setUpAuthRouter(router, authConfig);
 
 
 router.get("/ws", (req, res, next) => {
@@ -64,7 +70,7 @@ router.get("/ws", (req, res, next) => {
   }
 });
 
-router.get("/", redirectIfAuthorized(session, '/dashboard'), (_, res, __) => res.render("index"));
+router.get("/", redirectIfAuthenticated(session, '/dashboard'), (_, res, __) => res.render("index"));
 
 router.get("/dashboard", (_, res, __) => res.redirect("/dashboard/student"));
 
@@ -79,7 +85,7 @@ router.get("/dashboard/student", async (req, res, next) => {
 });
 
 
-router.get('/que', authorizeUsing(session, e => e.login === "admin"), renderWithUserData(session, "que"));
+router.get('/que', authenticateUsing(session, e => e.login === "admin"), renderWithUserData(session, "que"));
 
 router.get("/dashboard/teacher", renderWithUserData(session, "teacher-dashboard"));
 

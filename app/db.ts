@@ -43,6 +43,15 @@ interface User {
   email: string,
 }
 
+interface NewUser {
+  login: string,
+  name: string,
+  surname: string,
+  email: string,
+  password: string,
+  password_repeat: string,
+}
+
 const submitQuery = `
 select 
   s.id, 
@@ -80,6 +89,7 @@ interface ContestDB {
 
 interface UserDB {
   getUserByLogin(login: string): Promise<User | null>;
+  addNewUser(user: NewUser): Promise<User | null>;
 }
 
 interface CredentialDB {
@@ -100,14 +110,29 @@ class PostgresContestDB implements ContestDB {
 }
 
 class PostgresCredentialDB implements CredentialDB {
-
   client: Client;
-
   constructor(client: Client) { this.client = client; }
   async getUserByCredentials(credentials: Credentials): Promise<User | null> {
     return await getUser(this.client, credentials);
   }
 }
 
-export type { ContestDB, UserDB, CredentialDB, User };
-export { connectNewClient, PostgresContestDB, PostgresCredentialDB };
+class PostgresUserDB implements UserDB {
+  client: Client;
+  constructor(client: Client) { this.client = client; }
+  async addNewUser(user: NewUser): Promise<User | null> {
+    return await {
+      id: 0,
+      password_hash: "abc",
+      ...user,
+    }
+  }
+
+  async getUserByLogin(login: string): Promise<User | null> {
+    return await getUser(this.client, { login: login, password: "admin" });
+  }
+
+}
+
+export type { ContestDB, UserDB, CredentialDB, User, NewUser };
+export { connectNewClient, PostgresContestDB, PostgresCredentialDB, PostgresUserDB };
