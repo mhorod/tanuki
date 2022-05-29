@@ -36,7 +36,6 @@ class MockUserDB implements UserDB {
             password_hash: hash
         };
         this.client.users.set(user.login, added);
-        console.log("Added user: ", added);
         return await added;
     }
 
@@ -48,10 +47,8 @@ class MockCredentialDB implements CredentialDB {
     async getUserByCredentials(credentials: Credentials): Promise<User | null> {
         const user = this.client.users.get(credentials.login);
         const hash = this.client.hashes.get(credentials.login);
-        console.log(user, hash);
         if (!user || !hash) return await null;
         const matches = await bcrypt.compare(credentials.password, hash);
-        console.log(hash, matches);
         return matches ? user : null;
     }
 
