@@ -11,7 +11,6 @@ const JWT_KEY = await crypto.subtle.generateKey(
 
 class JWTSession implements Session {
     async logIn(user: UserData, res: OpineResponse) {
-        console.log(user)
         const token = await createUserToken(user);
         res.headers = new Headers();
         setCookie(res.headers, {
@@ -20,7 +19,6 @@ class JWTSession implements Session {
             //secure: true, // TODO: Uncomment that in release version
             httpOnly: true,
         });
-        console.log(res.headers);
     }
     logOut(res: OpineResponse) {
         if (res.headers)
