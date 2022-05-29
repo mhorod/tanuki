@@ -1,6 +1,6 @@
 
-import { MultipartReader, exists, R } from "./deps.ts"
-import type { IRouter, OpineRequest, OpineResponse, NextFunction } from "./deps.ts"
+import { MultipartReader, exists, R } from "../deps.ts"
+import type { IRouter, OpineRequest, OpineResponse, NextFunction } from "../deps.ts"
 
 const { compose, nth, split } = R;
 const TMP_DIR = '/app/public/uploads'

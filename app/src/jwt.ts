@@ -1,8 +1,7 @@
-import { OpineRequest } from "./deps.ts"
-import { create, verify, getCookies } from "./deps.ts"
+import { OpineRequest, OpineResponse } from "../deps.ts"
+import { create, verify, getCookies, deleteCookie, setCookie } from "../deps.ts"
+
 import { UserData, Session } from "./auth.ts"
-import { OpineResponse } from "./deps.ts"
-import { deleteCookie, setCookie } from "./deps.ts"
 
 const JWT_KEY = await crypto.subtle.generateKey(
     { name: "HMAC", hash: "SHA-512" },

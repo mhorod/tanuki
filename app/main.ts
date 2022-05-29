@@ -1,4 +1,4 @@
-import app from "./app.ts";
+import app from "./src/app.ts";
 
 const port = 3000;
 app.set("port", port);

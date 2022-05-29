@@ -1,6 +1,6 @@
 // Handles logging in and signing up
 
-import { OpineRequest, OpineResponse, NextFunction, IRouter, email } from "./deps.ts"
+import { OpineRequest, OpineResponse, NextFunction, IRouter, email } from "../deps.ts"
 import { renderWithUserData } from "./utils.ts"
 import { CredentialDB, UserDB, NewUser } from "./db.ts"
 /**
