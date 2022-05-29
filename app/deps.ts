@@ -35,3 +35,6 @@ export { deleteCookie, setCookie, getCookies } from "https://deno.land/std/http/
 
 // email verification
 export { email } from "https://deno.land/x/validation/mod.ts";
+
+// hashing
+export * as bcrypt from "https://deno.land/x/bcrypt/mod.ts";
