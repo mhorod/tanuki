@@ -13,7 +13,6 @@ const JWT_KEY = await crypto.subtle.generateKey(
 class JWTSession implements Session {
     async logIn(user: UserData, res: OpineResponse) {
         console.log(user)
-        // If credentials are valid send back a cookie with a token
         const token = await createUserToken(user);
         res.headers = new Headers();
         setCookie(res.headers, {
@@ -22,6 +21,7 @@ class JWTSession implements Session {
             //secure: true, // TODO: Uncomment that in release version
             httpOnly: true,
         });
+        console.log(res.headers);
     }
     logOut(res: OpineResponse) {
         if (res.headers)
@@ -31,10 +31,10 @@ class JWTSession implements Session {
     /**
      * Extracts authorization data from request if it's valid
      *  
-     * @param req  Request to authorized
+     * @param req  Request to authenticated
      * @returns authorization data, or null if the request cannot be verified
      */
-    async authorizeRequest(req: OpineRequest): Promise<UserData | null> {
+    async authenticateRequest(req: OpineRequest): Promise<UserData | null> {
         const cookie = getCookies(req.headers);
         const token = cookie.token;
 

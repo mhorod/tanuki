@@ -2,7 +2,7 @@
 
 import { OpineRequest, OpineResponse, NextFunction, IRouter, email } from "./deps.ts"
 import { renderWithUserData } from "./utils.ts"
-import { CredentialDB } from "./db.ts"
+import { CredentialDB, UserDB, NewUser } from "./db.ts"
 /**
  * Credentials used to log into the system
  */
@@ -18,16 +18,8 @@ interface UserData {
     login: string
 }
 
-interface NewUserData {
-    login: string,
-    name: string,
-    surname: string,
-    email: string,
-    password: string,
-    password_repeat: string,
-}
 
-const newUserDataPrototype: NewUserData = {
+const newUserDataPrototype: NewUser = {
     login: "",
     name: "",
     surname: "",
@@ -40,32 +32,22 @@ const newUserDataPrototype: NewUserData = {
  * Extracts information about user making the request
  * 
  */
-interface RequestAuthorizer {
-    authorizeRequest(req: OpineRequest): Promise<UserData | null>;
+interface RequestAuthenticator {
+    authenticateRequest(req: OpineRequest): Promise<UserData | null>;
 }
 
-interface CredentialAuthorizer {
-    authorizeCredentials(credentials: Credentials): Promise<UserData | null>;
+interface CredentialAuthenticator {
+    authenticateCredentials(credentials: Credentials): Promise<UserData | null>;
 }
 
 /**
  * Manages request/response layer of user session
  */
-interface Session extends RequestAuthorizer {
+interface Session extends RequestAuthenticator {
     logIn(user: UserData, res: OpineResponse): any;
     logOut(res: OpineResponse): any;
 }
 
-
-class DBAuthorizer implements CredentialAuthorizer {
-    credentialDB: CredentialDB;
-    constructor(credentialDB: CredentialDB) { this.credentialDB = credentialDB; }
-    async authorizeCredentials(credentials: Credentials) {
-        const user = await this.credentialDB.getUserByCredentials(credentials);
-        return user;
-    }
-
-}
 
 /**
  * Retrieves credentials from given request
@@ -74,11 +56,11 @@ function getCredentials(req: OpineRequest): Credentials {
     return { login: req.parsedBody.login, password: req.parsedBody.password };
 }
 
-function getNewUserData(from: any): NewUserData {
+function getNewUser(from: any): NewUser {
     let result: Record<string, any> = {}
     for (const property in newUserDataPrototype)
         result[property] = from[property] || (newUserDataPrototype as Record<string, any>)[property];
-    return result as NewUserData;
+    return result as NewUser;
 }
 
 /**
@@ -90,9 +72,9 @@ function getNewUserData(from: any): NewUserData {
  * @param target where to redirect
  * @returns function tat does the thing
  */
-function redirectIfAuthorized(authorizer: RequestAuthorizer, target: string | null = null) {
+function redirectIfAuthenticated(authenticater: RequestAuthenticator, target: string | null = null) {
     return async (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
-        const verified = await authorizer.authorizeRequest(req);
+        const verified = await authenticater.authenticateRequest(req);
         const redirect = target || req.query.redirect || '/';
         if (verified != null)
             res.redirect(redirect);
@@ -110,9 +92,9 @@ function redirectIfAuthorized(authorizer: RequestAuthorizer, target: string | nu
  * @param target where to redirect
  * @returns function tat does the thing
  */
-function redirectIfUnauthorized(authorizer: RequestAuthorizer, target: string | null = null) {
+function redirectIfUnauthenticated(authenticater: RequestAuthenticator, target: string | null = null) {
     return async (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
-        const verified = await authorizer.authorizeRequest(req);
+        const verified = await authenticater.authenticateRequest(req);
         const redirect = target || req.query.redirect || '/';
         if (verified == null)
             res.redirect(redirect);
@@ -137,47 +119,48 @@ function credentialsAreEmpty(credentials: Credentials): boolean {
 /**
  * Create handler that allows further processing  of request only if the user making it 
  * meets provided criteria, redirect to 403 otherwise 
- * @param authorizer authorizer to be used
+ * @param authenticater authenticater to be used
  * @param hasAccess function that returns true if user has access to a resource
  */
-function authorizeUsing(authorizer: RequestAuthorizer, hasAccess: (userData: UserData) => boolean) {
+function authenticateUsing(authenticater: RequestAuthenticator, hasAccess: (user: UserData) => boolean) {
     return async (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
-        const userData = await authorizer.authorizeRequest(req);
-        if (userData === null || !hasAccess(userData)) {
+        const user = await authenticater.authenticateRequest(req);
+        if (user === null || !hasAccess(user)) {
             res.setStatus(403);
-            renderWithUserData(authorizer, "403")(req, res, next);
+            renderWithUserData(authenticater, "403")(req, res, next);
         }
         else
             next();
     }
 }
 
+interface AuthConfig {
+    session: Session,
+    credentialDB: CredentialDB,
+    userDB: UserDB,
+}
 
 /**
  * Connects authentication paths to the router
  * handles GET and POST of routes `/log-in` and `/sign-up`
- * @param router router to use
- * @param session 
- * @param credentialAuthorizer 
  */
-function setUpAuthRouter(router: IRouter, session: Session, credentialAuthorizer: CredentialAuthorizer) {
-
+function setUpAuthRouter(router: IRouter, config: AuthConfig) {
     // Just render those pages, nothing fancy
-    router.get("/log-in", redirectIfAuthorized(session), (req, res, next) => res.render("log-in"));
-    router.get("/sign-up", redirectIfAuthorized(session), (req, res, next) => res.render("sign-up"));
+    router.get("/log-in", redirectIfAuthenticated(config.session), (req, res, next) => res.render("log-in"));
+    router.get("/sign-up", redirectIfAuthenticated(config.session), (req, res, next) => res.render("sign-up"));
 
     router.post("/log-in",
-        redirectIfAuthorized(session),
+        redirectIfAuthenticated(config.session),
         async (req, res, next) => {
             const credentials = getCredentials(req);
             if (credentialsAreEmpty(credentials))
                 res.render("log-in", { error: "empty login or password" });
             else {
-                const user = await credentialAuthorizer.authorizeCredentials(credentials);
+                const user = await config.credentialDB.getUserByCredentials(credentials);
                 if (user == null)
                     res.render("log-in", { error: "invalid login or password" });
                 else {
-                    await session.logIn(user, res);
+                    await config.session.logIn(user, res);
                     const redirect = req.query.redirect || '/';
                     res.redirect(redirect);
                 }
@@ -185,41 +168,61 @@ function setUpAuthRouter(router: IRouter, session: Session, credentialAuthorizer
 
         });
 
-    router.post("/sign-up", (req, res, next) => {
-        const userData = getNewUserData(req.parsedBody);
-        console.log(userData);
-        let errors: any = {}
-        if (userData.login == "admin")
-            errors.login_error = "login already taken"
-        if (userData.password != userData.password_repeat)
-            errors.password_error = "passwords don't match"
-        if (!email.valid(userData.email))
-            errors.email_error = "invalid email"
-
-
-        res.render('sign-up',
-            {
-                ...userData,
-                ...errors
-            });
+    router.post("/sign-up", async (req, res, next) => {
+        const user = getNewUser(req.parsedBody);
+        const errors = await vaidateNewUser(user, config.userDB);
+        // Submitted data was not valid
+        if (errors) {
+            res.render('sign-up',
+                {
+                    ...user,
+                    ...errors
+                });
+        }
+        else {
+            const addedUser = await config.userDB.addNewUser(user);
+            if (addedUser != null)
+                await config.session.logIn({ login: addedUser.login }, res);
+            res.redirect('/');
+        }
     });
 
     // both POST and GET can log out
     router.get("/log-out", async (req, res, next) => {
-        await session.logOut(res);
+        await config.session.logOut(res);
         res.redirect("/");
     })
 
     router.post("/log-out", async (req, res, next) => {
-        await session.logOut(res);
+        await config.session.logOut(res);
         res.redirect("/");
     })
+}
+
+async function vaidateNewUser(data: NewUser, userDB: UserDB): Promise<any | null> {
+
+    const existingUser = await userDB.getUserByLogin(data.login);
+
+    let errors: any = {}
+    if (existingUser != null)
+        errors.login_error = "login already taken"
+    else if (data.login == "")
+        errors.login_error = "login cannot be empty"
+
+    if (data.password.length < 8)
+        errors.password_error = "password is too short"
+    else if (data.password != data.password_repeat)
+        errors.password_error = "passwords don't match"
+
+    if (!email.valid(data.email))
+        errors.email_error = "invalid email"
+
+    return JSON.stringify(errors) == "{}" ? null : errors;
 }
 
 
 
 
 export { setUpAuthRouter };
-export { redirectIfAuthorized, redirectIfUnauthorized, authorizeUsing };
-export { DBAuthorizer };
-export type { RequestAuthorizer, CredentialAuthorizer, Credentials, UserData, Session };
+export { redirectIfAuthenticated, redirectIfUnauthenticated, authenticateUsing };
+export type { RequestAuthenticator, CredentialAuthenticator, Credentials, UserData, Session };
