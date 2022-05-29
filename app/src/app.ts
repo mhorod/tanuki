@@ -17,7 +17,7 @@ import { setUpAuthRouter, redirectIfAuthenticated, authenticateUsing } from "./a
 import { JWTSession } from "./jwt.ts"
 import { renderWithUserData } from "./utils.ts"
 
-import { connectNewClient, PostgresContestDB, PostgresCredentialDB, PostgresUserDB } from "./db.ts"
+import { connectNewClient, PostgresContestDB, PostgresCredentialDB, PostgresUserDB } from "./postgres.ts"
 
 const dir = dirname(import.meta.url);
 await config({ export: true });
