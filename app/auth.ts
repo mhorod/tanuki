@@ -1,9 +1,8 @@
 // Handles logging in and signing up
 
-import { OpineRequest, OpineResponse, NextFunction, IRouter } from "./deps.ts"
+import { OpineRequest, OpineResponse, NextFunction, IRouter, email } from "./deps.ts"
 import { renderWithUserData } from "./utils.ts"
 import { CredentialDB } from "./db.ts"
-
 /**
  * Credentials used to log into the system
  */
@@ -19,6 +18,23 @@ interface UserData {
     login: string
 }
 
+interface NewUserData {
+    login: string,
+    name: string,
+    surname: string,
+    email: string,
+    password: string,
+    password_repeat: string,
+}
+
+const newUserDataPrototype: NewUserData = {
+    login: "",
+    name: "",
+    surname: "",
+    email: "",
+    password: "",
+    password_repeat: ""
+}
 
 /**
  * Extracts information about user making the request
@@ -56,6 +72,13 @@ class DBAuthorizer implements CredentialAuthorizer {
  */
 function getCredentials(req: OpineRequest): Credentials {
     return { login: req.parsedBody.login, password: req.parsedBody.password };
+}
+
+function getNewUserData(from: any): NewUserData {
+    let result: Record<string, any> = {}
+    for (const property in newUserDataPrototype)
+        result[property] = from[property] || (newUserDataPrototype as Record<string, any>)[property];
+    return result as NewUserData;
 }
 
 /**
@@ -110,6 +133,7 @@ function credentialsAreEmpty(credentials: Credentials): boolean {
         || credentials.login === "" || credentials.password === "";
 }
 
+
 /**
  * Create handler that allows further processing  of request only if the user making it 
  * meets provided criteria, redirect to 403 otherwise 
@@ -138,6 +162,7 @@ function authorizeUsing(authorizer: RequestAuthorizer, hasAccess: (userData: Use
  */
 function setUpAuthRouter(router: IRouter, session: Session, credentialAuthorizer: CredentialAuthorizer) {
 
+    // Just render those pages, nothing fancy
     router.get("/log-in", redirectIfAuthorized(session), (req, res, next) => res.render("log-in"));
     router.get("/sign-up", redirectIfAuthorized(session), (req, res, next) => res.render("sign-up"));
 
@@ -161,10 +186,31 @@ function setUpAuthRouter(router: IRouter, session: Session, credentialAuthorizer
         });
 
     router.post("/sign-up", (req, res, next) => {
-        console.log(req.parsedBody)
+        const userData = getNewUserData(req.parsedBody);
+        console.log(userData);
+        let errors: any = {}
+        if (userData.login == "admin")
+            errors.login_error = "login already taken"
+        if (userData.password != userData.password_repeat)
+            errors.password_error = "passwords don't match"
+        if (!email.valid(userData.email))
+            errors.email_error = "invalid email"
+
+
+        res.render('sign-up',
+            {
+                ...userData,
+                ...errors
+            });
     });
 
+    // both POST and GET can log out
     router.get("/log-out", async (req, res, next) => {
+        await session.logOut(res);
+        res.redirect("/");
+    })
+
+    router.post("/log-out", async (req, res, next) => {
         await session.logOut(res);
         res.redirect("/");
     })

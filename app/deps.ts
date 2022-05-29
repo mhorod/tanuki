@@ -32,3 +32,6 @@ export { datetime } from "https://deno.land/x/ptera/mod.ts";
 
 // cookies
 export { deleteCookie, setCookie, getCookies } from "https://deno.land/std/http/cookie.ts";
+
+// email verification
+export { email } from "https://deno.land/x/validation/mod.ts";

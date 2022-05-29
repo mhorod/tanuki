@@ -16,9 +16,27 @@
       <img src="/images/sign-up.png" class="mr-6 object-scale-down hidden lg:block" />
       <div class="flex gap-4 flex-col max-w-sm align-middle">
 
+        <% if (typeof(login) == 'undefined') { login = ""; } %>
+        <% if (typeof(name) == 'undefined') { name = ""; } %>
+        <% if (typeof(surname) == 'undefined') { surname = ""; } %>
+        <% if (typeof(email) == 'undefined') { email = ""; } %>
+        <label for="login" class="block uppercase tracking-wide
+      "> login </label>
+        <input type="text" name="login" value="<%= login %>" class="appearance-none p-2
+        border
+        border-white 
+        bg-zinc-900
+      ">
+
+        <span class="text-red-500">
+          <% if (typeof(login_error) != 'undefined') { %>
+          <%= login_error %>
+          <% } %>
+        </span>
+
         <label for="name" class="block uppercase tracking-wide
       "> name </label>
-        <input type="text" name="name" class="appearance-none p-2
+        <input type="text" name="name" value="<%= name %>" class="appearance-none p-2
         border
         border-white 
         bg-zinc-900
@@ -26,34 +44,46 @@
 
         <label for="surname" class="block uppercase tracking-wide
       "> surname </label>
-        <input type="text" name="surname" class="appearance-none p-2
+        <input type="text" name="surname" value="<%= surname %>" class="appearance-none p-2
         border
         border-white 
         bg-zinc-900
       ">
+
 
         <label for="email" class="block uppercase tracking-wide
       "> email </label>
-        <input type="text" name="email" class="appearance-none p-2
+        <input type="text" name="email" value="<%= email %>" class="appearance-none p-2
         border
         border-white 
         bg-zinc-900
       ">
+
+        <span class="text-red-500">
+          <% if (typeof(email_error) != 'undefined') { %>
+          <%= email_error %>
+          <% } %>
+        </span>
 
         <label for="login" class="block uppercase tracking-wide"> password </label>
         <input type="password" name="password" class="p-2
+        border
+        border-white 
+        bg-zinc-900
+      ">
+        <label for="password_repeat" class="block uppercase tracking-wide"> repeat password </label>
+        <input type="password" name="password_repeat" class="p-2
 
         border
         border-white 
         bg-zinc-900
       ">
-        <label for="password-repeat" class="block uppercase tracking-wide"> repeat password </label>
-        <input type="password" name="password-repeat" class="p-2
 
-        border
-        border-white 
-        bg-zinc-900
-      ">
+        <span class="text-red-500">
+          <% if (typeof(password_error) != 'undefined') { %>
+          <%= password_error %>
+          <% } %>
+        </span>
 
         <button type="submit" class="p-4 block text-white bg-emerald-600 hover:bg-emerald-500">
           Sign up
