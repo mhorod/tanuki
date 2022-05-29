@@ -1,6 +1,6 @@
 // Functionality that connects to the database and retrieves data
 
-import { Client, ClientOptions } from "./deps.ts"
+import { Client, ClientOptions } from "../deps.ts"
 import { Credentials } from "./auth.ts"
 
 /**

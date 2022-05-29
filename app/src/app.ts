@@ -3,15 +3,15 @@ import {
   Router,
   serveStatic,
   config,
-} from "./deps.ts";
+} from "../deps.ts";
 
 import {
   opine,
   json,
   urlencoded,
-} from "./deps.ts"
+} from "../deps.ts"
 
-import { dirname, join } from "./deps.ts";
+import { dirname, join } from "../deps.ts";
 
 import { setUpAuthRouter, redirectIfAuthenticated, authenticateUsing } from "./auth.ts"
 import { JWTSession } from "./jwt.ts"
@@ -107,10 +107,10 @@ app.use(json())
 app.use(urlencoded())
 
 // Frontend configuration
-app.set("views", join(dir, "views"));
+app.set("views", join(dir, "../views"));
 app.set("view engine", "ejs");
 app.engine("ejs", renderFileToString);
-app.use(serveStatic(join(dir, "public")));
+app.use(serveStatic(join(dir, "../public")));
 
 app.use("/", router);
 

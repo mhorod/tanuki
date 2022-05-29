@@ -1,4 +1,4 @@
-import { OpineRequest, OpineResponse, NextFunction } from "./deps.ts"
+import { OpineRequest, OpineResponse, NextFunction } from "../deps.ts"
 import { RequestAuthenticator } from "./auth.ts"
 
 /**
