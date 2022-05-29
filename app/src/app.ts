@@ -18,6 +18,8 @@ import { JWTSession } from "./jwt.ts"
 import { renderWithUserData } from "./utils.ts"
 
 import { connectNewClient, PostgresContestDB, PostgresCredentialDB, PostgresUserDB } from "./postgres.ts"
+import { MockClient, MockUserDB, MockCredentialDB } from "./mock/db.ts"
+
 
 const dir = dirname(import.meta.url);
 await config({ export: true });
@@ -37,8 +39,12 @@ const db = new PostgresContestDB(client);
 
 const router = Router();
 const session = new JWTSession();
-const credentialDB = new PostgresCredentialDB(client);
-const userDB = new PostgresUserDB(client);
+
+// TODO: Replace those with postgres connection when it's implemented
+const mockClient = new MockClient();
+const userDB = new MockUserDB(mockClient);
+const credentialDB = new MockCredentialDB(mockClient);
+
 const authConfig = {
   session: session,
   credentialDB: credentialDB,

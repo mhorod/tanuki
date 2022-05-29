@@ -214,7 +214,9 @@ async function vaidateNewUser(data: NewUser, userDB: UserDB): Promise<any | null
     else if (data.password != data.password_repeat)
         errors.password_error = "passwords don't match"
 
-    if (!email.valid(data.email))
+    if (data.name == "" || data.surname == "" || data.email == "")
+        errors.email_error = "fields cannot be empty"
+    else if (!email.valid(data.email))
         errors.email_error = "invalid email"
 
     return JSON.stringify(errors) == "{}" ? null : errors;
