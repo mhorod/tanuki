@@ -2,15 +2,14 @@
 <html lang="en">
 
 <head>
-  <%- await include("views/nav.ejs", {user: user}); %>
-  <link rel="stylesheet" type="text/css" href="/css/loading.css">
+  <%- await include("views/common-head.ejs"); %>
   <title>
     Tanuki
   </title>
 </head>
 
 <body class="bg-zinc-900">
-  <%- await include("views/nav.ejs"); %>
+  <%- await include("views/nav.ejs", { user : user }); %>
   <div class=" container mx-auto p-6 text-white">
     Satori emulator 2.0
     <h2 class="text-4xl text-center mb-8 text-white"> Submit 1234 </h2>
