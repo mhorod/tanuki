@@ -6,21 +6,35 @@ textarea:focus {
     border-width: 2px;
 }
 
+.status {
+    text-transform: uppercase;
+}
+
 /* Status styling */
+.status-TLE,
+.status-RTE,
+.status-ANS,
 .status-tle,
 .status-rte,
 .status-ans {
     background: #e03c26;
 }
 
+.status-OK,
 .status-ok {
     background: #10b981;
 }
 
+.status-QUE,
 .status-que {
     background-color: #ebd336;
 }
 
+.status-CME,
+.status-REJ,
+.status-INT,
+.status-RUL,
+.status-ERR,
 .status-cme,
 .status-rej,
 .status-int,
@@ -55,4 +69,17 @@ textarea:focus {
     100% {
         transform: rotate(360deg);
     }
+}
+
+/* Other */
+.submit-btn {
+    background-color: #059669;
+    color: white;
+    cursor: pointer;
+    padding: 1rem;
+    display: inline-block;
+}
+
+.submit-btn:hover {
+    background-color: #10b981;
 }
