@@ -23,6 +23,12 @@
         <button type="submit" class="submit-btn">
           Submit
         </button>
+
+        <span class="text-red-500">
+          <% if (typeof(error) != 'undefined') { %>
+          <%= error %>
+          <% } %>
+        </span>
       </div>
     </form>
   </div>
