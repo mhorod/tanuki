@@ -13,13 +13,14 @@ import {
 
 import { dirname, join } from "../deps.ts";
 
-import { setUpAuthRouter, redirectIfAuthenticated, authenticateUsing } from "./auth.ts"
+import { setUpAuthRouter, redirectIfAuthenticated, authorizeUsing } from "./auth.ts"
 import { JWTSession } from "./jwt.ts"
 import { renderWithUserData } from "./utils.ts"
 
 import { connectNewClient, PostgresContestDB, PostgresCredentialDB, PostgresUserDB } from "./postgres.ts"
-import { MockClient, MockUserDB, MockCredentialDB } from "./mock/db.ts"
-
+import { MockClient, MockUserDB, MockCredentialDB, MockSubmitDB } from "./mock/db.ts"
+import { BasicSourceManager } from "./source.ts"
+import { setUpSubmitRouter } from "./submit.ts"
 
 const dir = dirname(import.meta.url);
 await config({ export: true });
@@ -45,12 +46,32 @@ const mockClient = new MockClient();
 const userDB = new MockUserDB(mockClient);
 const credentialDB = new MockCredentialDB(mockClient);
 
+userDB.addNewUser({
+  login: "admin",
+  name: "",
+  surname: "",
+  email: "",
+  password: "admin",
+  password_repeat: "admin"
+})
 const authConfig = {
   session: session,
   credentialDB: credentialDB,
   userDB: userDB
 };
 setUpAuthRouter(router, authConfig);
+
+const submitDB = new MockSubmitDB();
+const sourceManager = new BasicSourceManager();
+const submitConfig = {
+  authenticator: session,
+  submitDB: submitDB,
+  sourceManager: sourceManager
+};
+
+setUpSubmitRouter(router, submitConfig);
+
+
 
 
 router.get("/ws", (req, res, next) => {
@@ -91,7 +112,7 @@ router.get("/dashboard/student", async (req, res, next) => {
 });
 
 
-router.get('/que', authenticateUsing(session, e => e.login === "admin"), renderWithUserData(session, "que"));
+router.get('/que', authorizeUsing(session, e => e.login === "admin"), renderWithUserData(session, "que"));
 
 router.get("/dashboard/teacher", renderWithUserData(session, "teacher-dashboard"));
 
@@ -101,10 +122,6 @@ router.get("/statuses", (req, res, next) => {
       statuses: ["OK", "QUE", "ANS", "TLE", "RTE", "ERR", "REJ", "CME", "RUL", "INT"]
     });
 })
-
-
-import { handleSubmits } from "./submit.ts"
-handleSubmits(router);
 
 const app = opine();
 

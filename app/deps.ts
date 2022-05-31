@@ -20,15 +20,12 @@ export { dirname, join } from "https://deno.land/std/path/mod.ts";
 export { config } from "https://deno.land/std/dotenv/mod.ts";
 
 // Handling submitted files
-export { exists } from "https://deno.land/std/fs/mod.ts";
-export { MultipartReader } from "https://deno.land/std/mime/mod.ts";
+export { MultipartReader } from "https://deno.land/std@0.131.0/mime/mod.ts";
 export * as R from "https://deno.land/x/ramda@v0.27.2/mod.ts";
+export { readAll } from "https://deno.land/std@0.141.0/streams/mod.ts"
 
 // JWT for user  verification
 export { create, verify } from "https://deno.land/x/djwt/mod.ts";
-
-// Date and time parsing
-export { datetime } from "https://deno.land/x/ptera/mod.ts";
 
 // cookies
 export { deleteCookie, setCookie, getCookies } from "https://deno.land/std/http/cookie.ts";
@@ -38,3 +35,6 @@ export { email } from "https://deno.land/x/validation/mod.ts";
 
 // hashing
 export * as bcrypt from "https://deno.land/x/bcrypt/mod.ts";
+
+// dates
+export { format } from "https://deno.land/std@0.141.0/datetime/mod.ts";

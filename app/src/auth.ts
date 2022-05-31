@@ -119,15 +119,15 @@ function credentialsAreEmpty(credentials: Credentials): boolean {
 /**
  * Create handler that allows further processing  of request only if the user making it 
  * meets provided criteria, redirect to 403 otherwise 
- * @param authenticater authenticater to be used
+ * @param authenticator authenticator to be used
  * @param hasAccess function that returns true if user has access to a resource
  */
-function authenticateUsing(authenticater: RequestAuthenticator, hasAccess: (user: UserData) => boolean) {
+function authorizeUsing(authenticator: RequestAuthenticator, hasAccess: (user: UserData) => boolean) {
     return async (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
-        const user = await authenticater.authenticateRequest(req);
+        const user = await authenticator.authenticateRequest(req);
         if (user === null || !hasAccess(user)) {
             res.setStatus(403);
-            renderWithUserData(authenticater, "403")(req, res, next);
+            renderWithUserData(authenticator, "403")(req, res, next);
         }
         else
             next();
@@ -226,5 +226,5 @@ async function vaidateNewUser(data: NewUser, userDB: UserDB): Promise<any | null
 
 
 export { setUpAuthRouter };
-export { redirectIfAuthenticated, redirectIfUnauthenticated, authenticateUsing };
+export { redirectIfAuthenticated, redirectIfUnauthenticated, authorizeUsing };
 export type { RequestAuthenticator, CredentialAuthenticator, Credentials, UserData, Session };

@@ -11,8 +11,10 @@ interface Contest {
 
 interface Submit {
   id: number,
-  problem: string,
-  status: string,
+  problem: number,
+  user: number,
+  source: string,
+  date: Date,
 }
 
 interface User {
@@ -47,6 +49,11 @@ interface CredentialDB {
   getUserByCredentials(credentials: Credentials): Promise<User | null>;
 }
 
+interface SubmitDB {
+  addSubmit(problem: number, user: number, source: string): Promise<Submit | null>;
+  getSubmitById(id: number): Promise<Submit | null>
+}
+
 export type { Submit, Contest };
 export type { User, NewUser };
-export type { ContestDB, UserDB, CredentialDB }
+export type { ContestDB, UserDB, CredentialDB, SubmitDB }
