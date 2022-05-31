@@ -2,7 +2,7 @@
 import { MultipartReader, R } from "../deps.ts"
 import type { IRouter, OpineRequest, OpineResponse, NextFunction } from "../deps.ts"
 import { format } from "../deps.ts"
-import { RequestAuthenticator, authorizeUsing } from "./auth.ts"
+import { RequestAuthenticator, authorizeUsing, UserData } from "./auth.ts"
 import { renderWithUserData, renderStatusWithUserData, Result } from "./utils.ts"
 import { SubmitDB } from "./db.ts"
 
@@ -45,40 +45,59 @@ interface SourceManager {
 interface SubmitRouterConfig {
     authenticator: RequestAuthenticator,
     submitDB: SubmitDB,
-    sourceManager: SourceManager
+    sourceManager: SourceManager,
+    hasSubmitAccess: (user: UserData, submit_id: number) => Promise<boolean>
+}
+
+function authorizeSubmitAccess(authenticator: RequestAuthenticator, submit_id: number,
+    hasSubmitAccess: (user: UserData, submit_id: number) => Promise<boolean>
+) {
+    return async (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
+        await authorizeUsing(authenticator, user =>
+            hasSubmitAccess(user, submit_id)
+        )(req, res, next);
+    }
 }
 
 function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
     router.get("/submit",
-        authorizeUsing(config.authenticator, _ => true),
+        authorizeUsing(config.authenticator, async user => await user !== null),
         renderWithUserData(config.authenticator, "submit")
     );
 
-    router.post("/submit", async (req, res, next) => {
-        const files = (await upload(req)).files('source');
-        let result = Result.ok(files);
-        const uri = crypto.randomUUID();
+    router.post("/submit",
+        authorizeUsing(config.authenticator, async user => await user !== null),
+        async (req, res, next) => {
+            const user = await config.authenticator.authenticateRequest(req);
+            if (user == null)
+                throw new Error("User should not be null")
+            const files = (await upload(req)).files('source');
+            let result = Result.ok(files);
+            const uri = crypto.randomUUID();
 
-        result =
-            result
-                .and_then(files => files ? Result.ok<any, any>(files[0]) : Result.err("error"))
-                .and_then(file => file ? Result.ok<any, any>(file.content) : Result.err("error"));
-        if (!result.isOk) {
-            return renderWithUserData(config.authenticator, "submit", { error: result.error })(req, res, next);
-        }
-        const added = await config.sourceManager.addSource(uri, result.unwrap());
-        if (!added)
-            return renderWithUserData(config.authenticator, "submit", { error: "error" })(req, res, next);
+            result =
+                result
+                    .and_then(files => files ? Result.ok<any, any>(files[0]) : Result.err("error"))
+                    .and_then(file => file ? Result.ok<any, any>(file.content) : Result.err("error"));
+            if (!result.isOk) {
+                return renderWithUserData(config.authenticator, "submit", { error: result.error })(req, res, next);
+            }
+            const added = await config.sourceManager.addSource(uri, result.unwrap());
+            if (!added)
+                return renderWithUserData(config.authenticator, "submit", { error: "error" })(req, res, next);
 
-        const submit = await config.submitDB.addSubmit(0, 0, uri)
-        if (!submit)
-            return renderWithUserData(config.authenticator, "submit", { error: "error" })(req, res, next);
+            const submit = await config.submitDB.addSubmit(0, user.id, uri)
+            if (!submit)
+                return renderWithUserData(config.authenticator, "submit", { error: "error" })(req, res, next);
 
-        res.redirect("/results/" + submit.id.toString())
-    })
+            res.redirect("/results/" + submit.id.toString())
+        })
 
     router.get("/results/:submit_id",
         async (req, res, next) => {
+            const submit_id = parseInt(req.params.submit_id);
+            await authorizeSubmitAccess(config.authenticator, submit_id, config.hasSubmitAccess)(req, res, next);
+
             const submit = await config.submitDB.getSubmitById(parseInt(req.params.submit_id));
             if (submit == null) {
                 return renderStatusWithUserData(config.authenticator, 404)(req, res, next);
