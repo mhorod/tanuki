@@ -3,7 +3,7 @@ import { MultipartReader, R } from "../deps.ts"
 import type { IRouter, OpineRequest, OpineResponse, NextFunction } from "../deps.ts"
 import { format } from "../deps.ts"
 import { RequestAuthenticator, authorizeUsing } from "./auth.ts"
-import { renderWithUserData } from "./utils.ts"
+import { renderWithUserData, renderStatusWithUserData, Result } from "./utils.ts"
 import { SubmitDB } from "./db.ts"
 
 
@@ -56,30 +56,32 @@ function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
 
     router.post("/submit", async (req, res, next) => {
         const files = (await upload(req)).files('source');
-        if (files != undefined) {
-            const file = files[0];
-            // TODO: do something smarter about that
-            if (file.content == undefined)
-                res.redirect("/");
+        let result = Result.ok(files);
+        const uri = crypto.randomUUID();
 
-            const uri = crypto.randomUUID();
-            const added = await config.sourceManager.addSource(uri, file.content)
-            if (!added)
-                res.redirect("/")
-            const submit = await config.submitDB.addSubmit(0, 0, uri);
-            if (submit == null)
-                res.redirect("/")
-            else
-                res.redirect("/results/" + submit.id.toString())
+        result =
+            result
+                .and_then(files => files ? Result.ok<any, any>(files[0]) : Result.err("error"))
+                .and_then(file => file ? Result.ok<any, any>(file.content) : Result.err("error"));
+        if (!result.isOk) {
+            return renderWithUserData(config.authenticator, "submit", { error: result.error })(req, res, next);
         }
+        const added = await config.sourceManager.addSource(uri, result.unwrap());
+        if (!added)
+            return renderWithUserData(config.authenticator, "submit", { error: "error" })(req, res, next);
+
+        const submit = await config.submitDB.addSubmit(0, 0, uri)
+        if (!submit)
+            return renderWithUserData(config.authenticator, "submit", { error: "error" })(req, res, next);
+
+        res.redirect("/results/" + submit.id.toString())
     })
 
     router.get("/results/:submit_id",
         async (req, res, next) => {
             const submit = await config.submitDB.getSubmitById(parseInt(req.params.submit_id));
             if (submit == null) {
-                res.sendStatus(404);
-                return;
+                return renderStatusWithUserData(config.authenticator, 404)(req, res, next);
             }
             const src = await config.sourceManager.loadSource(submit.source);
             renderWithUserData(config.authenticator, "results",
