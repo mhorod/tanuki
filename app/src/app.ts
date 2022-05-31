@@ -67,7 +67,7 @@ const submitConfig = {
   authenticator: session,
   submitDB: submitDB,
   sourceManager: sourceManager,
-  hasSubmitAccess: async (_: UserData) => await true,
+  hasSubmitAccess: async (user: UserData, submit_id: number) => await true,
 };
 
 setUpSubmitRouter(router, submitConfig);
