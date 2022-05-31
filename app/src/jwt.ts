@@ -46,7 +46,7 @@ class JWTSession implements Session {
         catch {
             return null
         }
-        return { login: verified.data.login };
+        return { id: verified.data.id, login: verified.data.login };
     }
 }
 

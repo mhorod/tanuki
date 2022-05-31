@@ -15,6 +15,7 @@ interface Credentials {
  * Data used to identify user making a request
  */
 interface UserData {
+    id: number,
     login: string
 }
 
@@ -122,10 +123,10 @@ function credentialsAreEmpty(credentials: Credentials): boolean {
  * @param authenticator authenticator to be used
  * @param hasAccess function that returns true if user has access to a resource
  */
-function authorizeUsing(authenticator: RequestAuthenticator, hasAccess: (user: UserData) => boolean) {
+function authorizeUsing(authenticator: RequestAuthenticator, hasAccess: (user: UserData) => Promise<boolean>) {
     return async (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
         const user = await authenticator.authenticateRequest(req);
-        if (user === null || !hasAccess(user)) {
+        if (user === null || !await hasAccess(user)) {
             res.setStatus(403);
             renderWithUserData(authenticator, "403")(req, res, next);
         }
@@ -182,7 +183,7 @@ function setUpAuthRouter(router: IRouter, config: AuthConfig) {
         else {
             const addedUser = await config.userDB.addNewUser(user);
             if (addedUser != null)
-                await config.session.logIn({ login: addedUser.login }, res);
+                await config.session.logIn({ id: addedUser.id, login: addedUser.login }, res);
             res.redirect('/');
         }
     });
