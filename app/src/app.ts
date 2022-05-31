@@ -13,7 +13,7 @@ import {
 
 import { dirname, join } from "../deps.ts";
 
-import { setUpAuthRouter, redirectIfAuthenticated, authorizeUsing } from "./auth.ts"
+import { setUpAuthRouter, redirectIfAuthenticated, authorizeUsing, UserData } from "./auth.ts"
 import { JWTSession } from "./jwt.ts"
 import { renderWithUserData } from "./utils.ts"
 
@@ -66,7 +66,8 @@ const sourceManager = new BasicSourceManager();
 const submitConfig = {
   authenticator: session,
   submitDB: submitDB,
-  sourceManager: sourceManager
+  sourceManager: sourceManager,
+  hasSubmitAccess: async (_: UserData) => await true,
 };
 
 setUpSubmitRouter(router, submitConfig);
@@ -112,7 +113,7 @@ router.get("/dashboard/student", async (req, res, next) => {
 });
 
 
-router.get('/que', authorizeUsing(session, e => e.login === "admin"), renderWithUserData(session, "que"));
+router.get('/que', authorizeUsing(session, async e => await e.login === "admin"), renderWithUserData(session, "que"));
 
 router.get("/dashboard/teacher", renderWithUserData(session, "teacher-dashboard"));
 
