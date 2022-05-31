@@ -1,6 +1,7 @@
 # Development version of Dockerfile
 FROM denoland/deno:1.19.3
 
+ENV TZ Europe/Warsaw
 WORKDIR /app
 USER deno
 

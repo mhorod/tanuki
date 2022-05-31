@@ -114,6 +114,7 @@ RUN bash run-release.sh
 # Build app
 FROM denoland/deno:1.19.3
 
+ENV TZ Europe/Warsaw
 WORKDIR /app
 COPY --from=tailwind /wrapper/app /app
 
