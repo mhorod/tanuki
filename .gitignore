@@ -2,3 +2,4 @@ node_modules/
 .build 
 app/public/css/dist
 app/public/js/dist
+app/files
