@@ -35,7 +35,7 @@ const clientOptions = {
 
 const client = await connectNewClient(clientOptions);
 console.log("Connected to the database!");
-const db = new PostgresContestDB(client);
+const contestDB = new PostgresContestDB(client);
 
 
 const router = Router();
@@ -68,6 +68,7 @@ const submitConfig = {
   authenticator: session,
   submitDB: submitDB,
   problemDB: problemDB,
+  contestDB: contestDB,
   sourceManager: sourceManager,
   hasSubmitAccess: async (user: UserData, submit_id: number) => await true,
 };
@@ -105,8 +106,8 @@ router.get("/", redirectIfAuthenticated(session, '/dashboard'), (_, res, __) => 
 router.get("/dashboard", (_, res, __) => res.redirect("/dashboard/student"));
 
 router.get("/dashboard/student", async (req, res, next) => {
-  const contests = await db.getContests();
-  const submits = await db.getSubmits();
+  const contests = await contestDB.getContests();
+  const submits = await contestDB.getSubmits();
 
   renderWithUserData(session, "student-dashboard", {
     contests: contests,

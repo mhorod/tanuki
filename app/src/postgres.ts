@@ -50,6 +50,9 @@ class PostgresContestDB implements ContestDB {
     client: Client;
 
     constructor(client: Client) { this.client = client; }
+    async getContestById(id: number): Promise<Contest | null> {
+        return (await this.client.queryObject<Contest>("select * from contests where id = $1;", [id])).rows[0];
+    }
     async getContests() {
 
         return (await this.client.queryObject<Contest>("select * from contests;")).rows;

@@ -54,6 +54,7 @@ interface Problem {
 interface ContestDB {
   getContests(): Promise<Array<Contest>>;
   getSubmits(): Promise<Array<Submit>>;
+  getContestById(id: number): Promise<Contest | null>
 }
 
 interface UserDB {
