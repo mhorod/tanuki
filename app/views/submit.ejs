@@ -12,7 +12,7 @@
   <%- await include("views/nav.ejs", { user : user }); %>
   <div class=" container mx-auto p-6">
     <h2 class="text-4xl text-center mb-8"> Submit </h2>
-    <h3 class="text-2xl text-center mb-8"> Contest: Dupa dupa 123 </h3>
+    <h3 class="text-2xl text-center mb-8"> Contest: <%= contest %> </h3>
     <form method="post" action="/submit" class="flex justify-center" enctype="multipart/form-data">
       <div class="flex gap-4 flex-col max-w-sm align-middle">
         Problem:

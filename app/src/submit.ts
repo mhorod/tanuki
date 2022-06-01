@@ -4,7 +4,7 @@ import type { IRouter, OpineRequest, OpineResponse, NextFunction } from "../deps
 import { format } from "../deps.ts"
 import { RequestAuthenticator, authorizeUsing, UserData } from "./auth.ts"
 import { renderWithUserData, renderStatusWithUserData, Result } from "./utils.ts"
-import { SubmitDB, ProblemDB } from "./db.ts"
+import { SubmitDB, ProblemDB, ContestDB } from "./db.ts"
 
 
 const { compose, nth, split } = R;
@@ -46,6 +46,7 @@ interface SubmitRouterConfig {
     authenticator: RequestAuthenticator,
     submitDB: SubmitDB,
     problemDB: ProblemDB,
+    contestDB: ContestDB,
     sourceManager: SourceManager,
     hasSubmitAccess: (user: UserData, submit_id: number) => Promise<boolean>
 }
@@ -65,13 +66,20 @@ function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
         // authorizeUsing(config.authenticator, async user => await user !== null),
         async (req, res, next) => {
             const contest_id = parseInt(req.params.contest_id);
+            const contest = await config.contestDB.getContestById(contest_id);
+            if (contest == null) {
+                return renderStatusWithUserData(config.authenticator, 404)(req, res, next);
+            }
+
             let problem_id = parseInt(req.params.problem_id);
 
             const problems = await config.problemDB.getProblemsInContest(contest_id);
             if (isNaN(problem_id)) problem_id = problems[0].id;
 
+
+
             await renderWithUserData(config.authenticator, "submit", {
-                contest: contest_id,
+                contest: contest.name,
                 selected_problem: problem_id,
                 problems: problems,
             })(req, res, next);
