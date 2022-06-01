@@ -1,7 +1,7 @@
 // Mock connection to the database
 
-import type { User, NewUser, Submit } from "../db.ts";
-import type { UserDB, CredentialDB, SubmitDB } from "../db.ts";
+import type { User, NewUser, Submit, Problem } from "../db.ts";
+import type { UserDB, CredentialDB, SubmitDB, ProblemDB } from "../db.ts";
 
 import { bcrypt } from "../../deps.ts"
 import { Credentials } from "../auth.ts";
@@ -72,8 +72,10 @@ class MockSubmitDB implements SubmitDB {
         return await submit;
     }
     async getSubmitById(id: number): Promise<Submit | null> {
+        console.log(id, this.submits, this.submits.get(id))
         return await this.submits.get(id) || null;
     }
-
 }
+
+
 export { MockClient, MockUserDB, MockCredentialDB, MockSubmitDB }
