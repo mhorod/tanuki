@@ -17,7 +17,7 @@ import { setUpAuthRouter, redirectIfAuthenticated, authorizeUsing, UserData } fr
 import { JWTSession } from "./jwt.ts"
 import { renderWithUserData } from "./utils.ts"
 
-import { connectNewClient, PostgresContestDB, PostgresCredentialDB, PostgresUserDB } from "./postgres.ts"
+import { connectNewClient, PostgresContestDB, PostgresProblemDB } from "./postgres.ts"
 import { MockClient, MockUserDB, MockCredentialDB, MockSubmitDB } from "./mock/db.ts"
 import { BasicSourceManager } from "./source.ts"
 import { setUpSubmitRouter } from "./submit.ts"
@@ -63,9 +63,11 @@ setUpAuthRouter(router, authConfig);
 
 const submitDB = new MockSubmitDB();
 const sourceManager = new BasicSourceManager();
+const problemDB = new PostgresProblemDB(client);
 const submitConfig = {
   authenticator: session,
   submitDB: submitDB,
+  problemDB: problemDB,
   sourceManager: sourceManager,
   hasSubmitAccess: async (user: UserData, submit_id: number) => await true,
 };

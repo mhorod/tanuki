@@ -35,6 +35,22 @@ interface NewUser {
   password_repeat: string,
 }
 
+interface Problem {
+  id: number,
+  name: string,
+  shortname: string,
+  contest_id: number,
+  statement_uri: string,
+  uses_points: boolean,
+  position: number,
+  points: number,
+  due_date: Date | null,
+  closing_date: Date | null,
+  published: boolean,
+  scoring_method: string,
+  source_limit: number,
+}
+
 interface ContestDB {
   getContests(): Promise<Array<Contest>>;
   getSubmits(): Promise<Array<Submit>>;
@@ -54,6 +70,10 @@ interface SubmitDB {
   getSubmitById(id: number): Promise<Submit | null>
 }
 
-export type { Submit, Contest };
+interface ProblemDB {
+  getProblemsInContest(contest_id: number): Promise<Array<Problem>>;
+}
+
+export type { Submit, Contest, Problem };
 export type { User, NewUser };
-export type { ContestDB, UserDB, CredentialDB, SubmitDB }
+export type { ContestDB, UserDB, CredentialDB, SubmitDB, ProblemDB }

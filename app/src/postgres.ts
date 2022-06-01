@@ -2,9 +2,9 @@
 
 import { Client, ClientOptions } from "../deps.ts"
 
-import type { Submit, Contest } from "./db.ts"
+import type { Submit, Contest, Problem } from "./db.ts"
 import type { User, NewUser } from "./db.ts";
-import type { ContestDB, UserDB, CredentialDB } from "./db.ts";
+import type { ContestDB, UserDB, CredentialDB, ProblemDB } from "./db.ts";
 
 import { Credentials } from "./auth.ts"
 /**
@@ -83,4 +83,34 @@ class PostgresUserDB implements UserDB {
     }
 }
 
-export { connectNewClient, PostgresContestDB, PostgresCredentialDB, PostgresUserDB };
+class PostgresProblemDB implements ProblemDB {
+
+    client: Client;
+    constructor(client: Client) { this.client = client; }
+    async getProblemsInContest(contest_id: number): Promise<Problem[]> {
+        const query = `
+        select
+        p.id,
+        p.name,
+        shortname,
+        contest_id,
+        statement_uri,
+        uses_points,
+        position,
+        points,
+        due_date,
+        closing_date,
+        published,
+        sm.name "scoring_method",
+        source_limit
+        from problems p
+        join scoring_methods sm on p.scoring_method = sm.id
+        where contest_id = $1
+        order by position
+        `
+        return (await this.client.queryObject<Problem>(query, [contest_id])).rows;
+    }
+
+}
+
+export { connectNewClient, PostgresContestDB, PostgresCredentialDB, PostgresUserDB, PostgresProblemDB };
