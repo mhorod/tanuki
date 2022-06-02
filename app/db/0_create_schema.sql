@@ -230,8 +230,8 @@ INSERT INTO contests VALUES (0, 'Kurs obsługi dziurkacza', 'FORTRAN 1977', fals
 INSERT INTO contests VALUES (1, 'Trudne problemy', 'C++ 2022', true);
 INSERT INTO contests VALUES (2, 'Boilerplate', 'JAVA 2024', true);
 
-INSERT INTO permissions_for_contests VALUES (0, 'CAN_EDIT');
-INSERT INTO permissions_for_contests VALUES (1, 'CAN_SUBMIT');
+INSERT INTO permissions_for_contests VALUES (0, 'MANAGE');
+INSERT INTO permissions_for_contests VALUES (1, 'SUBMIT');
 
 INSERT INTO contests_permissions VALUES (1, 0, 1);
 INSERT INTO contests_permissions VALUES (2, 0, 2);
