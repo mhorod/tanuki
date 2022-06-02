@@ -5,6 +5,7 @@ import { format } from "../deps.ts"
 import { RequestAuthenticator, authorizeUsing, UserData } from "./auth.ts"
 import { renderWithUserData, renderStatusWithUserData, Result } from "./utils.ts"
 import { SubmitDB, ProblemDB, ContestDB } from "./db.ts"
+import { PermissionDB } from "./permissions.ts"
 
 
 const { compose, nth, split } = R;
@@ -14,7 +15,7 @@ const getBoundary = compose(
     nth(1), split('='), nth(1), split(';')
 )
 
-async function upload(req: OpineRequest) {
+async function readMultipartForm(req: OpineRequest) {
     let boundary;
     const ct = req.get('content-type');
     const contentType: string = ct === undefined ? '' : ct;
@@ -22,9 +23,9 @@ async function upload(req: OpineRequest) {
         boundary = getBoundary(contentType);
 
     const form = await new MultipartReader(req.body, boundary).readForm({ maxMemory: 10 << 20, dir: TMP_DIR })
-
     return form;
 }
+
 
 
 interface SourceManager {
@@ -44,72 +45,111 @@ interface SourceManager {
 
 interface SubmitRouterConfig {
     authenticator: RequestAuthenticator,
+
     submitDB: SubmitDB,
     problemDB: ProblemDB,
     contestDB: ContestDB,
+    permissionDB: PermissionDB,
+
     sourceManager: SourceManager,
-    hasSubmitAccess: (user: UserData, submit_id: number) => Promise<boolean>
 }
 
 function authorizeSubmitAccess(authenticator: RequestAuthenticator, submit_id: number,
-    hasSubmitAccess: (user: UserData, submit_id: number) => Promise<boolean>
+    permissionDB: PermissionDB
 ) {
     return async (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
-        await authorizeUsing(authenticator, user =>
-            hasSubmitAccess(user, submit_id)
+        await authorizeUsing(authenticator, user => permissionDB.canViewSubmit(user.id, submit_id)
         )(req, res, next);
     }
 }
 
-function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
-    router.get("/submit/:contest_id/:problem_id",
-        // authorizeUsing(config.authenticator, async user => await user !== null),
-        async (req, res, next) => {
-            const contest_id = parseInt(req.params.contest_id);
-            const contest = await config.contestDB.getContestById(contest_id);
-            if (contest == null) {
-                return renderStatusWithUserData(config.authenticator, 404)(req, res, next);
-            }
-
-            let problem_id = parseInt(req.params.problem_id);
-
-            const problems = await config.problemDB.getProblemsInContest(contest_id);
-            if (isNaN(problem_id)) problem_id = problems[0].id;
-
-
-
-            await renderWithUserData(config.authenticator, "submit", {
-                contest: contest.name,
-                selected_problem: problem_id,
-                problems: problems,
-            })(req, res, next);
+/**
+ * Render page with "submit" button
+ * @param contest_id contest
+ * @param problem_id selected problem - if it's invalid then last problem is selected
+ * @param config 
+ * @returns 
+ */
+function renderSubmitPage(contest_id: number, problem_id: number | null, config: SubmitRouterConfig) {
+    return async (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
+        const contest = await config.contestDB.getContestById(contest_id);
+        if (contest == null) {
+            return renderStatusWithUserData(config.authenticator, 404)(req, res, next);
         }
+
+        const problems = await config.problemDB.getProblemsInContest(contest_id);
+        if (problem_id == null || isNaN(problem_id)) problem_id = problems[0].id;
+
+
+        await renderWithUserData(config.authenticator, "submit", {
+            contest_id: contest_id,
+            contest: contest.name,
+            selected_problem: problem_id,
+            problems: problems,
+        })(req, res, next);
+    }
+}
+
+function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
+    // Helper function - creates a handler that extracts contest_id from request
+    // and checkes if current user has submit permissions
+    const authorizeContestAccess =
+        (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
+            const contest_id = parseInt(req.params.contest_id);
+            authorizeUsing(config.authenticator, async user => await config.permissionDB.canSubmit(user.id, contest_id))
+                (req, res, next);
+        };
+
+    router.get("/submit/:contest_id",
+        authorizeContestAccess,
+        (req, res, next) => {
+            renderSubmitPage(parseInt(req.params.contest_id), null, config)(req, res, next);
+        }
+    )
+    router.get("/submit/:contest_id/:problem_id",
+        authorizeContestAccess,
+        (req, res, next) => {
+            renderSubmitPage(parseInt(req.params.contest_id), parseInt(req.params.problem_id), config)(req, res, next);
+        },
     );
 
-    router.post("/submit",
-        authorizeUsing(config.authenticator, async user => await user !== null),
+    router.post("/submit/:contest_id",
+        authorizeContestAccess,
         async (req, res, next) => {
             const user = await config.authenticator.authenticateRequest(req);
             if (user == null)
                 throw new Error("User should not be null")
-            const files = (await upload(req)).files('source');
+
+            const form = await readMultipartForm(req);
+            const values = form.values("problem_id");
+
+            const contest_id = parseInt(req.params.contest_id);
+            const problem_id = values == undefined ? NaN : parseInt(values[0]);
+
+            const problem = isNaN(problem_id) ? null : await config.problemDB.getProblemById(problem_id);
+            if (problem == null || problem.contest_id != contest_id)
+                return renderStatusWithUserData(config.authenticator, 400)(req, res, next);
+
+            const redirect_back = "/submit/" + contest_id.toString() + "/" + problem_id.toString();
+
+
+            const files = form.files('source');
             let result = Result.ok(files);
             const uri = crypto.randomUUID();
-
             result =
                 result
                     .and_then(files => files ? Result.ok<any, any>(files[0]) : Result.err("error"))
                     .and_then(file => file ? Result.ok<any, any>(file.content) : Result.err("error"));
             if (!result.isOk) {
-                return res.redirect("/submit");
+                return res.redirect(redirect_back);
             }
             const added = await config.sourceManager.addSource(uri, result.unwrap());
             if (!added)
-                return res.redirect("/submit");
+                return res.redirect(redirect_back);
 
             const submit = await config.submitDB.addSubmit(0, user.id, uri)
             if (!submit)
-                return res.redirect("/submit");
+                return res.redirect(redirect_back);
 
             res.redirect("/results/" + submit.id.toString())
         })
@@ -117,7 +157,7 @@ function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
     router.get("/results/:submit_id",
         async (req, res, next) => {
             const submit_id = parseInt(req.params.submit_id);
-            await authorizeSubmitAccess(config.authenticator, submit_id, config.hasSubmitAccess)(req, res, next);
+            await authorizeSubmitAccess(config.authenticator, submit_id, config.permissionDB)(req, res, next);
         },
         async (req, res, next) => {
             const submit_id = parseInt(req.params.submit_id);
