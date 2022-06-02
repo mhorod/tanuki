@@ -1,7 +1,8 @@
 // Mock connection to the database
 
-import type { User, NewUser, Submit, Problem } from "../db.ts";
-import type { UserDB, CredentialDB, SubmitDB, ProblemDB } from "../db.ts";
+import { User, NewUser, Submit, Problem } from "../db.ts";
+import { UserDB, CredentialDB, SubmitDB, ProblemDB } from "../db.ts";
+import { PermissionDB } from "../permissions.ts"
 
 import { bcrypt } from "../../deps.ts"
 import { Credentials } from "../auth.ts";
@@ -76,5 +77,17 @@ class MockSubmitDB implements SubmitDB {
     }
 }
 
+class MockPermissionDB implements PermissionDB {
+    async canSubmit(user: number, contest: number): Promise<boolean> {
+        return await true;
+    }
+    async canViewContest(user: number, contest: number): Promise<boolean> {
+        return await true;
+    }
+    async canViewSubmit(user: number, submit: number): Promise<boolean> {
+        return await true;
+    }
 
-export { MockClient, MockUserDB, MockCredentialDB, MockSubmitDB }
+}
+
+export { MockClient, MockUserDB, MockCredentialDB, MockSubmitDB, MockPermissionDB }
