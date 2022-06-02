@@ -72,7 +72,8 @@ interface SubmitDB {
 }
 
 interface ProblemDB {
-  getProblemsInContest(contest_id: number): Promise<Array<Problem>>;
+  getProblemsInContest(contest: number): Promise<Array<Problem>>;
+  getProblemById(id: number): Promise<Problem | null>;
 }
 
 export type { Submit, Contest, Problem };
