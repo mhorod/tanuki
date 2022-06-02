@@ -72,7 +72,6 @@ class MockSubmitDB implements SubmitDB {
         return await submit;
     }
     async getSubmitById(id: number): Promise<Submit | null> {
-        console.log(id, this.submits, this.submits.get(id))
         return await this.submits.get(id) || null;
     }
 }
