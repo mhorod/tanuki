@@ -127,8 +127,9 @@ function authorizeUsing(authenticator: RequestAuthenticator, hasAccess: (user: U
     return async (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
         const user = await authenticator.authenticateRequest(req);
         if (user === null || !await hasAccess(user)) {
+            const redirect = user == null ? req.path : undefined;
             res.setStatus(403);
-            renderWithUserData(authenticator, "403")(req, res, next);
+            renderWithUserData(authenticator, "403", { log_in_redirect: redirect })(req, res, next);
         }
         else
             next();

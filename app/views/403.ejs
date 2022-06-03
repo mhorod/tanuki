@@ -14,6 +14,13 @@
     <div class="text-center font-bold text-9xl px-2 py-2"> 403 </div>
     <div class="text-center font-semibold mb-2 p-4"> Ooops, seems you have no access here </div>
     <a class="p-4 text-white bg-emerald-600 hover:bg-emerald-500 mx-auto" href="/"> Return to main page </a>
+    <% if (typeof(log_in_redirect) != 'undefined') {  %>
+    <a class="border m-4 border-white text-white p-4 hover:bg-zinc-800" href="/log-in?redirect=<%= log_in_redirect %>">
+      Log in
+    </a>
+    <% } %>
+
+
   </div>
 </body>
 
