@@ -11,10 +11,10 @@ interface Contest {
 
 interface Submit {
   id: number,
-  problem: number,
-  user: number,
-  source: string,
-  date: Date,
+  problem_id: number,
+  user_id: number,
+  source_uri: string,
+  submission_time: Date,
 }
 
 interface User {
@@ -61,6 +61,13 @@ interface GraphicalProblem {
   status: string
 }
 
+interface NewSubmit {
+  source_uri: string,
+  user_id: number,
+  problem_id: number,
+  language_id: number
+}
+
 interface ContestDB {
   getContests(): Promise<Array<Contest>>;
   getSubmits(): Promise<Array<Submit>>;
@@ -77,7 +84,7 @@ interface CredentialDB {
 }
 
 interface SubmitDB {
-  addSubmit(problem: number, user: number, source: string): Promise<Submit | null>;
+  addSubmit(newSubmit: NewSubmit): Promise<Submit | null>;
   getSubmitById(id: number): Promise<Submit | null>
 }
 
@@ -91,6 +98,6 @@ interface GraphicalProblemDB {
   getGraphicalProblemById(problem_id: number, user_id: number): Promise<GraphicalProblem | null>;
 }
 
-export type { Submit, Contest, Problem, GraphicalProblem };
+export type { Submit, NewSubmit, Contest, Problem, GraphicalProblem };
 export type { User, NewUser };
 export type { ContestDB, UserDB, CredentialDB, SubmitDB, ProblemDB, GraphicalProblemDB }
