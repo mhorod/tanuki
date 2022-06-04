@@ -1,0 +1,10 @@
+CREATE OR REPLACE FUNCTION compare_submits(input RECORD)
+RETURNS TIMESTAMP AS
+$$
+    BEGIN
+            IF input.result = 1
+                 THEN RETURN TIMESTAMP 'infinity'; 
+            END IF;
+            RETURN input.submission_time;
+    END;
+$$ LANGUAGE plpgsql;
