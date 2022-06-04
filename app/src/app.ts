@@ -22,7 +22,7 @@ import { MockClient, MockUserDB, MockCredentialDB, MockSubmitDB, MockPermissionD
 import { BasicSourceManager } from "./source.ts"
 import { setUpSubmitRouter } from "./submit.ts"
 
-import { PostgresCredentialDB, PostgresUserDB } from "./postgres.ts"
+import { PostgresCredentialDB, PostgresUserDB, PostgresGraphicalProblemDB } from "./postgres.ts"
 
 
 const dir = dirname(import.meta.url);
@@ -70,6 +70,7 @@ userDB.addNewUser({
   password_repeat: "admin123"
 });
 
+
 const authConfig = {
   session: session,
   credentialDB: credentialDB,
@@ -81,6 +82,10 @@ const submitDB = new MockSubmitDB();
 const sourceManager = new BasicSourceManager();
 const problemDB = new PostgresProblemDB(client);
 const permissionDB = new MockPermissionDB();
+
+const graphicaProblemDB = new PostgresGraphicalProblemDB(client);
+console.log(await graphicaProblemDB.getGraphicalProblemsInContest(1, 1));
+
 
 const submitConfig = {
   authenticator: session,

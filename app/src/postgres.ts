@@ -2,9 +2,9 @@
 
 import { Client, ClientOptions } from "../deps.ts"
 
-import type { Submit, Contest, Problem } from "./db.ts"
+import type { Submit, Contest, Problem, GraphicalProblem } from "./db.ts"
 import type { User, NewUser } from "./db.ts";
-import type { ContestDB, UserDB, CredentialDB, ProblemDB } from "./db.ts";
+import type { ContestDB, UserDB, CredentialDB, ProblemDB, GraphicalProblemDB } from "./db.ts";
 
 import { bcrypt } from "../deps.ts"
 
@@ -179,6 +179,67 @@ class PostgresProblemDB implements ProblemDB {
         return (await this.client.queryObject<Problem>(query, [contest_id])).rows;
     }
 
+
+
+
 }
 
-export { connectNewClient, PostgresContestDB, PostgresCredentialDB, PostgresUserDB, PostgresProblemDB };
+class PostgresGraphicalProblemDB implements GraphicalProblemDB {
+    client: Client;
+    constructor(client: Client) { this.client = client; }
+
+    async getGraphicalProblemsInContest(contest_id: number, user_id: number): Promise<GraphicalProblem[]> {
+        //TODO: Fix it so that OK is always on top
+        //This will need a custom comparator provided by our database!
+        const query = `
+        SELECT p.id, p.name, p.shortname, p.position, p.due_date, p.closing_date, (
+            SELECT st.name AS status
+            FROM submits s 
+            JOIN submit_results sr ON s.id = sr.submit_id
+            JOIN statuses st ON st.id = sr.status
+            WHERE p.id = s.problem_id AND s.user_id = $2
+            ORDER BY  s.submission_time DESC
+            LIMIT 1
+        )
+        FROM problems p
+        WHERE contest_id = $1
+        `;
+        const result = await this.client.queryObject<GraphicalProblem>(query, [contest_id, user_id]);
+
+        return result.rows;
+    }
+
+    async getGraphicalProblemById(problem_id: number, user_id: number): Promise<GraphicalProblem | null> {
+        const query = `
+        SELECT p.id, p.name, p.shortname, p.position, p.due_date, p.closing_date, (
+            SELECT st.name AS status
+            FROM submits s 
+            JOIN submit_results sr ON s.id = sr.submit_id
+            JOIN statuses st ON st.id = sr.status
+            WHERE p.id = $1 AND s.user_id = $2
+            ORDER BY  s.submission_time DESC
+            LIMIT 1
+        )
+        FROM problems p
+        `;
+        const result = await this.client.queryObject<GraphicalProblem>(query, [problem_id, user_id]);
+
+        if (result.rowCount == 0) {
+            return null;
+        } else {
+            return result.rows[0];
+        }
+
+    }
+}
+/*
+class PostgresSubmitDB implements SubmitDB {
+    client: Client;
+
+    constructor(client: Client) {
+        this.client = client;
+    }
+
+}*/
+
+export { connectNewClient, PostgresContestDB, PostgresCredentialDB, PostgresUserDB, PostgresProblemDB, PostgresGraphicalProblemDB };

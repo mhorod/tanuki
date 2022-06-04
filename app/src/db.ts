@@ -51,6 +51,16 @@ interface Problem {
   source_limit: number,
 }
 
+interface GraphicalProblem {
+  id: number,
+  name: string,
+  shortname: string,
+  position: number,
+  due_date: Date | null,
+  closing_date: Date | null,
+  status: string
+}
+
 interface ContestDB {
   getContests(): Promise<Array<Contest>>;
   getSubmits(): Promise<Array<Submit>>;
@@ -76,6 +86,11 @@ interface ProblemDB {
   getProblemById(id: number): Promise<Problem | null>;
 }
 
-export type { Submit, Contest, Problem };
+interface GraphicalProblemDB {
+  getGraphicalProblemsInContest(contest: number, user_id: number): Promise<Array<GraphicalProblem>>;
+  getGraphicalProblemById(problem_id: number, user_id: number): Promise<GraphicalProblem | null>;
+}
+
+export type { Submit, Contest, Problem, GraphicalProblem };
 export type { User, NewUser };
-export type { ContestDB, UserDB, CredentialDB, SubmitDB, ProblemDB }
+export type { ContestDB, UserDB, CredentialDB, SubmitDB, ProblemDB, GraphicalProblemDB }
