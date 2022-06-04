@@ -25,7 +25,7 @@ export * as R from "https://deno.land/x/ramda@v0.27.2/mod.ts";
 export { readAll } from "https://deno.land/std@0.141.0/streams/mod.ts"
 
 // JWT for user  verification
-export { create, verify } from "https://deno.land/x/djwt/mod.ts";
+export { create, verify } from "https://deno.land/x/djwt@v2.4/mod.ts";
 
 // cookies
 export { deleteCookie, setCookie, getCookies } from "https://deno.land/std/http/cookie.ts";
