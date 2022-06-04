@@ -18,11 +18,11 @@ import { JWTSession } from "./jwt.ts"
 import { renderWithUserData } from "./utils.ts"
 
 import { connectNewClient, PostgresContestDB, PostgresProblemDB } from "./postgres.ts"
-import { MockClient, MockUserDB, MockCredentialDB, MockSubmitDB, MockPermissionDB } from "./mock/db.ts"
+import { MockClient, MockUserDB, MockCredentialDB, MockPermissionDB } from "./mock/db.ts"
 import { BasicSourceManager } from "./source.ts"
 import { setUpSubmitRouter } from "./submit.ts"
 
-import { PostgresCredentialDB, PostgresUserDB, PostgresGraphicalProblemDB } from "./postgres.ts"
+import { PostgresCredentialDB, PostgresUserDB, PostgresGraphicalProblemDB, PostgresSubmitDB } from "./postgres.ts"
 
 
 const dir = dirname(import.meta.url);
@@ -78,7 +78,7 @@ const authConfig = {
 };
 setUpAuthRouter(router, authConfig);
 
-const submitDB = new MockSubmitDB();
+const submitDB = new PostgresSubmitDB(client);
 const sourceManager = new BasicSourceManager();
 const problemDB = new PostgresProblemDB(client);
 const permissionDB = new MockPermissionDB();
