@@ -6,6 +6,9 @@ import type { Submit, Contest, Problem } from "./db.ts"
 import type { User, NewUser } from "./db.ts";
 import type { ContestDB, UserDB, CredentialDB, ProblemDB } from "./db.ts";
 
+import { bcrypt } from "../deps.ts"
+
+
 import { Credentials } from "./auth.ts"
 /**
  * Creates new connection to the database
@@ -16,6 +19,16 @@ async function connectNewClient(options: ClientOptions): Promise<Client> {
     const client = new Client(options);
     await client.connect();
     return client;
+}
+
+async function getUser(client: Client, login: string) {
+    const result = await client.queryObject<User>("SELECT * FROM users WHERE users.login = $1", [login]);
+    if (result.rowCount == 0) {
+        return null;
+    }
+    else {
+        return result.rows[0];
+    }
 }
 
 const submitQuery = `
@@ -33,19 +46,6 @@ async function getSubmits(client: Client): Promise<Array<Submit>> {
     return (await client.queryObject<Submit>(submitQuery)).rows;
 }
 
-function getUser(client: Client, credentials: Credentials): User | null {
-    if (credentials.login == "admin" && credentials.password == "admin")
-        return {
-            id: 0,
-            login: "admin",
-            name: "admin",
-            surname: "admin",
-            password_hash: "admin",
-            email: "admin"
-        }
-    else
-        return null;
-}
 class PostgresContestDB implements ContestDB {
     client: Client;
 
@@ -66,23 +66,64 @@ class PostgresCredentialDB implements CredentialDB {
     client: Client;
     constructor(client: Client) { this.client = client; }
     async getUserByCredentials(credentials: Credentials): Promise<User | null> {
-        return await getUser(this.client, credentials);
+        console.log(credentials);
+
+        const userMatchingByLogin = await getUser(this.client, credentials.login);
+
+        console.log(userMatchingByLogin);
+
+        if (userMatchingByLogin == null) {
+            //User doesn't even exist
+            return null;
+        }
+
+        console.log("Hi!");
+        //User exists, time for password validation
+
+        if (await bcrypt.compare(credentials.password, userMatchingByLogin.password_hash.trim())) {
+            console.log("Looking good to me");
+            //Also matching by password
+            return userMatchingByLogin;
+        }
+        else {
+            //Password is incorrect
+            return null;
+        }
     }
 }
 
 class PostgresUserDB implements UserDB {
     client: Client;
-    constructor(client: Client) { this.client = client; }
+    constructor(client: Client) {
+        this.client = client;
+    }
+
     async addNewUser(user: NewUser): Promise<User | null> {
-        return await {
-            id: 0,
-            password_hash: "abc",
-            ...user,
+        if (await this.getUserByLogin(user.login) != null) {
+            //Such user already exists
+            return null;
         }
+
+        const salt = await bcrypt.genSalt(8);
+        const hash = await bcrypt.hash(user.password, salt);
+
+        const insertTable = [user.login, user.name, user.surname, hash, user.email];
+
+        try {
+            const insertionResult = await this.client.queryObject<User>("INSERT INTO users VALUES ($1, $2, $3, $4, $5)", insertTable);
+            console.log(insertionResult);
+        }
+        catch (Exception) {
+            return null;
+        }
+
+
+        const newUser = await this.getUserByLogin(user.login);
+        return newUser;
     }
 
     async getUserByLogin(login: string): Promise<User | null> {
-        return await getUser(this.client, { login: login, password: "admin" });
+        return await getUser(this.client, login);
     }
 }
 

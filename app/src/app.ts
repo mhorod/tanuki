@@ -22,6 +22,9 @@ import { MockClient, MockUserDB, MockCredentialDB, MockSubmitDB, MockPermissionD
 import { BasicSourceManager } from "./source.ts"
 import { setUpSubmitRouter } from "./submit.ts"
 
+import { PostgresCredentialDB, PostgresUserDB } from "./postgres.ts"
+
+
 const dir = dirname(import.meta.url);
 await config({ export: true });
 
@@ -43,9 +46,11 @@ const session = new JWTSession();
 
 // TODO: Replace those with postgres connection when it's implemented
 const mockClient = new MockClient();
-const userDB = new MockUserDB(mockClient);
-const credentialDB = new MockCredentialDB(mockClient);
+const userDB = new PostgresUserDB(client);
+const credentialDB = new PostgresCredentialDB(client);
 
+
+//Sanity check - should be rejected by the database
 userDB.addNewUser({
   login: "admin",
   name: "",
@@ -54,6 +59,17 @@ userDB.addNewUser({
   password: "admin",
   password_repeat: "admin"
 })
+
+//Not really an admin, but it's a ufesul account for test purposes
+userDB.addNewUser({
+  login: "admin2",
+  name: "Zawodowy",
+  surname: "Administrator",
+  email: "admin@administracja.pl",
+  password: "admin123",
+  password_repeat: "admin123"
+});
+
 const authConfig = {
   session: session,
   credentialDB: credentialDB,
