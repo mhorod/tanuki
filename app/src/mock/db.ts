@@ -55,28 +55,6 @@ class MockCredentialDB implements CredentialDB {
 
 }
 
-class MockSubmitDB implements SubmitDB {
-    submits: Map<number, Submit>;
-    constructor() {
-        this.submits = new Map<number, Submit>();
-    }
-    async addSubmit(problem: number, user: number, source: string): Promise<Submit | null> {
-        const id = this.submits.size;
-        const submit: Submit = {
-            id: id,
-            problem: problem,
-            user: user,
-            source: source,
-            date: new Date(Date.now())
-        }
-        this.submits.set(id, submit)
-        return await submit;
-    }
-    async getSubmitById(id: number): Promise<Submit | null> {
-        return await this.submits.get(id) || null;
-    }
-}
-
 class MockPermissionDB implements PermissionDB {
     async canSubmit(user: number, contest: number): Promise<boolean> {
         return await true;
@@ -90,4 +68,4 @@ class MockPermissionDB implements PermissionDB {
 
 }
 
-export { MockClient, MockUserDB, MockCredentialDB, MockSubmitDB, MockPermissionDB }
+export { MockClient, MockUserDB, MockCredentialDB, MockPermissionDB }

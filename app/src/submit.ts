@@ -4,7 +4,7 @@ import type { IRouter, OpineRequest, OpineResponse, NextFunction } from "../deps
 import { format } from "../deps.ts"
 import { RequestAuthenticator, authorizeUsing, UserData } from "./auth.ts"
 import { renderWithUserData, renderStatusWithUserData, Result } from "./utils.ts"
-import { SubmitDB, ProblemDB, ContestDB } from "./db.ts"
+import { SubmitDB, ProblemDB, ContestDB, NewSubmit } from "./db.ts"
 import { PermissionDB } from "./permissions.ts"
 
 
@@ -147,7 +147,16 @@ function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
             if (!added)
                 return res.redirect(redirect_back);
 
-            const submit = await config.submitDB.addSubmit(0, user.id, uri)
+            const tmpSubmit: NewSubmit = {
+                source_uri: uri,
+                user_id: user.id,
+                problem_id: 1,
+                language_id: 1
+            };
+
+            //const submit = await config.submitDB.addSubmit(0, user.id, uri)
+            const submit = await config.submitDB.addSubmit(tmpSubmit) //Michał, could you please check whether that's OK?
+
             if (!submit)
                 return res.redirect(redirect_back);
 
@@ -165,7 +174,7 @@ function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
             if (submit == null) {
                 return renderStatusWithUserData(config.authenticator, 404)(req, res, next);
             }
-            const src = await config.sourceManager.loadSource(submit.source);
+            const src = await config.sourceManager.loadSource(submit.source_uri);
             await renderWithUserData(config.authenticator, "results",
                 {
                     submit: req.params.submit_id,
@@ -173,7 +182,7 @@ function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
                     problem: "A",
                     status: "OK",
                     src: src,
-                    date: format(submit.date, "yyyy-MM-dd, hh:mm:ss")
+                    date: format(submit.submission_time, "yyyy-MM-dd, hh:mm:ss")
                 }
             )(req, res, next);
         }

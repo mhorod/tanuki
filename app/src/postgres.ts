@@ -3,8 +3,8 @@
 import { Client, ClientOptions } from "../deps.ts"
 
 import type { Submit, Contest, Problem, GraphicalProblem } from "./db.ts"
-import type { User, NewUser } from "./db.ts";
-import type { ContestDB, UserDB, CredentialDB, ProblemDB, GraphicalProblemDB } from "./db.ts";
+import type { User, NewUser, NewSubmit } from "./db.ts";
+import type { ContestDB, UserDB, CredentialDB, ProblemDB, GraphicalProblemDB, SubmitDB } from "./db.ts";
 
 import { bcrypt } from "../deps.ts"
 
@@ -232,7 +232,7 @@ class PostgresGraphicalProblemDB implements GraphicalProblemDB {
 
     }
 }
-/*
+
 class PostgresSubmitDB implements SubmitDB {
     client: Client;
 
@@ -240,6 +240,56 @@ class PostgresSubmitDB implements SubmitDB {
         this.client = client;
     }
 
-}*/
+    async addSubmit(newSubmit: NewSubmit): Promise<Submit | null> {
+        const insertTable = [newSubmit.source_uri, newSubmit.user_id, newSubmit.problem_id, newSubmit.language_id];
+
+        const query = `
+        INSERT INTO submits VALUES(
+            $1,
+            $2,
+            $3,
+            $4,
+            current_timestamp
+        )
+        `;
+        this.client.queryObject<Submit>(query, insertTable);
+
+        //That's a truly terrible query
+        const queryResult = await this.client.queryObject<Submit>("SELECT * FROM submits WHERE source_uri = $1", [newSubmit.source_uri]);
+
+        if (queryResult.rowCount == 0) {
+            return null;
+        }
+        else {
+            return queryResult.rows[0];
+        }
+    }
+
+    async getSubmitById(id: number): Promise<Submit | null> {
+        const queryResult = await this.client.queryObject<Submit>("SELECT * FROM submits WHERE id = $1", [id]);
+
+        if (queryResult.rowCount == 0) {
+            return null;
+        }
+        else {
+            //Oh no
+            const resultFromDB = queryResult.rows[0];
+            /*
+            const toReturn: Submit = {
+                id: resultFromDB.id,
+                user: resultFromDB.user_id,
+                problem: resultFromDB.problem_id,
+                source: resultFromDB.source_uri,
+                date: resultFromDB.submission_time
+            };
+
+            console.log(toReturn);*/
+            console.log(resultFromDB);
+            return resultFromDB;
+        }
+    }
+
+}
 
 export { connectNewClient, PostgresContestDB, PostgresCredentialDB, PostgresUserDB, PostgresProblemDB, PostgresGraphicalProblemDB };
+export { PostgresSubmitDB };
