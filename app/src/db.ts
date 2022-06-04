@@ -61,6 +61,14 @@ interface GraphicalProblem {
   status: string
 }
 
+//Used to convey information about progress of a student
+interface GraphicalProblemStatus {
+  id: number
+  shortname: string
+  status: string
+  user_id: number
+}
+
 interface NewSubmit {
   source_uri: string,
   user_id: number,
@@ -100,4 +108,5 @@ interface GraphicalProblemDB {
 
 export type { Submit, NewSubmit, Contest, Problem, GraphicalProblem };
 export type { User, NewUser };
+export type { GraphicalProblemStatus };
 export type { ContestDB, UserDB, CredentialDB, SubmitDB, ProblemDB, GraphicalProblemDB }
