@@ -85,7 +85,7 @@ const permissionDB = new PostgresPermissionDB(client);
 const graphicaProblemDB = new PostgresGraphicalProblemDB(client);
 
 //test
-import { getAllNewestSubmitsInAContest } from "./queries/submits.ts"
+import { getAllNewestSubmitsInAContest, getUnsolvedProblemsTharAreClosestToTheDeadline } from "./queries/submits.ts"
 console.log(await getAllNewestSubmitsInAContest(client, 3));
 console.log(await graphicaProblemDB.getGraphicalProblemsInContest(3, 4));
 
@@ -94,6 +94,7 @@ const languageDB = new PostgresLanguageDB(client);
 console.log(await languageDB.getProblemLanguages(2));
 
 console.log(await permissionDB.canViewSubmit(1, 1));
+console.log(await getUnsolvedProblemsTharAreClosestToTheDeadline(client, 2, 5));
 
 const submitConfig = {
   authenticator: session,
