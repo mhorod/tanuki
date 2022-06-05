@@ -1,0 +1,63 @@
+<template id="test-editor">
+    <div>
+        <div class="group-container"></div>
+        <button type="button">add group</button>
+    </div>
+</template>
+
+<div id="editor"></div>
+
+<template id="task-group">
+    <div>
+        <div class="flex flex-row bg-zinc-800 gap-5 content-center p-2 border-b">
+            <div class="flex flex-row items-center grow">
+                <button class="focus:outline-none" type="button" data-bs-toggle="collapse" data-bs-target="#group-1">
+                    Group 1
+                </button>
+                <button class="focus:outline-none" type="button">
+                    <ion-icon name="pencil-outline"></ion-icon>
+                </button>
+            </div>
+            <div class="flex flex-row items-center gap-2">
+                <span class="inline"> all ok? </span>
+                <input class="whitespace-nowrap" type="checkbox" />
+                <button class="focus:outline-none" type="button">
+                    <ion-icon style="color: red;" name="trash-outline"></ion-icon>
+                </button>
+            </div>
+        </div>
+        <div id="group-1" class="collapse hide pl-6">
+            <table class="table-auto w-full">
+                <thead>
+                    <tr class="border-b border-white">
+                        <th>points</th>
+                        <th>name</th>
+                        <th>time</th>
+                        <th>memory</th>
+                        <th>show output</th>
+                        <th>URI</th>
+                    </tr>
+                </thead>
+                <tbody id="tab">
+                </tbody>
+            </table>
+            <button type="button">add task</button>
+        </div>
+    </div>
+</template>
+
+<template id="task">
+    <tr class="odd:bg-zinc-900 even:bg-zinc-800 text-center">
+        <td class="px-2 py-2"> <span class="p-1" contenteditable="true"></span></td>
+        <td class="px-2 py-2"> <span class="p-1" contenteditable="true"></span></td>
+        <td class="px-2 py-2"> <span class="p-1" contenteditable="true"></span></td>
+        <td class="px-2 py-2"> <span class="p-1" contenteditable="true"></span></td>
+        <td class="px-2 py-2"> <input class="text-lg" type="checkbox" /></td>
+        <td class="px-2 py-2"> <span class="p-1" contenteditable="true"></span></td>
+        <td class="px-2 py-2"> <button type="button">
+                <ion-icon style="color: red;" name="trash-outline"></ion-icon>
+            </button></td>
+    </tr>
+</template>
+
+<script src="/js/test-editor.js"></script>

@@ -107,3 +107,11 @@ App runs on port `3000` and postgres runs on port `5433`
 - [x] syntax highlighting
 - [ ] contest management
 - [ ] scoreboard
+
+- [ ] adding contests
+- [ ] editing contests
+- [ ] adding problems
+- [ ] editing problems
+- [ ] showing student results
+- [ ] editing users
+- [ ] adding users to contest

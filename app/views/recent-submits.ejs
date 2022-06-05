@@ -1,0 +1,26 @@
+<h3 class="text-2xl font-semibold mt-0 mb-2 text-slate-100">Recent submits</h3>
+<table class="table-auto w-full">
+    <thead>
+        <tr class="border-b border-white">
+            <th> submit id </th>
+            <th> problem </th>
+            <th> status </th>
+        </tr>
+    </thead>
+    <% for (const submit of submits) { %>
+        <tr class="odd:bg-zinc-900 even:bg-zinc-800 text-center">
+            <td class="px-2 py-2">
+                <a href="/contest/<%= submit[0] %>/submit/<%= submit.id %>" class="cursor-pointer py-2 
+            hover:text-slate-300">
+                    <%= submit.id %>
+                </a>
+            </td>
+            <td class="px-2 py-2">
+                <%= submit.problem %>
+            </td>
+            <td class="px-0 py-0">
+                <%- await include("views/status.ejs", {status: submit.status}); %>
+            </td>
+        </tr>
+        <% } %>
+</table>

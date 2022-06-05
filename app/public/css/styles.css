@@ -11,36 +11,26 @@ textarea:focus {
 }
 
 /* Status styling */
-.status-TLE,
-.status-RTE,
-.status-ANS,
 .status-tle,
 .status-rte,
 .status-ans {
-    background: #e03c26;
+    color: #e03c26;
 }
 
-.status-OK,
 .status-ok {
-    background: #10b981;
+    color: #10b981;
 }
 
-.status-QUE,
 .status-que {
-    background-color: #ebd336;
+    color: #ebd336;
 }
 
-.status-CME,
-.status-REJ,
-.status-INT,
-.status-RUL,
-.status-ERR,
 .status-cme,
 .status-rej,
 .status-int,
 .status-rul,
 .status-err {
-    background: #2f4858;
+    color: #466b83;
 }
 
 /* Loading animation */
@@ -48,6 +38,10 @@ textarea:focus {
     display: inline-block;
     width: 32px;
     height: 32px;
+}
+span[contenteditable="true"] {
+    display: block;
+    border:1px solid #10b981;
 }
 
 .lds-dual-ring:after {

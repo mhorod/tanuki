@@ -3,62 +3,34 @@
 
 <head>
   <%- await include("views/common-head.ejs"); %>
-  <title>
-    Tanuki
-  </title>
+    <title>
+      Tanuki
+    </title>
 </head>
 
 <body class="bg-zinc-900 text-white">
   <%- await include("views/nav.ejs", {user: user}); %>
-  <div class=" container mx-auto p-6">
-    <div>
-      <h3 class="text-2xl font-semibold mt-0 mb-2 text-slate-100">Your contests</h3>
-      <div class="flex flex-col mb-4 items-start">
-        <% for (const contest of contests) { %>
-        <a href="/contest/<%= contest.id %>" class="cursor-pointer py-2 hover:text-slate-300"><%= contest.name %></a>
-        <% } %>
+
+    <div class=" container mx-auto p-6 divide-x">
+      <div class="flex flex-col md:flex-row gap-5">
+        <div class="grow">
+          <h3 class="text-2xl font-semibold mt-0 mb-2 text-slate-100">Your contests</h3>
+          <div class="flex flex-col mb-4">
+            <% for (const contest of contests) { %>
+              <a href="/contest/<%= contest.id %>" class="cursor-pointer py-2 hover:text-slate-300">
+                <%= contest.name %>
+              </a>
+              <% } %>
+          </div>
+
+          <%- await include("views/recent-submits.ejs", {submits: submits}); %>
+
+        </div>
+        <%- await include("views/sidebar.ejs", {user: user}); %>
       </div>
-
-
-      <a href="/submit/1/1" type="submit" class="submit-btn">
-        Submit
-      </a>
-      <h3 class="text-2xl font-semibold mt-0 mb-2 text-slate-100">Recent submits</h3>
-      <table class="table-auto w-full">
-        <thead>
-          <tr class="border-b border-white">
-            <th>
-              submit id
-            </th>
-            <th>
-              problem
-            </th>
-            <th>
-              status
-            </th>
-          </tr>
-        </thead>
-        <% for (const submit of submits) { %>
-        <tr class="odd:bg-zinc-800 even:bg-zinc-700 text-center">
-          <td class="px-2 py-2">
-            <a href="/contest/<%= submit[0] %>/submit/<%= submit.id %>" class="cursor-pointer py-2 
-            hover:text-slate-300">
-              <%= submit.id %>
-            </a>
-          </td>
-          <td class="px-2 py-2">
-            <%= submit.problem %>
-          </td>
-          <td class="px-2 py-2 status-<%= submit.status.toLowerCase() %>">
-            <%= submit.status %>
-          </td>
-        </tr>
-        <% } %>
-      </table>
     </div>
-  </div>
 
-  <%- await include("views/common-scripts.ejs"); %>
+    <%- await include("views/common-scripts.ejs"); %>
 </body>
 
 </html>

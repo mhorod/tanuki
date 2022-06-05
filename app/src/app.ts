@@ -145,6 +145,16 @@ router.get("/statuses", (req, res, next) => {
     });
 })
 
+router.get("/contest/:id", async (req, res, next) => {
+  const contests = await contestDB.getContests();
+  renderWithUserData(session, "student/contest", { contest: contests[0] })(req, res, next);
+});
+
+router.get("/contest/:contestid/problem/:problemid", async (req, res, next) => {
+  const contests = await contestDB.getContests();
+  renderWithUserData(session, "student/problem", { contest: contests[0], problem: { name: 'Test', id: 1 } })(req, res, next);
+});
+
 const app = opine();
 
 // Handling of incoming formats
