@@ -3,9 +3,9 @@ import { MultipartReader, R } from "../deps.ts"
 import type { IRouter, OpineRequest, OpineResponse, NextFunction } from "../deps.ts"
 import { format } from "../deps.ts"
 import { RequestAuthenticator, authorizeUsing } from "./auth.ts"
-import { renderWithUserData, renderStatusWithUserData } from "./utils.ts"
+import { renderWithUserData, renderStatusWithUserData, authorizeContestAccess } from "./utils.ts"
 import { SubmitDB, ProblemDB, ContestDB, LanguageDB, NewSubmit, Language } from "./db.ts"
-import { PermissionDB } from "./permissions.ts"
+import { PermissionDB, PermissionKind } from "./permissions.ts"
 
 
 const { compose, nth, split } = R;
@@ -110,23 +110,14 @@ function findLanguageByExtension(extension: string, languages: Array<Language>):
 
 
 function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
-    // Helper function - creates a handler that extracts contest_id from request
-    // and checkes if current user has submit permissions
-    const authorizeContestAccess =
-        (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
-            const contest_id = parseInt(req.params.contest_id);
-            authorizeUsing(config.authenticator, async user => await config.permissionDB.canSubmit(user.id, contest_id))
-                (req, res, next);
-        };
-
     router.get("/submit/:contest_id",
-        authorizeContestAccess,
+        authorizeContestAccess(config, PermissionKind.SUBMIT),
         (req, res, next) => {
             renderSubmitPage(parseInt(req.params.contest_id), null, config)(req, res, next);
         }
     )
     router.get("/submit/:contest_id/:problem_id",
-        authorizeContestAccess,
+        authorizeContestAccess(config, PermissionKind.SUBMIT),
         (req, res, next) => {
             renderSubmitPage(parseInt(req.params.contest_id), parseInt(req.params.problem_id), config)(req, res, next);
         },
@@ -136,7 +127,7 @@ function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
 
 
     router.post("/submit/:contest_id",
-        authorizeContestAccess,
+        authorizeContestAccess(config, PermissionKind.SUBMIT),
         async (req, res, next) => {
             const user = await config.authenticator.authenticateRequest(req);
             if (user == null)
