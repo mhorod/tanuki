@@ -18,12 +18,12 @@ import { JWTSession } from "./jwt.ts"
 import { renderWithUserData, renderStatusWithUserData } from "./utils.ts"
 
 import { connectNewClient, PostgresContestDB, PostgresProblemDB } from "./postgres.ts"
-import { MockClient, MockLanguageDB } from "./mock/db.ts"
 import { BasicSourceManager } from "./source.ts"
 import { setUpSubmitRouter } from "./submit.ts"
 
 import { PostgresCredentialDB, PostgresUserDB, PostgresGraphicalProblemDB, PostgresSubmitDB } from "./postgres.ts"
 import { PostgresPermissionDB } from "./postgres.ts"
+import { PostgresLanguageDB } from "./queries/language.ts"
 
 import { setUpAccountRouter } from "./account.ts"
 
@@ -48,8 +48,6 @@ const contestDB = new PostgresContestDB(client);
 const router = Router();
 const session = new JWTSession();
 
-// TODO: Replace those with postgres connection when it's implemented
-const mockClient = new MockClient();
 const userDB = new PostgresUserDB(client);
 const credentialDB = new PostgresCredentialDB(client);
 
@@ -78,11 +76,11 @@ const submitDB = new PostgresSubmitDB(client);
 const sourceManager = new BasicSourceManager();
 const problemDB = new PostgresProblemDB(client);
 const permissionDB = new PostgresPermissionDB(client);
-const languageDB = new MockLanguageDB(); // TODO: replace with postgres
+const languageDB = new PostgresLanguageDB(client); // TODO: replace with postgres
 const graphicaProblemDB = new PostgresGraphicalProblemDB(client);
 
 //test
-import { getAllNewestSubmitsInAContest } from "./queries/submits.ts"
+import { getAllNewestSubmitsInAContest, getUnsolvedProblemsTharAreClosestToTheDeadline } from "./queries/submits.ts"
 console.log(await getAllNewestSubmitsInAContest(client, 3));
 console.log(await graphicaProblemDB.getGraphicalProblemsInContest(3, 4));
 

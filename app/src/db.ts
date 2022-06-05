@@ -128,7 +128,8 @@ interface ResultDB {
   setSubmitResults(id: number, points: number, status: string): Promise<boolean>;
 }
 
-export type { Submit, NewSubmit, Contest, Problem, GraphicalProblem, Language };
-export type { User, NewUser };
+
+export type { Submit, NewSubmit, Contest, Problem, GraphicalProblem };
+export type { User, NewUser, Language };
 export type { GraphicalProblemStatus };
 export type { ContestDB, UserDB, CredentialDB, SubmitDB, ProblemDB, GraphicalProblemDB, LanguageDB, ResultDB }
