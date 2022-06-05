@@ -150,7 +150,7 @@ function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
             if (!language)
                 return onSubmitFail("invalid file extension");
 
-            const uri = crypto.randomUUID() + "." + extension;
+            const uri = "submitted/" + crypto.randomUUID() + "." + extension;
             const added = await config.sourceManager.addSource(uri, content);
             if (!added)
                 return res.redirect(redirect_back);

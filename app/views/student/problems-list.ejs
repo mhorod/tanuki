@@ -12,7 +12,7 @@
         <% for (const problem of problems) { %>
 
             <tr class="hover:bg-zinc-700 hover:cursor-pointer odd:bg-zinc-900 even:bg-zinc-800 text-center"
-                onclick="location.href = '/contest/1/problem/2'">
+                onclick="location.href = '/contest/<%= problem.contest_id %>/problem/<%= problem.id %>'">
                 <td class="px-2 py-2">
                     <%= problem.shortname %>
                 </td>
@@ -26,7 +26,8 @@
                     <% if (typeof(problem.points) !='undefined' ) { %>
                         <%= problem.points %> / <%= problem.max %> (<%= problem.current_max %>)
                                     <% } %>
-                                        <%= problem.status %>
+
+                                        <%- await include("views/status.ejs", {status: problem.status}); %>
                 </td>
             </tr>
             <% } %>

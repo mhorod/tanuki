@@ -46,6 +46,7 @@ interface Problem {
 interface GraphicalProblem {
   id: number,
   name: string,
+  statement_uri: string,
   shortname: string,
   position: number,
   due_date: Date | null,

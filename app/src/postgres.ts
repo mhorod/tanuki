@@ -197,7 +197,7 @@ class PostgresGraphicalProblemDB implements GraphicalProblemDB {
         //TODO: Fix it so that OK is always on top
         //This will need a custom comparator provided by our database!
         const query = `
-        SELECT p.id, p.name, p.shortname, p.position, p.due_date, p.closing_date, (
+        SELECT p.id, p.name, p.shortname, p.statement_uri, p.position, p.due_date, p.closing_date, (
             SELECT st.name AS status
             FROM submits s 
             JOIN submit_results sr ON s.id = sr.submit_id
@@ -216,7 +216,7 @@ class PostgresGraphicalProblemDB implements GraphicalProblemDB {
 
     async getGraphicalProblemById(problem_id: number, user_id: number): Promise<GraphicalProblem | null> {
         const query = `
-        SELECT p.id, p.name, p.shortname, p.position, p.due_date, p.closing_date, (
+        SELECT p.id, p.name, p.shortname, p.statement_uri, p.position, p.due_date, p.closing_date, (
             SELECT st.name AS status
             FROM submits s 
             JOIN submit_results sr ON s.id = sr.submit_id

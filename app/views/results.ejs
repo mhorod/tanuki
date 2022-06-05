@@ -29,7 +29,7 @@
         <div id="status" class="text-white status-<%= status %> text-2xl flex align-middle p-3
       space-x-4">
           <div class="status-<%= status %>">
-            <%= status %>
+            <%- await include("views/status.ejs", {status: status}); %>
           </div>
           <% if (status=="que" ) { %>
             <div class="loading lds-dual-ring"></div>

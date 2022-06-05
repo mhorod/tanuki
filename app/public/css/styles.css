@@ -105,7 +105,7 @@ span[contenteditable="true"] {
 }
 
 .normal-btn {
-    padding: 1rem;
+    padding: 0.5rem;
     color: white;
     border: 1px white solid;
     display: inline-block;

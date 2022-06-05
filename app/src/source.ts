@@ -1,6 +1,6 @@
 import { join, readAll } from "../deps.ts"
 // Directory where submited files go
-const SUBMIT_DIR = '/app/files/submitted'
+const ROOT = '/app/files/'
 
 interface SourceManager {
     /**
@@ -25,19 +25,19 @@ interface SourceManager {
 class BasicSourceManager implements SourceManager {
     constructor() {
         try {
-            Deno.mkdir(SUBMIT_DIR, { recursive: true })
+            Deno.mkdir(ROOT, { recursive: true })
         }
         catch {
             //  Directory already exists, skip
         }
     }
     async getFullPath(uri: string): Promise<string> {
-        return await join(SUBMIT_DIR, uri);
+        return await join(ROOT, uri);
     }
 
     async addSource(uri: string, content: any): Promise<boolean> {
         try {
-            await Deno.writeFile(join(SUBMIT_DIR, uri), content);
+            await Deno.writeFile(join(ROOT, uri), content);
             return true;
         }
         catch {
@@ -47,7 +47,7 @@ class BasicSourceManager implements SourceManager {
 
     async loadSource(uri: string): Promise<string | null> {
         let file;
-        try { file = await Deno.open(join(SUBMIT_DIR, uri)); }
+        try { file = await Deno.open(join(ROOT, uri)); }
         catch { return null; }
 
         const decoder = new TextDecoder('utf-8');
