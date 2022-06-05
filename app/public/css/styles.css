@@ -13,15 +13,20 @@ textarea:focus {
 /* Status styling */
 .status-tle,
 .status-rte,
-.status-ans {
+.status-ans,
+.status-TLE,
+.status-RTE,
+.status-ANS {
     color: #e03c26;
 }
 
-.status-ok {
+.status-ok,
+.status-OK {
     color: #10b981;
 }
 
-.status-que {
+.status-que,
+.status-QUE {
     color: #ebd336;
 }
 
@@ -29,7 +34,12 @@ textarea:focus {
 .status-rej,
 .status-int,
 .status-rul,
-.status-err {
+.status-err,
+.status-CME,
+.status-REJ,
+.status-INT,
+.status-RUL,
+.status-ERR {
     color: #466b83;
 }
 
@@ -39,9 +49,10 @@ textarea:focus {
     width: 32px;
     height: 32px;
 }
+
 span[contenteditable="true"] {
     display: block;
-    border:1px solid #10b981;
+    border: 1px solid #10b981;
 }
 
 .lds-dual-ring:after {
