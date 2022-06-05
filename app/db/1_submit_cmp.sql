@@ -1,9 +1,9 @@
-CREATE OR REPLACE FUNCTION compare_submits(result INTEGER, submission_time TIMESTAMP)
-RETURNS TIMESTAMP AS
+CREATE OR REPLACE FUNCTION compare_submits(result INTEGER, submission_time TIMESTAMPTZ)
+RETURNS TIMESTAMPTZ AS
 $$
     BEGIN
             IF result = 1
-                 THEN RETURN TIMESTAMP 'infinity'; 
+                 THEN RETURN TIMESTAMPTZ 'infinity'; 
             END IF;
             RETURN submission_time;
     END;
