@@ -1,7 +1,7 @@
 // Handles logging in and signing up
 
 import { OpineRequest, OpineResponse, NextFunction, IRouter, email } from "../deps.ts"
-import { renderWithUserData } from "./utils.ts"
+import { renderWithUserData, renderStatusWithUserData } from "./utils.ts"
 import { CredentialDB, UserDB, NewUser } from "./db.ts"
 /**
  * Credentials used to log into the system
@@ -104,6 +104,9 @@ function redirectIfUnauthenticated(authenticater: RequestAuthenticator, target: 
     }
 }
 
+function authenticatedOnly(authenticator: RequestAuthenticator) {
+    return authorizeUsing(authenticator, async user => await user != null);
+}
 
 
 /**
@@ -128,8 +131,7 @@ function authorizeUsing(authenticator: RequestAuthenticator, hasAccess: (user: U
         const user = await authenticator.authenticateRequest(req);
         if (user === null || !await hasAccess(user)) {
             const redirect = user == null ? req.path : undefined;
-            res.setStatus(403);
-            renderWithUserData(authenticator, "403", { log_in_redirect: redirect })(req, res, next);
+            renderStatusWithUserData(authenticator, 403, { log_in_redirect: redirect })(req, res, next);
         }
         else
             next();
@@ -228,5 +230,5 @@ async function vaidateNewUser(data: NewUser, userDB: UserDB): Promise<any | null
 
 
 export { setUpAuthRouter };
-export { redirectIfAuthenticated, redirectIfUnauthenticated, authorizeUsing };
+export { redirectIfAuthenticated, redirectIfUnauthenticated, authorizeUsing, authenticatedOnly };
 export type { RequestAuthenticator, CredentialAuthenticator, Credentials, UserData, Session };

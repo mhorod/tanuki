@@ -2,11 +2,11 @@
 import { MultipartReader, R } from "../deps.ts"
 import type { IRouter, OpineRequest, OpineResponse, NextFunction } from "../deps.ts"
 import { format } from "../deps.ts"
-import { RequestAuthenticator, authorizeUsing, UserData } from "./auth.ts"
-import { renderWithUserData, renderStatusWithUserData, Result } from "./utils.ts"
-import { SubmitDB, ProblemDB, ContestDB, NewSubmit } from "./db.ts"
-import { PermissionDB } from "./permissions.ts"
-
+import { RequestAuthenticator, authorizeUsing } from "./auth.ts"
+import { renderWithUserData, renderStatusWithUserData, authorizeContestAccess } from "./utils.ts"
+import { SubmitDB, ProblemDB, ContestDB, LanguageDB, NewSubmit, Language } from "./db.ts"
+import { PermissionDB, PermissionKind } from "./permissions.ts"
+import { SourceManager } from "./source.ts"
 
 const { compose, nth, split } = R;
 const TMP_DIR = '/app/public/uploads'
@@ -28,20 +28,6 @@ async function readMultipartForm(req: OpineRequest) {
 
 
 
-interface SourceManager {
-    /**
-     * Add new source file to database
-     * @returns Promise with boolean value that is true when operation succeeded
-     */
-    addSource(uri: string, source: any): Promise<boolean>;
-
-    /**
-     * Load source file from given uri
-     * @returns Promise with file content, or null if operation failed
-     */
-    loadSource(uri: string): Promise<string | null>;
-
-}
 
 interface SubmitRouterConfig {
     authenticator: RequestAuthenticator,
@@ -50,6 +36,7 @@ interface SubmitRouterConfig {
     problemDB: ProblemDB,
     contestDB: ContestDB,
     permissionDB: PermissionDB,
+    languageDB: LanguageDB,
 
     sourceManager: SourceManager,
 }
@@ -70,7 +57,7 @@ function authorizeSubmitAccess(authenticator: RequestAuthenticator, submit_id: n
  * @param config 
  * @returns 
  */
-function renderSubmitPage(contest_id: number, problem_id: number | null, config: SubmitRouterConfig) {
+function renderSubmitPage(contest_id: number, problem_id: number | null, config: SubmitRouterConfig, ctx = {}) {
     return async (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
         const contest = await config.contestDB.getContestById(contest_id);
         if (contest == null) {
@@ -82,6 +69,7 @@ function renderSubmitPage(contest_id: number, problem_id: number | null, config:
 
 
         await renderWithUserData(config.authenticator, "submit", {
+            ...ctx,
             contest_id: contest_id,
             contest: contest.name,
             selected_problem: problem_id,
@@ -90,31 +78,37 @@ function renderSubmitPage(contest_id: number, problem_id: number | null, config:
     }
 }
 
-function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
-    // Helper function - creates a handler that extracts contest_id from request
-    // and checkes if current user has submit permissions
-    const authorizeContestAccess =
-        (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
-            const contest_id = parseInt(req.params.contest_id);
-            authorizeUsing(config.authenticator, async user => await config.permissionDB.canSubmit(user.id, contest_id))
-                (req, res, next);
-        };
+function getFileExtension(filename: string): string {
+    const parts = filename.split('.');
+    if (parts.length == 1) return "";
+    else
+        return parts[parts.length - 1];
+}
 
+function findLanguageByExtension(extension: string, languages: Array<Language>): Language | null {
+    return languages.filter(l => l.extensions.some(e => e === extension)).at(0) || null;
+}
+
+
+function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
     router.get("/submit/:contest_id",
-        authorizeContestAccess,
+        authorizeContestAccess(config, PermissionKind.SUBMIT),
         (req, res, next) => {
             renderSubmitPage(parseInt(req.params.contest_id), null, config)(req, res, next);
         }
     )
     router.get("/submit/:contest_id/:problem_id",
-        authorizeContestAccess,
+        authorizeContestAccess(config, PermissionKind.SUBMIT),
         (req, res, next) => {
             renderSubmitPage(parseInt(req.params.contest_id), parseInt(req.params.problem_id), config)(req, res, next);
         },
     );
 
+
+
+
     router.post("/submit/:contest_id",
-        authorizeContestAccess,
+        authorizeContestAccess(config, PermissionKind.SUBMIT),
         async (req, res, next) => {
             const user = await config.authenticator.authenticateRequest(req);
             if (user == null)
@@ -130,35 +124,48 @@ function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
             if (problem == null || problem.contest_id != contest_id)
                 return renderStatusWithUserData(config.authenticator, 400)(req, res, next);
 
+            const onSubmitFail = (error: string) => renderSubmitPage(contest_id, problem_id, config, { error: error })(req, res, next);
+
             const redirect_back = "/submit/" + contest_id.toString() + "/" + problem_id.toString();
 
 
             const files = form.files('source');
-            let result = Result.ok(files);
-            const uri = crypto.randomUUID();
-            result =
-                result
-                    .and_then(files => files ? Result.ok<any, any>(files[0]) : Result.err("error"))
-                    .and_then(file => file ? Result.ok<any, any>(file.content) : Result.err("error"));
-            if (!result.isOk) {
-                return res.redirect(redirect_back);
-            }
-            const added = await config.sourceManager.addSource(uri, result.unwrap());
+            if (!files || files.length == 0)
+                return onSubmitFail("file upload error");
+
+
+            const file = files[0];
+            if (!file)
+                return onSubmitFail("file upload error");
+
+            const content = file.content;
+            if (!content)
+                return onSubmitFail("file upload error");
+
+
+            const extension = getFileExtension(file.filename);
+            const languages = await config.languageDB.getProblemLanguages(problem_id);
+            const language = findLanguageByExtension(extension, languages);
+
+            if (!language)
+                return onSubmitFail("invalid file extension");
+
+            const uri = "submitted/" + crypto.randomUUID() + "." + extension;
+            const added = await config.sourceManager.addSource(uri, content);
             if (!added)
                 return res.redirect(redirect_back);
 
-            const tmpSubmit: NewSubmit = {
+            const newSubmit: NewSubmit = {
                 source_uri: uri,
                 user_id: user.id,
-                problem_id: 1,
-                language_id: 1
+                problem_id: problem_id,
+                language_id: language.id,
             };
 
-            //const submit = await config.submitDB.addSubmit(0, user.id, uri)
-            const submit = await config.submitDB.addSubmit(tmpSubmit) //Michał, could you please check whether that's OK?
+            const submit = await config.submitDB.addSubmit(newSubmit);
 
             if (!submit)
-                return res.redirect(redirect_back);
+                return onSubmitFail("failed to save submission");
 
             res.redirect("/results/" + submit.id.toString())
         })
@@ -174,19 +181,39 @@ function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
             if (submit == null) {
                 return renderStatusWithUserData(config.authenticator, 404)(req, res, next);
             }
-            const src = await config.sourceManager.loadSource(submit.source_uri);
+            const src = await config.sourceManager.loadSource(submit.source_uri.trim());
             await renderWithUserData(config.authenticator, "results",
                 {
                     submit: req.params.submit_id,
-                    contest: "Kurs obsługi dziurkacza",
-                    problem: "A",
-                    status: "OK",
+                    contest: submit.contest_name,
+                    problem: submit.short_problem_name,
+                    status: submit.status,
+                    language: submit.language_name,
+                    source_uri: submit.id,
                     src: src,
-                    date: format(submit.submission_time, "yyyy-MM-dd, hh:mm:ss")
+                    date: format(submit.submission_time, "yyyy-MM-dd, HH:mm:ss")
                 }
             )(req, res, next);
         }
     )
+
+    router.get("/files/submitted/:submit_id",
+        async (req, res, next) => {
+            const submit_id = parseInt(req.params.submit_id);
+            await authorizeSubmitAccess(config.authenticator, submit_id, config.permissionDB)(req, res, next);
+        },
+        async (req, res, next) => {
+            const submit = await config.submitDB.getSubmitById(parseInt(req.params.submit_id));
+            if (submit == null)
+                return renderStatusWithUserData(config.authenticator, 404)(req, res, next);
+            console.log(submit);
+            const source = await config.sourceManager.loadSource(submit.source_uri);
+            if (source == null)
+                return renderStatusWithUserData(config.authenticator, 404)(req, res, next);
+
+            const download_name = submit.id.toString() + "." + getFileExtension(submit.source_uri);
+            res.download(await config.sourceManager.getFullPath(submit.source_uri), download_name);
+        })
 }
 
 export { setUpSubmitRouter }

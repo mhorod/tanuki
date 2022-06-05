@@ -1,9 +1,47 @@
+input:disabled,
+textarea:disabled {
+
+    border: 2px solid #666;
+    color: #666;
+}
+
 /* Remove blue outline on input focus */
 input:focus,
 textarea:focus {
     outline: none;
     border-color: #10b981;
     border-width: 2px;
+}
+
+input {
+    color-scheme: dark;
+    padding: 0.5rem;
+    background-color: transparent;
+    border-color: #777777;
+    border-width: 2px;
+}
+
+input[type='checkbox'] {
+    width: 25px;
+    height: 25px;
+}
+
+input:focus {
+    outline: none;
+    border-color: #10b981;
+}
+
+span[contenteditable="true"] {
+    padding: 2px;
+    background-color: transparent;
+    border-color: #777777;
+    border-width: 2px;
+    display: block;
+}
+
+span[contenteditable="true"]:focus {
+    outline: none;
+    border-color: #10b981;
 }
 
 .status {
@@ -13,15 +51,20 @@ textarea:focus {
 /* Status styling */
 .status-tle,
 .status-rte,
-.status-ans {
+.status-ans,
+.status-TLE,
+.status-RTE,
+.status-ANS {
     color: #e03c26;
 }
 
-.status-ok {
+.status-ok,
+.status-OK {
     color: #10b981;
 }
 
-.status-que {
+.status-que,
+.status-QUE {
     color: #ebd336;
 }
 
@@ -29,7 +72,12 @@ textarea:focus {
 .status-rej,
 .status-int,
 .status-rul,
-.status-err {
+.status-err,
+.status-CME,
+.status-REJ,
+.status-INT,
+.status-RUL,
+.status-ERR {
     color: #466b83;
 }
 
@@ -39,9 +87,10 @@ textarea:focus {
     width: 32px;
     height: 32px;
 }
+
 span[contenteditable="true"] {
     display: block;
-    border:1px solid #10b981;
+    border: 1px solid #10b981;
 }
 
 .lds-dual-ring:after {
@@ -76,4 +125,19 @@ span[contenteditable="true"] {
 
 .submit-btn:hover {
     background-color: #10b981;
+}
+
+.normal-btn {
+    padding: 0.5rem;
+    color: white;
+    border: 1px white solid;
+    display: inline-block;
+}
+
+.normal-btn:hover {
+    background-color: #272727;
+}
+
+.text-link:hover {
+    color: #34d399;
 }

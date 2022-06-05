@@ -2,6 +2,7 @@
 enum PermissionKind {
     MANAGE,
     SUBMIT,
+    VIEW,
 }
 
 interface Permission {

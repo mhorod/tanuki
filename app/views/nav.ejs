@@ -20,21 +20,24 @@
                 navbar-toggler 
                 border-0 
                 focus:outline-none focus:ring-0 
-                focus:shadow-none focus:no-underline" type="button" data-bs-toggle="collapse" data-bs-target="#navContent" aria-controls="navContent" aria-expanded="false" aria-label="Toggle nav">
+                focus:shadow-none focus:no-underline" type="button" data-bs-toggle="collapse"
+      data-bs-target="#navContent" aria-controls="navContent" aria-expanded="false" aria-label="Toggle nav">
       <ion-icon name="menu-outline" aria-hidden="true"></ion-icon>
     </button>
 
     <div class="collapse navbar-collapse flex-grow items-center" id="navContent">
       <ul class="navbar-nav flex flex-col pl-0 list-style-none mr-auto">
-        <% if (typeof(user) == 'undefined' || user == null) { %>
-        <li class="nav-item p-2"> <a href="/log-in" class="hover:text-emerald-400">Log in</a></li>
-        <li class="nav-item p-2"> <a href="/sign-up" class="hover:text-emerald-400">Sign up</a></li>
-        <% } else { %>
-        <li class="nav-item p-2"> Contests </li>
-        <li class="nav-item p-2"> Account </li>
-        <li class="nav-item p-2"> Signed in as <b><%= user.login %></b></li>
-        <li class="nav-item p-2"> <a href="/log-out" class="hover:text-emerald-400"> Log out </a></li>
-        <% } %>
+        <% if (typeof(user)=='undefined' || user==null) { %>
+          <li class="nav-item p-2"> <a href="/log-in" class="hover:text-emerald-400">Log in</a></li>
+          <li class="nav-item p-2"> <a href="/sign-up" class="hover:text-emerald-400">Sign up</a></li>
+          <% } else { %>
+            <li class="nav-item p-2"> <a class="text-link" href="/dashboard/student">Contests </a></li>
+            <li class="nav-item p-2"> <a class="text-link" href="/account"> Account </a></li>
+            <li class="nav-item p-2"> Signed in as <b>
+                <%= user.login %>
+              </b></li>
+            <li class="nav-item p-2"> <a class="text-link" href="/log-out"> Log out </a></li>
+            <% } %>
       </ul>
     </div>
   </div>

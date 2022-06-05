@@ -1,40 +1,6 @@
 import { OpineRequest, OpineResponse, NextFunction } from "../deps.ts"
-import { RequestAuthenticator } from "./auth.ts"
-
-/**
- * Simple implementation of Rust's Result type
- * Has two variants: Ok and Err representing (un)successful operation results
- * Provides monadic operations
- */
-class Result<T, E> {
-    readonly value: T | null = null;
-    readonly error: E | null = null;
-    constructor(value: T | null = null, error: E | null) {
-        this.value = value;
-        this.error = error;
-    }
-
-    static ok<T, E>(value: T) { return new Result<T, E>(value, null); }
-    static err<T, E>(error: E) { return new Result<T, E>(null, error); }
-
-    map<U>(f: (value: T) => U): Result<U, E> {
-        if (this.value != null)
-            return new Result<U, E>(f(this.value), null);
-        else
-            return new Result<U, E>(null, this.error);
-    }
-
-    and_then<U>(f: (value: T) => Result<U, E>): Result<U, E> {
-        if (this.value != null)
-            return f(this.value);
-        else
-            return new Result<U, E>(null, this.error);
-    }
-
-    isOk() { return this.value != null; }
-    unwrap() { return this.value; }
-}
-
+import { RequestAuthenticator, authorizeUsing } from "./auth.ts"
+import { PermissionDB, PermissionKind } from "./permissions.ts"
 
 /**
  * Creates a handler that authenticates request and then renders a view
@@ -50,12 +16,36 @@ function renderWithUserData(authenticator: RequestAuthenticator, view: string, c
     }
 }
 
-function renderStatusWithUserData(authenticator: RequestAuthenticator, status: number) {
+function renderStatusWithUserData(authenticator: RequestAuthenticator, status: number, ctx: any = {}) {
     return async (req: OpineRequest, res: OpineResponse, _: NextFunction) => {
         const user = await authenticator.authenticateRequest(req);
         res.setStatus(status);
-        res.render(status.toString(), { user })
+        res.render("errors/" + status.toString(), { ...ctx, user: user })
     }
 }
+interface ContestAccessConfig {
+    authenticator: RequestAuthenticator,
+    permissionDB: PermissionDB,
+}
 
-export { renderWithUserData, renderStatusWithUserData, Result };
+/**
+ * Checks `contest_id` parameter of the path and 
+ * @param config 
+ * @returns 
+ */
+function authorizeContestAccess(config: ContestAccessConfig, requiredPermission: PermissionKind) {
+    return (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
+        const contest_id = parseInt(req.params.contest_id);
+        if (isNaN(contest_id))
+            renderStatusWithUserData(config.authenticator, 404);
+        authorizeUsing(config.authenticator, async user => {
+            if (requiredPermission == PermissionKind.VIEW || requiredPermission == PermissionKind.MANAGE)
+                return await config.permissionDB.canViewContest(user.id, contest_id)
+            else if (requiredPermission == PermissionKind.SUBMIT)
+                return await config.permissionDB.canSubmit(user.id, contest_id)
+            else return false;
+        })(req, res, next);
+
+    };
+}
+export { renderWithUserData, renderStatusWithUserData, authorizeContestAccess };

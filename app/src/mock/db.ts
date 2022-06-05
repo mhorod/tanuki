@@ -1,7 +1,7 @@
 // Mock connection to the database
 
-import { User, NewUser, Submit, Problem } from "../db.ts";
-import { UserDB, CredentialDB, SubmitDB, ProblemDB } from "../db.ts";
+import { User, NewUser, Language } from "../db.ts";
+import { UserDB, CredentialDB, LanguageDB } from "../db.ts";
 import { PermissionDB } from "../permissions.ts"
 
 import { bcrypt } from "../../deps.ts"
@@ -19,6 +19,9 @@ class MockClient {
 class MockUserDB implements UserDB {
     client: MockClient;
     constructor(client: MockClient) { this.client = client; }
+    updateUser(id: number, newData: NewUser): Promise<User | null> {
+        throw new Error("Method not implemented.");
+    }
 
     async getUserByLogin(login: string): Promise<User | null> {
         return await this.client.users.get(login) || null;
@@ -65,7 +68,17 @@ class MockPermissionDB implements PermissionDB {
     async canViewSubmit(user: number, submit: number): Promise<boolean> {
         return await true;
     }
+}
+
+class MockLanguageDB implements LanguageDB {
+    async getProblemLanguages(problem: number): Promise<Language[]> {
+        return await [{
+            id: 2,
+            name: "C++",
+            extensions: ["cpp", "hpp", "h"],
+        }]
+    }
 
 }
 
-export { MockClient, MockUserDB, MockCredentialDB, MockPermissionDB }
+export { MockClient, MockUserDB, MockCredentialDB, MockPermissionDB, MockLanguageDB }
