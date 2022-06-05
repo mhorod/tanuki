@@ -93,6 +93,8 @@ import { PostgresLanguageDB } from "./queries/language.ts"
 const languageDB = new PostgresLanguageDB(client);
 console.log(await languageDB.getProblemLanguages(2));
 
+console.log(await permissionDB.canViewSubmit(1, 1));
+
 const submitConfig = {
   authenticator: session,
   submitDB: submitDB,

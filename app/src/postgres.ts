@@ -295,7 +295,7 @@ class PostgresPermissionDB implements PermissionDB {
             FROM contests_permissions
             WHERE user_id = $1 AND contest_id = $2 AND permission_id = $3
         `;
-        const permissionType = await this.client.queryObject<number>(query, [user, contest, 1]);
+        const permissionType = await this.client.queryObject(query, [user, contest, 1]);
 
         if (permissionType.rowCount == 0) {
             return false;
@@ -311,7 +311,7 @@ class PostgresPermissionDB implements PermissionDB {
             FROM contests_permissions
             WHERE user_id = $1 AND contest_id = $2
         `;
-        const permissionType = await this.client.queryObject<number>(query, [user, contest]);
+        const permissionType = await this.client.queryObject(query, [user, contest]);
 
         if (permissionType.rowCount == 0) {
             return false;
@@ -336,7 +336,7 @@ class PostgresPermissionDB implements PermissionDB {
             WHERE s.id = $1
         `;
 
-        const queryResult = await this.client.queryObject<number>(gimmeContestIDQuery, [submit]);
+        const queryResult = await this.client.queryObject<{ contest_id: number }>(gimmeContestIDQuery, [submit]);
 
         if (queryResult.rowCount == 0) {
             //Submit doesn't even exist, so I'm going to say that you can't view such a submit
@@ -345,14 +345,14 @@ class PostgresPermissionDB implements PermissionDB {
             return false;
         }
         else {
-            const contest = queryResult.rows[0];
+            const contest = queryResult.rows[0].contest_id;
             //Permission of type 2 means that you can manage such contest
             const query = `
             SELECT permission_id
             FROM contests_permissions
             WHERE user_id = $1 AND contest_id = $2 AND permission_id = $3
             `;
-            const permissionType = await this.client.queryObject<number>(query, [user, contest, 2]);
+            const permissionType = await this.client.queryObject(query, [user, contest, 2]);
 
             if (permissionType.rowCount == 0) {
                 return false;
