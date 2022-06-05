@@ -111,7 +111,7 @@ class PostgresUserDB implements UserDB {
         }
 
 
-        const hash = this.hash(user.password);
+        const hash = await this.hash(user.password);
         const insertTable = [user.login, user.name, user.surname, hash, user.email];
 
         try {
