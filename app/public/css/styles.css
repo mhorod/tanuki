@@ -5,7 +5,34 @@ textarea:focus {
     border-color: #10b981;
     border-width: 2px;
 }
+input {
+    color-scheme: dark;
+    padding:2px;
+    background-color: transparent;
+    border-color: #777777;
+    border-width: 2px;
+}
+input[type='checkbox'] {
+    width:25px;
+    height: 25px;
+}
 
+input:focus {
+    outline:none;
+    border-color: #10b981;
+}
+
+span[contenteditable="true"] {
+    padding:2px;
+    background-color: transparent;
+    border-color: #777777;
+    border-width: 2px;
+    display: block;
+}
+span[contenteditable="true"]:focus {
+    outline: none;
+    border-color: #10b981;
+}
 .status {
     text-transform: uppercase;
 }
@@ -38,10 +65,6 @@ textarea:focus {
     display: inline-block;
     width: 32px;
     height: 32px;
-}
-span[contenteditable="true"] {
-    display: block;
-    border:1px solid #10b981;
 }
 
 .lds-dual-ring:after {

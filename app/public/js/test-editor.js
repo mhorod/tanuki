@@ -8,7 +8,7 @@ class TestEditor {
         this.group_container = this.component.querySelector(".group-container");
         const add_group = this.component.querySelector("button");
 
-        for(const group of groups)
+        for(const group of groups.groups)
             this.addGroup(group);
         
         add_group.onclick = () => this.addGroup({name: "", tasks: []});
@@ -25,6 +25,12 @@ class TestEditor {
         this.id++;
         for(const node of group.nodes)
             this.group_container.appendChild(node);
+        this.groups.push(group);
+    }
+    getData() {
+        return {
+            groups:  this.groups.map((group) => group.getData())
+        }
     }
 
 }
@@ -61,6 +67,14 @@ class TaskGroup {
         for(const node of task.nodes)
             this.tab.appendChild(node);
 
+        this.tasks.push(task);
+    }
+    
+    getData() {
+        return {
+            name: "group1",
+            tasks: this.tasks.map((task)=>task.getData()),
+        }
     }
 }
 
@@ -69,36 +83,52 @@ class Task {
         const template = document.querySelector("#task");
         const component = template.content.cloneNode(true);
         const spans = component.querySelectorAll("span");
+        const inputs = component.querySelectorAll("input");
 
-        this.points = spans[0]; 
-        this.name = spans[1]; 
-        this.time = spans[2]; 
-        this.memory = spans[3]; 
-        this.show_output = component.querySelector("input"); 
-        this.URI = spans[4];
+        this.points = inputs[0];
+        this.name = spans[0]; 
+        this.time = inputs[1]; 
+        this.memory = inputs[2]; 
+        this.show_output = inputs[3]; 
+        this.URI = spans[1];
 
-        this.points.textContent = task_data.points;
+        this.points.value = task_data.points;
         this.name.textContent = task_data.name;
-        this.time.textContent = task_data.time;
-        this.memory.textContent = task_data.memory;
+        this.time.value = task_data.time;
+        this.memory.value = task_data.memory;
         this.URI.textContent = task_data.URI;
         if(task_data.show_output) this.show_output.setAttribute("checked", "true");
 
         component.querySelector("button").onclick = on_delete;
         this.nodes = Array.prototype.slice.call(component.childNodes);
     }
+    getData() {
+        return {
+            points: this.points.value,
+            name: this.name.textContent,
+            time: this.time.value,
+            memory: this.memory.value,
+            show_output: this.show_output.checked,
+            URI: this.URI.textContent,
+        };
+    }
 }
 
-let editor = new TestEditor([{
+let editor = new TestEditor({groups: [{
     name: "Group 1",
     tasks: [{
         points: 1.0,
         name: "01-small",
-        time: "3s",
-        memory: "1M",
+        time: 3,
+        memory: 1000000,
         show_output: true,
         URI: "tests/01"
     }]
-}]);
+}]});
+console.log(editor.getData());
+document.querySelector("form").onsubmit = (e) => {
+    document.getElementById("tests-input").value = JSON.stringify(editor.getData());
+};
+
 
 document.getElementById("editor").appendChild(editor.component);

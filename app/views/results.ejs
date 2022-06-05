@@ -3,42 +3,46 @@
 
 <head>
   <%- await include("views/common-head.ejs"); %>
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/vs2015.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/vs2015.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
 
-  <title>
-    Tanuki
-  </title>
+    <title>
+      Tanuki
+    </title>
 </head>
 
 <body class="bg-zinc-900">
   <%- await include("views/nav.ejs", { user : user }); %>
-  <div class=" container mx-auto p-6 text-white">
-    <h2 class="text-4xl text-center mb-8 text-white"> Submit <%= submit %> </h2>
-    <div class="flex gap-4 flex-col md:flex-row align-middle text-white">
-      <div class="grow flex flex-col justify-center p-2">
-        <%= contest %>
-      </div>
-      <div class="flex flex-col justify-center p-2">
-        <%= problem %>
-      </div>
-      <div class="flex flex-col justify-center p-2">
-        <%= date %>
-      </div>
-      <div id="status" class="text-white status-<%= status %> text-2xl flex align-middle p-3
+    <div class=" container mx-auto p-6 text-white">
+      <h2 class="text-4xl text-center mb-8 text-white"> Submit <%= submit %>
+      </h2>
+      <div class="flex gap-4 flex-col md:flex-row align-middle text-white">
+        <div class="grow flex flex-col justify-center p-2">
+          <%= contest %>
+        </div>
+        <div class="flex flex-col justify-center p-2">
+          <%= problem %>
+        </div>
+        <div class="flex flex-col justify-center p-2">
+          <%= date %>
+        </div>
+        <div id="status" class="text-white status-<%= status %> text-2xl flex align-middle p-3
       space-x-4">
-        <div class="status-text"><%= status %></div>
-        <% if (status == "que") { %>
-        <div class="loading lds-dual-ring"></div>
-        <% } %>
+          <div class="status-text">
+            <%= status %>
+          </div>
+          <% if (status=="que" ) { %>
+            <div class="loading lds-dual-ring"></div>
+            <% } %>
+        </div>
       </div>
+      <%- await include("views/test-results.ejs"); %>
+        <pre><code class="language-cpp"><%= src %></code></pre>
     </div>
-    <pre><code class="language-cpp""><%= src %></code></pre>
-  </div>
-  <%- await include("views/common-scripts.ejs"); %>
-  <script>
-    hljs.highlightAll();
-  </script>
+    <%- await include("views/common-scripts.ejs"); %>
+      <script>
+        hljs.highlightAll();
+      </script>
 </body>
 
 </html>

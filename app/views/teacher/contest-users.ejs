@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- await include("views/common-head.ejs"); %>
+        <title>
+            Tanuki
+        </title>
+</head>
+
+<body class="bg-slate-900 text-white">
+    <%- await include("views/nav.ejs", {user: user}); %>
+
+        <div class=" container mx-auto p-6 divide-x ">
+            <div class="flex flex-col md:flex-row gap-10 fill-w">
+                <%- await include("views/teacher/contest-menu.ejs", {contest}); %>
+                    <div class="flex flex-col grow ">
+                        <table class="table-auto">
+                            <thead>
+                                <tr class="border-b border-white">
+                                    <th>name</th>
+                                    <th>surname</th>
+                                    <th>points</th>
+                                    <th>actions</th>
+                                </tr>
+                            </thead>
+
+                            <tr class="even:bg-slate-900 odd:bg-slate-800 text-center">
+                                <td class="px-2 py-2"> Hichał</td>
+                                <td class="px-2 py-2"> Morodecki </td>
+                                <td class="px-2 py-2"> 0.0 </td>
+                                <td class="px-2 py-2 gap-2">
+                                    <a href="/contest/<%= contest.id %>/kick/1" class="text-red-500">kick</a>
+                                </td>
+                            </tr>
+                        </table>
+                        <a href="/contest/<%=contest.id%>/adduser">add user</a>
+                    </div>
+            </div>
+        </div>
+
+        <%- await include("views/common-scripts.ejs"); %>
+</body>
+
+</html>

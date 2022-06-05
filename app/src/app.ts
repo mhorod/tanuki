@@ -3,6 +3,7 @@ import {
   Router,
   serveStatic,
   config,
+  readAll
 } from "../deps.ts";
 
 import {
@@ -161,11 +162,38 @@ router.get("/contest/:id", async (req, res, next) => {
   renderWithUserData(session, "student/contest", { contest: contests[0] })(req, res, next);
 });
 
+
+router.post("/edit/:id", async (req, res, next) => {
+  console.log(req.parsedBody);
+  const contests = await contestDB.getContests();
+  renderWithUserData(session, "teacher/edit-problem", { contest: contests[0], problem: { name: 'Test', id: 1 } })(req, res, next);
+});
+
+router.get("/teacher/contest/:id", async (req, res, next) => {
+  const contests = await contestDB.getContests();
+  renderWithUserData(session, "teacher/contest", { contest: contests[0] })(req, res, next);
+});
+
 router.get("/contest/:contestid/problem/:problemid", async (req, res, next) => {
   const contests = await contestDB.getContests();
   renderWithUserData(session, "student/problem", { contest: contests[0], problem: { name: 'Test', id: 1 } })(req, res, next);
 });
-
+router.get("/contest/:contestid/problem/:problemid/edit", async (req, res, next) => {
+  const contests = await contestDB.getContests();
+  renderWithUserData(session, "teacher/edit-problem", { contest: contests[0], problem: { name: 'Test', id: 1 } })(req, res, next);
+});
+router.get("/contest/:contestid/add", async (req, res, next) => {
+  const contests = await contestDB.getContests();
+  renderWithUserData(session, "teacher/add-problem", { contest: contests[0], problem: { name: 'Test', id: 1 } })(req, res, next);
+});
+router.get("/contest/:contestid/users", async (req, res, next) => {
+  const contests = await contestDB.getContests();
+  renderWithUserData(session, "teacher/contest-users", { contest: contests[0], problem: { name: 'Test', id: 1 } })(req, res, next);
+});
+router.get("/contest/:contestid/adduser", async (req, res, next) => {
+  const contests = await contestDB.getContests();
+  renderWithUserData(session, "teacher/add-user", { contest: contests[0], problem: { name: 'Test', id: 1 } })(req, res, next);
+});
 const app = opine();
 
 // Handling of incoming formats
