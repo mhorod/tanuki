@@ -8,16 +8,17 @@
                 <th>points</th>
             </tr>
         </thead>
+        <% for (const problem of problems) { %>
+            <tr class="odd:bg-zinc-900 even:bg-zinc-800 text-center">
+                <td class="px-2 py-2">
+                    <%= problem.name %>
+                </td>
+                <td class="px-2 py-2">
+                    <%= problem.due_date %>
+                </td>
+                <td class="px-2 py-2"> 1.0/1.0 </td>
+            </tr>
+            <% } %>
 
-        <tr class="odd:bg-zinc-900 even:bg-zinc-800 text-center">
-            <td class="px-2 py-2"> Brzydka klasa</td>
-            <td class="px-2 py-2"> 04-06-2022 </td>
-            <td class="px-2 py-2"> 1.0/1.0</td>
-        </tr>
-        <tr class="odd:bg-zinc-900 even:bg-zinc-800 text-center">
-            <td class="px-2 py-2"> Jeszcze trudniejsze zadanie</td>
-            <td class="px-2 py-2"> 04-06-2022 </td>
-            <td class="px-2 py-2"> 1.0/1.0</td>
-        </tr>
     </table>
 </div>

@@ -13,8 +13,9 @@ import {
 } from "../deps.ts"
 
 import { dirname, join } from "../deps.ts";
+import { format } from "../deps.ts"
 
-import { setUpAuthRouter, redirectIfAuthenticated, authorizeUsing } from "./auth.ts"
+import { setUpAuthRouter, redirectIfAuthenticated, authorizeUsing, authenticatedOnly } from "./auth.ts"
 import { JWTSession } from "./jwt.ts"
 import { renderWithUserData, renderStatusWithUserData } from "./utils.ts"
 
@@ -29,6 +30,8 @@ import { PostgresLanguageDB } from "./queries/language.ts"
 import { setUpAccountRouter } from "./account.ts"
 
 import { setUpContestRouter } from "./contest.ts"
+
+import { getUnsolvedProblemsThatAreCloseToTheDeadline } from "./queries/submits.ts"
 
 const dir = dirname(import.meta.url);
 await config({ export: true });
@@ -81,7 +84,7 @@ const languageDB = new PostgresLanguageDB(client); // TODO: replace with postgre
 const graphicaProblemDB = new PostgresGraphicalProblemDB(client);
 
 //test
-import { getAllNewestSubmitsInAContest, getUnsolvedProblemsTharAreClosestToTheDeadline } from "./queries/submits.ts"
+import { getAllNewestSubmitsInAContest } from "./queries/submits.ts"
 console.log(await getAllNewestSubmitsInAContest(client, 3));
 console.log(await graphicaProblemDB.getGraphicalProblemsInContest(3, 4));
 
@@ -142,15 +145,24 @@ router.get("/", redirectIfAuthenticated(session, '/dashboard'), (_, res, __) => 
 
 router.get("/dashboard", (_, res, __) => res.redirect("/dashboard/student"));
 
-router.get("/dashboard/student", async (req, res, next) => {
-  const contests = await contestDB.getContests();
-  const submits = await contestDB.getSubmits();
+router.get("/dashboard/student",
+  authenticatedOnly(session),
+  async (req, res, next) => {
+    const user = await session.authenticateRequest(req);
+    if (!user)
+      throw Error("User was authorized and should not be null");
 
-  renderWithUserData(session, "student-dashboard", {
-    contests: contests,
-    submits: submits
-  })(req, res, next);
-});
+    const contests = await contestDB.getContests();
+    const submits = await contestDB.getSubmits();
+    const due_problems = await getUnsolvedProblemsThatAreCloseToTheDeadline(client, user.id, 5);
+    due_problems?.map(p => (p as any).due_date = p.due_date ? format(p.due_date, "dd-MM-yyyy") : null)
+
+    renderWithUserData(session, "student-dashboard", {
+      contests: contests,
+      submits: submits,
+      due_problems: due_problems,
+    })(req, res, next);
+  });
 
 
 router.get('/que', authorizeUsing(session, async e => await e.login === "admin"), renderWithUserData(session, "que"));

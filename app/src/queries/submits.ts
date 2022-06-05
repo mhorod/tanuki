@@ -25,16 +25,17 @@ interface simplePair {
     value: Date
 }
 
-async function getUnsolvedProblemsTharAreClosestToTheDeadline(client: Client, user_id: number, how_many: number): Promise<Problem[] | null> {
+async function getUnsolvedProblemsThatAreCloseToTheDeadline(client: Client, user_id: number, how_many: number): Promise<Problem[] | null> {
     const allProblemsQuery = `
         SELECT p.id, p.name, p.shortname, p.contest_id, p.statement_uri,
         p.uses_points, p.points, p.due_date, p.closing_date,
         p.published, p.scoring_method, p.source_limit
         FROM users u
         JOIN contests_permissions cp ON cp.user_id = u.id
+        JOIN permissions_for_contests pfc ON cp.permission_id = pfc.id
         JOIN contests c ON cp.contest_id = c.id
         JOIN problems p ON p.contest_id = cp.contest_id
-        WHERE  cp.permission_id = 1 AND u.id = $1 AND c.is_active = TRUE AND (
+        WHERE pfc.name = 'SUBMIT' AND u.id = $1 AND c.is_active = TRUE AND (
             SELECT sr.status
             FROM submit_results sr
             JOIN submits s ON s.id = sr.submit_id
@@ -52,4 +53,4 @@ async function getUnsolvedProblemsTharAreClosestToTheDeadline(client: Client, us
 
 }
 
-export { getUnsolvedProblemsTharAreClosestToTheDeadline }
+export { getUnsolvedProblemsThatAreCloseToTheDeadline }
