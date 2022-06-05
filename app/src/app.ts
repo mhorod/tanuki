@@ -15,7 +15,7 @@ import { dirname, join } from "../deps.ts";
 
 import { setUpAuthRouter, redirectIfAuthenticated, authorizeUsing } from "./auth.ts"
 import { JWTSession } from "./jwt.ts"
-import { renderWithUserData } from "./utils.ts"
+import { renderWithUserData, renderStatusWithUserData } from "./utils.ts"
 
 import { connectNewClient, PostgresContestDB, PostgresProblemDB } from "./postgres.ts"
 import { MockClient, MockLanguageDB } from "./mock/db.ts"
@@ -188,8 +188,5 @@ app.use(serveStatic(join(dir, "../public")));
 app.use("/", router);
 
 // If router can't handle request send 404
-app.use((req, res, next) => {
-  res.setStatus(404);
-  renderWithUserData(session, "404")(req, res, next);
-});
+app.use(renderStatusWithUserData(session, 404));
 export default app;

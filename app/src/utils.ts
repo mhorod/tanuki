@@ -50,11 +50,11 @@ function renderWithUserData(authenticator: RequestAuthenticator, view: string, c
     }
 }
 
-function renderStatusWithUserData(authenticator: RequestAuthenticator, status: number) {
+function renderStatusWithUserData(authenticator: RequestAuthenticator, status: number, ctx: any = {}) {
     return async (req: OpineRequest, res: OpineResponse, _: NextFunction) => {
         const user = await authenticator.authenticateRequest(req);
         res.setStatus(status);
-        res.render(status.toString(), { user })
+        res.render("errors/" + status.toString(), { ...ctx, user: user })
     }
 }
 
