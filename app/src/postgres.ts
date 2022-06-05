@@ -6,6 +6,8 @@ import type { Submit, Contest, Problem, GraphicalProblem } from "./db.ts"
 import type { User, NewUser, NewSubmit } from "./db.ts";
 import type { ContestDB, UserDB, CredentialDB, ProblemDB, GraphicalProblemDB, SubmitDB } from "./db.ts";
 
+import type { PermissionDB } from "./permissions.ts"
+
 import { bcrypt } from "../deps.ts"
 
 
@@ -279,5 +281,88 @@ class PostgresSubmitDB implements SubmitDB {
 
 }
 
+class PostgresPermissionDB implements PermissionDB {
+    client: Client;
+
+    constructor(client: Client) {
+        this.client = client;
+    }
+
+    async getPermissionType(user: number, contest: number): Promise<number> {
+        const query = `
+            SELECT permission_id
+            FROM contests_permissions
+            WHERE user_id = $1 AND contest_id = $2
+        `;
+        const queryResult = await this.client.queryObject<number>(query, [user, contest]);
+
+        if (queryResult.rowCount == 0) {
+            //User has no record in the database, so I'd say that no permissions granted here
+            return 0;
+        }
+        else {
+            //There should be only one such record
+            return queryResult.rows[0];
+        }
+    }
+
+    async canSubmit(user: number, contest: number): Promise<boolean> {
+        const permissionType = await this.getPermissionType(user, contest);
+        if (permissionType >= 2) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    async canViewContest(user: number, contest: number): Promise<boolean> {
+        const permissionType = await this.getPermissionType(user, contest);
+
+        if (permissionType >= 1) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    async canViewSubmit(user: number, submit: number): Promise<boolean> {
+        //First, we will check the ID of contest that user is in
+        //Then, we will check whether such user has permissions to view submits there.
+
+        //I am using 2 separate queries here, so this is likely to be ineffective,
+        //however combinig those 2 into 1 big would create an absolute utter mess.
+
+        //(Optimize it at your own risk)
+
+        const gimmeContestIDQuery = `
+            SELECT p.contest_id
+            FROM submits s
+            JOIN problems p ON s.problem_id = p.id
+            WHERE s.id = $1
+        `;
+
+        const queryResult = await this.client.queryObject<number>(gimmeContestIDQuery, [submit]);
+
+        if (queryResult.rowCount == 0) {
+            //Submit doesn't even exist, so I'm going to say that you can't view such a submit
+            //You may argue with that, I guess
+            //However, we're programming, not having fun with the set theory
+            return false;
+        }
+        else {
+            const contest = queryResult.rows[0];
+            const permissionType = await this.getPermissionType(user, contest);
+
+            if (permissionType == 3) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+
+    }
+}
+
 export { connectNewClient, PostgresContestDB, PostgresCredentialDB, PostgresUserDB, PostgresProblemDB, PostgresGraphicalProblemDB };
-export { PostgresSubmitDB };
+export { PostgresSubmitDB, PostgresPermissionDB };
