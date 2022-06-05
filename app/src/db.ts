@@ -106,7 +106,17 @@ interface GraphicalProblemDB {
   getGraphicalProblemById(problem_id: number, user_id: number): Promise<GraphicalProblem | null>;
 }
 
+interface Language {
+  id: number, // okazuje się że id warto mieć jak się wkłada to do bazy
+  name: string,
+  extensions: Array<string>,
+}
+interface LanguageDB {
+  getProblemLanguages(problem: number): Promise<Language[]>,
+}
+
 export type { Submit, NewSubmit, Contest, Problem, GraphicalProblem };
-export type { User, NewUser };
+export type { User, NewUser, Language };
 export type { GraphicalProblemStatus };
 export type { ContestDB, UserDB, CredentialDB, SubmitDB, ProblemDB, GraphicalProblemDB }
+export type { LanguageDB }

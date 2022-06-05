@@ -18,7 +18,6 @@ import { JWTSession } from "./jwt.ts"
 import { renderWithUserData } from "./utils.ts"
 
 import { connectNewClient, PostgresContestDB, PostgresProblemDB } from "./postgres.ts"
-import { MockClient, MockUserDB, MockCredentialDB, MockPermissionDB } from "./mock/db.ts"
 import { BasicSourceManager } from "./source.ts"
 import { setUpSubmitRouter } from "./submit.ts"
 
@@ -45,8 +44,6 @@ const contestDB = new PostgresContestDB(client);
 const router = Router();
 const session = new JWTSession();
 
-// TODO: Replace those with postgres connection when it's implemented
-const mockClient = new MockClient();
 const userDB = new PostgresUserDB(client);
 const credentialDB = new PostgresCredentialDB(client);
 
@@ -92,6 +89,9 @@ import { getAllNewestSubmitsInAContest } from "./queries/submits.ts"
 console.log(await getAllNewestSubmitsInAContest(client, 3));
 console.log(await graphicaProblemDB.getGraphicalProblemsInContest(3, 4));
 
+import { PostgresLanguageDB } from "./queries/language.ts"
+const languageDB = new PostgresLanguageDB(client);
+console.log(await languageDB.getProblemLanguages(2));
 
 const submitConfig = {
   authenticator: session,
