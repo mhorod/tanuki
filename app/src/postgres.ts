@@ -21,7 +21,7 @@ async function connectNewClient(options: ClientOptions): Promise<Client> {
     return client;
 }
 
-async function getUser(client: Client, login: string) {
+async function getUser(client: Client, login: string): Promise<User | null> {
     const result = await client.queryObject<User>("SELECT * FROM users WHERE users.login = $1", [login]);
     if (result.rowCount == 0) {
         return null;
@@ -198,7 +198,7 @@ class PostgresGraphicalProblemDB implements GraphicalProblemDB {
             JOIN submit_results sr ON s.id = sr.submit_id
             JOIN statuses st ON st.id = sr.status
             WHERE p.id = s.problem_id AND s.user_id = $2
-            ORDER BY  s.submission_time DESC
+            ORDER BY  compare_submits(st.id, s.submission_time) DESC
             LIMIT 1
         )
         FROM problems p
@@ -217,7 +217,7 @@ class PostgresGraphicalProblemDB implements GraphicalProblemDB {
             JOIN submit_results sr ON s.id = sr.submit_id
             JOIN statuses st ON st.id = sr.status
             WHERE p.id = $1 AND s.user_id = $2
-            ORDER BY  s.submission_time DESC
+            ORDER BY  compare_submits(st.id, s.submission_time) DESC
             LIMIT 1
         )
         FROM problems p
@@ -272,19 +272,7 @@ class PostgresSubmitDB implements SubmitDB {
             return null;
         }
         else {
-            //Oh no
             const resultFromDB = queryResult.rows[0];
-            /*
-            const toReturn: Submit = {
-                id: resultFromDB.id,
-                user: resultFromDB.user_id,
-                problem: resultFromDB.problem_id,
-                source: resultFromDB.source_uri,
-                date: resultFromDB.submission_time
-            };
-
-            console.log(toReturn);*/
-            console.log(resultFromDB);
             return resultFromDB;
         }
     }
