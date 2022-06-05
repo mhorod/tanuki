@@ -9,7 +9,8 @@
             </tr>
         </thead>
         <% for (const problem of problems) { %>
-            <tr class="odd:bg-zinc-900 even:bg-zinc-800 text-center">
+            <tr class="hover:bg-zinc-700 cursor-pointer odd:bg-zinc-900 even:bg-zinc-800 text-center
+            " onclick='location.href="/contest/<%= problem.contest_id %>/problem/<%= problem.id %>"'>
                 <td class="px-2 py-2">
                     <%= problem.name %>
                 </td>
