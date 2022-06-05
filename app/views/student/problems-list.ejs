@@ -27,7 +27,8 @@
                         <%= problem.points %> / <%= problem.max %> (<%= problem.current_max %>)
                                     <% } %>
 
-                                        <%- await include("views/status.ejs", {status: problem.status}); %>
+                                        <% if (problem.status !=null ){ await include("views/status.ejs", {status:
+                                            problem.status}); }%>
                 </td>
             </tr>
             <% } %>
