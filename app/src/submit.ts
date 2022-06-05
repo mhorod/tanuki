@@ -6,7 +6,7 @@ import { RequestAuthenticator, authorizeUsing } from "./auth.ts"
 import { renderWithUserData, renderStatusWithUserData, authorizeContestAccess } from "./utils.ts"
 import { SubmitDB, ProblemDB, ContestDB, LanguageDB, NewSubmit, Language } from "./db.ts"
 import { PermissionDB, PermissionKind } from "./permissions.ts"
-
+import { SourceManager } from "./source.ts"
 
 const { compose, nth, split } = R;
 const TMP_DIR = '/app/public/uploads'
@@ -28,25 +28,6 @@ async function readMultipartForm(req: OpineRequest) {
 
 
 
-interface SourceManager {
-    /**
-     * Add new source file to database
-     * @returns Promise with boolean value that is true when operation succeeded
-     */
-    addSource(uri: string, source: any): Promise<boolean>;
-
-    /**
-     * Load source file from given uri
-     * @returns Promise with file content, or null if operation failed
-     */
-    loadSource(uri: string): Promise<string | null>;
-
-    /**
-     * Get full path to the file, e.g. to download it
-     * @param uri 
-     */
-    getFullPath(uri: string): Promise<string>;
-}
 
 interface SubmitRouterConfig {
     authenticator: RequestAuthenticator,

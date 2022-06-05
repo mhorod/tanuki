@@ -1,7 +1,26 @@
-import { SourceManager } from "./submit.ts"
 import { join, readAll } from "../deps.ts"
 // Directory where submited files go
 const SUBMIT_DIR = '/app/files/submitted'
+
+interface SourceManager {
+    /**
+     * Add new source file to database
+     * @returns Promise with boolean value that is true when operation succeeded
+     */
+    addSource(uri: string, source: any): Promise<boolean>;
+
+    /**
+     * Load source file from given uri
+     * @returns Promise with file content, or null if operation failed
+     */
+    loadSource(uri: string): Promise<string | null>;
+
+    /**
+     * Get full path to the file, e.g. to download it
+     * @param uri 
+     */
+    getFullPath(uri: string): Promise<string>;
+}
 
 class BasicSourceManager implements SourceManager {
     constructor() {
@@ -38,3 +57,4 @@ class BasicSourceManager implements SourceManager {
 }
 
 export { BasicSourceManager }
+export type { SourceManager }
