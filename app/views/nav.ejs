@@ -31,7 +31,7 @@
           <li class="nav-item p-2"> <a href="/log-in" class="hover:text-emerald-400">Log in</a></li>
           <li class="nav-item p-2"> <a href="/sign-up" class="hover:text-emerald-400">Sign up</a></li>
           <% } else { %>
-            <li class="nav-item p-2"> Contests </li>
+            <li class="nav-item p-2"> <a class="text-link" href="/dashboard/student">Contests </a></li>
             <li class="nav-item p-2"> <a class="text-link" href="/account"> Account </a></li>
             <li class="nav-item p-2"> Signed in as <b>
                 <%= user.login %>

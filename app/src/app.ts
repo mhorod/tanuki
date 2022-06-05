@@ -27,6 +27,8 @@ import { PostgresPermissionDB } from "./postgres.ts"
 
 import { setUpAccountRouter } from "./account.ts"
 
+import { setUpContestRouter } from "./contest.ts"
+
 const dir = dirname(import.meta.url);
 await config({ export: true });
 
@@ -72,21 +74,11 @@ userDB.addNewUser({
   password_repeat: "admin123"
 });
 
-
-
-const authConfig = {
-  session: session,
-  credentialDB: credentialDB,
-  userDB: userDB
-};
-setUpAuthRouter(router, authConfig);
-
 const submitDB = new PostgresSubmitDB(client);
 const sourceManager = new BasicSourceManager();
 const problemDB = new PostgresProblemDB(client);
 const permissionDB = new PostgresPermissionDB(client);
 const languageDB = new MockLanguageDB(); // TODO: replace with postgres
-
 const graphicaProblemDB = new PostgresGraphicalProblemDB(client);
 
 //test
@@ -94,25 +86,35 @@ import { getAllNewestSubmitsInAContest } from "./queries/submits.ts"
 console.log(await getAllNewestSubmitsInAContest(client, 3));
 console.log(await graphicaProblemDB.getGraphicalProblemsInContest(3, 4));
 
-
-const submitConfig = {
+/**
+ * Global application config with all databases and managers
+ */
+const appConfig = {
+  // user session that is also used to authenticate requests
+  session: session,
   authenticator: session,
-  submitDB: submitDB,
-  problemDB: problemDB,
-  contestDB: contestDB,
-  permissionDB: permissionDB,
-  languageDB: languageDB,
+
+  // takes care of loading and saving files
   sourceManager: sourceManager,
-};
 
-setUpSubmitRouter(router, submitConfig);
-
-const accountConfig = {
-  authenticator: session,
+  // database connections in alphabetical order
+  contestDB: contestDB,
+  credentialDB: credentialDB,
+  graphicalProblemDB: graphicaProblemDB,
+  languageDB: languageDB,
+  permissionDB: permissionDB,
+  problemDB: problemDB,
+  submitDB: submitDB,
   userDB: userDB,
 }
 
-setUpAccountRouter(router, accountConfig);
+
+setUpAuthRouter(router, appConfig);
+setUpSubmitRouter(router, appConfig);
+setUpAccountRouter(router, appConfig);
+setUpContestRouter(router, appConfig);
+
+
 
 router.get("/ws", (req, res, next) => {
   if (req.headers.get('upgrade') == 'websocket') {
@@ -163,15 +165,6 @@ router.get("/statuses", (req, res, next) => {
     });
 })
 
-router.get("/contest/:id", async (req, res, next) => {
-  const contests = await contestDB.getContests();
-  renderWithUserData(session, "student/contest", { contest: contests[0] })(req, res, next);
-});
-
-router.get("/contest/:contestid/problem/:problemid", async (req, res, next) => {
-  const contests = await contestDB.getContests();
-  renderWithUserData(session, "student/problem", { contest: contests[0], problem: { name: 'Test', id: 1 } })(req, res, next);
-});
 
 const app = opine();
 
