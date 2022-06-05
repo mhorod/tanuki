@@ -287,7 +287,10 @@ class PostgresSubmitDB implements SubmitDB {
         }
         else {
             const submit = queryResult.rows[0];
-            new PostgresResultDB(this.client).setSubmitResults(submit.id, 1, "OK");
+            // TODO: Remove that, it should be done in another place
+            const statuses = ["OK", "ANS", "CME", "TLE"];
+            const i = Math.floor(Math.random() * statuses.length);
+            new PostgresResultDB(this.client).setSubmitResults(submit.id, 1, statuses[i]);
             return submit;
         }
     }
