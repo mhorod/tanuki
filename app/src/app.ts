@@ -23,6 +23,7 @@ import { BasicSourceManager } from "./source.ts"
 import { setUpSubmitRouter } from "./submit.ts"
 
 import { PostgresCredentialDB, PostgresUserDB, PostgresGraphicalProblemDB, PostgresSubmitDB } from "./postgres.ts"
+import { PostgresPermissionDB } from "./postgres.ts"
 
 
 const dir = dirname(import.meta.url);
@@ -71,6 +72,7 @@ userDB.addNewUser({
 });
 
 
+
 const authConfig = {
   session: session,
   credentialDB: credentialDB,
@@ -81,10 +83,14 @@ setUpAuthRouter(router, authConfig);
 const submitDB = new PostgresSubmitDB(client);
 const sourceManager = new BasicSourceManager();
 const problemDB = new PostgresProblemDB(client);
-const permissionDB = new MockPermissionDB();
+const permissionDB = new PostgresPermissionDB(client);
 
 const graphicaProblemDB = new PostgresGraphicalProblemDB(client);
-console.log(await graphicaProblemDB.getGraphicalProblemsInContest(1, 1));
+
+//test
+import { getAllNewestSubmitsInAContest } from "./queries/submits.ts"
+console.log(await getAllNewestSubmitsInAContest(client, 3));
+console.log(await graphicaProblemDB.getGraphicalProblemsInContest(3, 4));
 
 
 const submitConfig = {
