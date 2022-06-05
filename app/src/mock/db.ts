@@ -19,6 +19,9 @@ class MockClient {
 class MockUserDB implements UserDB {
     client: MockClient;
     constructor(client: MockClient) { this.client = client; }
+    updateUser(id: number, newData: NewUser): Promise<User | null> {
+        throw new Error("Method not implemented.");
+    }
 
     async getUserByLogin(login: string): Promise<User | null> {
         return await this.client.users.get(login) || null;

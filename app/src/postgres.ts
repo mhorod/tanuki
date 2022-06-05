@@ -100,15 +100,18 @@ class PostgresUserDB implements UserDB {
         this.client = client;
     }
 
+    async hash(password: string): Promise<string> {
+        return await bcrypt.hash(password, await bcrypt.genSalt(8));
+    }
+
     async addNewUser(user: NewUser): Promise<User | null> {
         if (await this.getUserByLogin(user.login) != null) {
             //Such user already exists
             return null;
         }
 
-        const salt = await bcrypt.genSalt(8);
-        const hash = await bcrypt.hash(user.password, salt);
 
+        const hash = this.hash(user.password);
         const insertTable = [user.login, user.name, user.surname, hash, user.email];
 
         try {

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- await include("views/common-head.ejs"); %>
+        <title>
+            Account
+        </title>
+</head>
+
+<body class="bg-zinc-900">
+    <%- await include("views/nav.ejs", {user: user}); %>
+        <div class="container mx-auto p-6">
+            <h2 class="text-4xl text-center mb-8 text-white"> Your account </h2>
+            <form method="post" action="/account/profile" class="flex flex-col items-center">
+                <h2 class="text-2xl text-white"> Profile </h2>
+                <div class="text-white flex flex-col mx-auto p-2">
+                    <div class="m-2">
+                        LOGIN <br>
+                        <input disabled type="text" value="<%= login %>" />
+                    </div>
+
+                    <div class="flex flex-col m-2">
+                        NAME
+                        <input name="name" type="text" value="<%= name %>" />
+                    </div>
+
+                    <div class="flex flex-col m-2 ">
+                        SURNAME
+                        <input name="surname" type="text" value="<%= surname %>" />
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn" />
+                Save profile data
+                </button>
+            </form>
+
+            <form method="post" action="/account/email" class="flex flex-col items-center mt-10 p-4 border-t">
+                <h2 class="text-2xl text-white"> Change email </h2>
+                <div class="text-white flex flex-col mx-auto p-2">
+                    <div class="m-2">
+                        EMAIL
+                        <br>
+                        <input name="email" type="text" value="<%= email %>" />
+                    </div>
+                    <div class="flex flex-col m-2">
+                        CONFIRM WITH PASSWORD
+                        <input name="email-confirm" type="password" />
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn" />
+                Save email
+                </button>
+            </form>
+
+            <form method="post" action="/account/password" class="flex flex-col items-center mt-10 p-4 border-t">
+                <h2 class="text-2xl text-white"> Change password </h2>
+                <div class="text-white flex flex-col mx-auto p-2">
+                    <div class="m-2">
+                        NEW PASSWORD
+                        <br>
+                        <input name="password" type="password" />
+                    </div>
+                    <div class="m-2">
+                        REPEAT NEW PASSWORD
+                        <br>
+                        <input name="password-repeat" type="password" />
+                    </div>
+                    <div class="flex flex-col m-2">
+                        CONFIRM WITH CURRENT PASSWORD
+                        <input name="password-confirm" type="password" />
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn" />
+                Save new password
+                </button>
+            </form>
+        </div>
+        <%- await include("views/common-scripts.ejs"); %>
+</body>
+
+</html>

@@ -88,6 +88,7 @@ interface Language {
   extensions: Array<string>,
 }
 
+
 interface ContestDB {
   getContests(): Promise<Array<Contest>>;
   getSubmits(): Promise<Array<Submit>>;

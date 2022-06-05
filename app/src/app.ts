@@ -13,7 +13,7 @@ import {
 
 import { dirname, join } from "../deps.ts";
 
-import { setUpAuthRouter, redirectIfAuthenticated, authorizeUsing, UserData } from "./auth.ts"
+import { setUpAuthRouter, redirectIfAuthenticated, authorizeUsing } from "./auth.ts"
 import { JWTSession } from "./jwt.ts"
 import { renderWithUserData } from "./utils.ts"
 
@@ -25,6 +25,7 @@ import { setUpSubmitRouter } from "./submit.ts"
 import { PostgresCredentialDB, PostgresUserDB, PostgresGraphicalProblemDB, PostgresSubmitDB } from "./postgres.ts"
 import { PostgresPermissionDB } from "./postgres.ts"
 
+import { setUpAccountRouter } from "./account.ts"
 
 const dir = dirname(import.meta.url);
 await config({ export: true });
@@ -106,8 +107,12 @@ const submitConfig = {
 
 setUpSubmitRouter(router, submitConfig);
 
+const accountConfig = {
+  authenticator: session,
+  userDB: userDB,
+}
 
-
+setUpAccountRouter(router, accountConfig);
 
 router.get("/ws", (req, res, next) => {
   if (req.headers.get('upgrade') == 'websocket') {

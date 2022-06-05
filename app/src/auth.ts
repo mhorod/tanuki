@@ -104,6 +104,9 @@ function redirectIfUnauthenticated(authenticater: RequestAuthenticator, target: 
     }
 }
 
+function authenticatedOnly(authenticator: RequestAuthenticator) {
+    return authorizeUsing(authenticator, async user => await user != null);
+}
 
 
 /**
@@ -228,5 +231,5 @@ async function vaidateNewUser(data: NewUser, userDB: UserDB): Promise<any | null
 
 
 export { setUpAuthRouter };
-export { redirectIfAuthenticated, redirectIfUnauthenticated, authorizeUsing };
+export { redirectIfAuthenticated, redirectIfUnauthenticated, authorizeUsing, authenticatedOnly };
 export type { RequestAuthenticator, CredentialAuthenticator, Credentials, UserData, Session };

@@ -1,3 +1,18 @@
+input,
+textarea {
+    padding: 0.5rem;
+    border: 1px solid white;
+    background-color: inherit;
+    color: white;
+}
+
+input:disabled,
+textarea:disabled {
+
+    border: 1px solid #aaa;
+    color: #aaa;
+}
+
 /* Remove blue outline on input focus */
 input:focus,
 textarea:focus {
@@ -98,4 +113,8 @@ span[contenteditable="true"] {
 
 .normal-btn:hover {
     background-color: #272727;
+}
+
+.text-link:hover {
+    color: #34d399;
 }
