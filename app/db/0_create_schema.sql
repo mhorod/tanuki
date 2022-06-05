@@ -246,19 +246,19 @@ INSERT INTO contests_permissions VALUES (6, 2, 3);
 INSERT INTO scoring_methods VALUES ('LINEAR_TO_ZERO');
 INSERT INTO scoring_methods VALUES ('LINEAR_TO_NEGATIVE');
 
-INSERT INTO problems VALUES ('Dziurkacz robi brrr', 'A', 1, 'archive.tanuki.uczelnia.pl/fortran/A', false, 0, 5, '1977-11-10', '1977-11-17', true, 1, 500);
+INSERT INTO problems VALUES ('Dziurkacz robi brrr', 'A', 1, 'problems/fortran/A', false, 0, 5, '1977-11-10', '1977-11-17', true, 1, 500);
 INSERT INTO problem_languages VALUES (1, 1);
 
-INSERT INTO problems VALUES ('Bardzo trudne zadanie', 'A', 2, 'tanuki.uczelnia.pl/cpp2022/A', false, 0, 5, '2022-11-10', '2022-11-17', true, 1, 10000);
-INSERT INTO problems VALUES ('Jeszcze trudniejsze zadanie', 'B', 2, 'tanuki.uczelnia.pl/cpp2022/B', false, 0, 5, '2022-12-15', '2022-12-22', true, 1, 10000);
-INSERT INTO problems VALUES ('Żodyn z was nie zrobi', 'C', 2, 'tanuki.uczelnia.pl/cpp2022/C', false, 0, 5, '2023-01-07', '2023-01-14', true, 1, 10000);
-INSERT INTO problems VALUES ('Generator warunków', 'D', 2, 'tanuki.uczelnia.pl/cpp2022/D', false, 0, 5, '2023-02-20', '2023-02-27', false, 1, 10000);
+INSERT INTO problems VALUES ('Bardzo trudne zadanie', 'A', 2, 'problems/cpp2022/A', false, 0, 5, '2022-11-10', '2022-11-17', true, 1, 10000);
+INSERT INTO problems VALUES ('Jeszcze trudniejsze zadanie', 'B', 2, 'problems/cpp2022/B', false, 0, 5, '2022-12-15', '2022-12-22', true, 1, 10000);
+INSERT INTO problems VALUES ('Żodyn z was nie zrobi', 'C', 2, 'problems/cpp2022/C', false, 0, 5, '2023-01-07', '2023-01-14', true, 1, 10000);
+INSERT INTO problems VALUES ('Generator warunków', 'D', 2, 'problems/cpp2022/D', false, 0, 5, '2023-02-20', '2023-02-27', false, 1, 10000);
 INSERT INTO problem_languages VALUES (2, 2);
 INSERT INTO problem_languages VALUES (3, 2);
 INSERT INTO problem_languages VALUES (4, 2);
 INSERT INTO problem_languages VALUES (5, 2);
 
-INSERT INTO problems VALUES ('Brzydka klasa', 'A', 3, 'tanuki.uczelnia.pl/java2024/A', true, 0, 5, '2025-11-10', '2025-11-17', true, 2, 50000);
+INSERT INTO problems VALUES ('Brzydka klasa', 'A', 3, 'problems/java2024/A', true, 0, 5, '2025-11-10', '2025-11-17', true, 2, 50000);
 INSERT INTO problem_languages VALUES (6, 3);
 
 INSERT INTO task_groups VALUES (2, 'main', true);
