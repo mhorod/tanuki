@@ -27,7 +27,9 @@ interface simplePair {
 
 async function getUnsolvedProblemsTharAreClosestToTheDeadline(client: Client, user_id: number, how_many: number): Promise<Problem[] | null> {
     const allProblemsQuery = `
-        SELECT p.id
+        SELECT p.id, p.name, p.shortname, p.contest_id, p.statement_uri,
+        p.uses_points, p.points, p.due_date, p.closing_date,
+        p.published, p.scoring_method, p.source_limit
         FROM users u
         JOIN contests_permissions cp ON cp.user_id = u.id
         JOIN contests c ON cp.contest_id = c.id
@@ -36,53 +38,18 @@ async function getUnsolvedProblemsTharAreClosestToTheDeadline(client: Client, us
             SELECT sr.status
             FROM submit_results sr
             JOIN submits s ON s.id = sr.submit_id
-            WHERE sr.status = 1 AND s.problem_id = p.id
+            WHERE sr.status = 1 AND s.problem_id = p.id AND s.user_id = $1
             LIMIT 1
-        ) IS NOT NULL
+        ) IS NULL
+        ORDER BY p.due_date ASC
+        LIMIT $2
     `;
 
-    const queryResult = await client.queryArray(allProblemsQuery, [user_id]);
-    console.log(queryResult);
+    const queryResult = await client.queryObject<Problem>(allProblemsQuery, [user_id, how_many]);
 
-    return null;
+    return queryResult.rows;
 
-    /*
 
-    let allUnsolvedProblems = [];
-
-    for (const itr of queryResult.rows) {
-        const problem_id = itr[0] as number; //Don't ask me why, it's just how this works
-        //Crazy ineffective part: we're going to check for each of these problems whether they've got an OK status already
-        ///Aaaand if not we'll sort them by their due_date. Magnificent!
-
-        //I hope that query optimizer will optimize that, at least somewhat
-        const okQuery = `
-            SELECT sr.status
-            FROM submit_results sr
-            JOIN submits s ON s.id = sr.submit_id
-            WHERE sr.status = 1 AND s.problem_id = $1
-            LIMIT 1
-        `;
-        const youHaveOkHere = (await client.queryObject(okQuery, [problem_id])).rowCount == 0 ? false : true;
-
-        if (!youHaveOkHere) {
-            const due_date = (await client.queryArray("SELECT due_date FROM problems WHERE id = $1", [problem_id])).rows[0][0] as Date; //Ah yes
-            console.log(due_date);
-
-            let tmpPair: simplePair = {
-                key: problem_id,
-                value: due_date
-            };
-
-            allUnsolvedProblems.push(tmpPair);
-
-        }
-    }
-
-    allUnsolvedProblems.sort(unsolvedProblemsComparator);
-
-    return null;
-    */
 }
 
 export { getUnsolvedProblemsTharAreClosestToTheDeadline }
