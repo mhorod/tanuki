@@ -191,7 +191,7 @@ function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
                     language: submit.language_name,
                     source_uri: submit.id,
                     src: src,
-                    date: format(submit.submission_time, "yyyy-MM-dd, hh:mm:ss")
+                    date: format(submit.submission_time, "yyyy-MM-dd, HH:mm:ss")
                 }
             )(req, res, next);
         }
