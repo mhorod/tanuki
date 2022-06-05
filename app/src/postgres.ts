@@ -288,41 +288,36 @@ class PostgresPermissionDB implements PermissionDB {
         this.client = client;
     }
 
-    async getPermissionType(user: number, contest: number): Promise<number> {
+    async canSubmit(user: number, contest: number): Promise<boolean> {
+        //To submit: permission_id 1
+        const query = `
+            SELECT permission_id
+            FROM contests_permissions
+            WHERE user_id = $1 AND contest_id = $2 AND permission_id = $3
+        `;
+        const permissionType = await this.client.queryObject<number>(query, [user, contest, 1]);
+
+        if (permissionType.rowCount == 0) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+    async canViewContest(user: number, contest: number): Promise<boolean> {
+        //ANY permission means that you can view
         const query = `
             SELECT permission_id
             FROM contests_permissions
             WHERE user_id = $1 AND contest_id = $2
         `;
-        const queryResult = await this.client.queryObject<number>(query, [user, contest]);
+        const permissionType = await this.client.queryObject<number>(query, [user, contest]);
 
-        if (queryResult.rowCount == 0) {
-            //User has no record in the database, so I'd say that no permissions granted here
-            return 0;
-        }
-        else {
-            //There should be only one such record
-            return queryResult.rows[0];
-        }
-    }
-
-    async canSubmit(user: number, contest: number): Promise<boolean> {
-        const permissionType = await this.getPermissionType(user, contest);
-        if (permissionType >= 2) {
-            return true;
-        }
-        else {
+        if (permissionType.rowCount == 0) {
             return false;
         }
-    }
-    async canViewContest(user: number, contest: number): Promise<boolean> {
-        const permissionType = await this.getPermissionType(user, contest);
-
-        if (permissionType >= 1) {
-            return true;
-        }
         else {
-            return false;
+            return true;
         }
     }
     async canViewSubmit(user: number, submit: number): Promise<boolean> {
@@ -351,13 +346,19 @@ class PostgresPermissionDB implements PermissionDB {
         }
         else {
             const contest = queryResult.rows[0];
-            const permissionType = await this.getPermissionType(user, contest);
+            //Permission of type 2 means that you can manage such contest
+            const query = `
+            SELECT permission_id
+            FROM contests_permissions
+            WHERE user_id = $1 AND contest_id = $2 AND permission_id = $3
+            `;
+            const permissionType = await this.client.queryObject<number>(query, [user, contest, 2]);
 
-            if (permissionType == 3) {
-                return true;
+            if (permissionType.rowCount == 0) {
+                return false;
             }
             else {
-                return false;
+                return true;
             }
         }
 
