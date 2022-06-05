@@ -21,6 +21,37 @@ textarea:focus {
     border-width: 2px;
 }
 
+input {
+    color-scheme: dark;
+    padding: 2px;
+    background-color: transparent;
+    border-color: #777777;
+    border-width: 2px;
+}
+
+input[type='checkbox'] {
+    width: 25px;
+    height: 25px;
+}
+
+input:focus {
+    outline: none;
+    border-color: #10b981;
+}
+
+span[contenteditable="true"] {
+    padding: 2px;
+    background-color: transparent;
+    border-color: #777777;
+    border-width: 2px;
+    display: block;
+}
+
+span[contenteditable="true"]:focus {
+    outline: none;
+    border-color: #10b981;
+}
+
 .status {
     text-transform: uppercase;
 }

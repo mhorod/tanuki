@@ -38,7 +38,8 @@
       </div>
 
       <a class="normal-btn" href="/files/submitted/<%= source_uri %>"> Download </a>
-      <pre><code class="language-<%= language %>""><%= src %></code></pre>
+      <%- await include("views/test-results.ejs"); %>
+        <pre><code class="language-<%= language %>""><%= src %></code></pre>
     </div>
     <%- await include("views/common-scripts.ejs"); %>
       <script>

@@ -1,30 +1,22 @@
-<div class="overflow-y-auto py-4 px-3">
+<div class="overflow-y-auto">
     <table class="table-auto w-full">
         <thead>
             <tr class="border-b border-white">
                 <th>code</th>
                 <th>name</th>
                 <th>deadline</th>
-                <th>edit</th>
+                <th>actions</th>
             </tr>
         </thead>
 
-        <tr class="hover:bg-zinc-700 hover:cursor-pointer odd:bg-zinc-900 even:bg-zinc-800 text-center"
-            onclick="location.href = '/contest/1/problem/2'">
-            <td class="px-2 py-2"> A</td>
-            <td class="px-2 py-2"> Brzydka klasa</td>
-            <td class="px-2 py-2"> 04-06-2022 </td>
-            <td class="px-2 py-2">
-                <a href="/contest/1/problem/2/edit"></a>
-            </td>
-        </tr>
-        <tr class="hover:bg-zinc-700 hover:cursor-pointer odd:bg-zinc-900 even:bg-zinc-800 text-center">
-            <td class="px-2 py-2"> B</td>
-            <td class="px-2 py-2"> Jeszcze trudniejsze zadanie</td>
-            <td class="px-2 py-2"> 04-06-2022 </td>
-            <td class="px-2 py-2">
-                <%- await include("views/points.ejs", {points: 0.5, max: 1.0, current_max: 1.0}); %>
+        <tr class="hover:bg-slate-700 hover:cursor-pointer even:bg-slate-900 odd:bg-slate-800 text-center">
+            <td class="px-2 py-2" onclick="location.href = '/contest/1/problem/2'"> A</td>
+            <td class="px-2 py-2" onclick="location.href = '/contest/1/problem/2'"> Brzydka klasa</td>
+            <td class="px-2 py-2" onclick="location.href = '/contest/1/problem/2'"> 04-06-2022 </td>
+            <td class="px-2 py-2 gap-2">
+                <a href="/contest/1/problem/2/edit">edit</a>
             </td>
         </tr>
     </table>
+    <a href="/contest/<%=contest.id%>/add">new problem</a>
 </div>

@@ -8,28 +8,15 @@
         </title>
 </head>
 
-<body class="bg-zinc-900 text-white">
+<body class="bg-slate-900 text-white">
     <%- await include("views/nav.ejs", {user: user}); %>
 
         <div class=" container mx-auto p-6 divide-x">
             <div class="flex flex-col md:flex-row space-x-4">
-                <div class="flex flex-col text-lg">
-                    <h3 class="text-2xl font-semibold mt-0 mb-2 text-slate-100">
-                        <%= contest.name %>
-                    </h3>
-                    <a href="/contest/<%= contest.id %>/about" class="cursor-pointer py-2 hover:text-slate-300">
-                        About
-                    </a>
-                    <a href="/contest/<%= contest.id %>/results" class="cursor-pointer py-2 hover:text-slate-300">
-                        Results
-                    </a>
-                    <a href="/contest/<%= contest.id %>" class="cursor-pointer py-2 hover:text-slate-300">
-                        Problems
-                    </a>
-                </div>
-                <div class="grow">
-                    <%- await include("views/student/problems-list.ejs"); %>
-                </div>
+                <%- await include("views/teacher/contest-menu.ejs", {contest}); %>
+                    <div class="grow">
+                        <%- await include("views/teacher/problems-list.ejs", {contest}); %>
+                    </div>
             </div>
         </div>
 
