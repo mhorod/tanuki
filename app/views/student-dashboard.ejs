@@ -23,7 +23,7 @@
               <% } %>
           </div>
 
-          <%- await include("views/recent-submits.ejs", {submits: submits}); %>
+          <%- await include("views/recent-submits.ejs", {submits: recent_submits}); %>
 
         </div>
         <%- await include("views/sidebar.ejs", {problems: due_problems}); %>

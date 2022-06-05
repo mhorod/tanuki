@@ -34,15 +34,6 @@ async function getUser(client: Client, login: string): Promise<User | null> {
 }
 
 const submitQuery = `
-select 
-  s.id, 
-  p.name "problem",
-  st.name "status"
-from 
-  submits s 
-  join submit_results sr on s.id = sr.submit_id 
-  join statuses st on sr.status = st.id 
-  join problems p on s.problem_id = p.id;
 `;
 async function getSubmits(client: Client): Promise<Array<Submit>> {
     return (await client.queryObject<Submit>(submitQuery)).rows;
@@ -52,15 +43,49 @@ class PostgresContestDB implements ContestDB {
     client: Client;
 
     constructor(client: Client) { this.client = client; }
+
+    async getUserContests(user_id: number): Promise<Contest[]> {
+        const query = `
+        SELECT 
+            c.* 
+        FROM 
+            contests c 
+            JOIN user_contests uc ON c.id = uc.contest_id
+        WHERE 
+            uc.user_id = $1
+        `
+        return (await this.client.queryObject<Contest>(query, [user_id])).rows;
+    }
+
+    async getUserSubmits(user_id: number, limit: number): Promise<Submit[]> {
+        const query = `
+        SELECT 
+            s.id,
+            s.source_uri,
+            sr.points,
+            st.name "status",
+            c.name "contest_name",
+            p.name "short_problem_name",
+            l.name "language_name",
+            s.submission_time
+        FROM 
+            submits s 
+            JOIN submit_results sr on s.id = sr.submit_id 
+            JOIN statuses st ON sr.status = st.id 
+            JOIN problems p ON s.problem_id = p.id
+            JOIN contests c ON p.contest_id = c.id
+            JOIN languages l ON s.language_id = l.id
+        WHERE
+            user_id = $1
+        ORDER BY
+            s.submission_time DESC
+        LIMIT $2
+        `
+        return (await this.client.queryObject<Submit>(query, [user_id, limit])).rows;
+    }
+
     async getContestById(id: number): Promise<Contest | null> {
         return (await this.client.queryObject<Contest>("select * from contests where id = $1;", [id])).rows[0];
-    }
-    async getContests() {
-
-        return (await this.client.queryObject<Contest>("select * from contests;")).rows;
-    }
-    async getSubmits() {
-        return await getSubmits(this.client);
     }
 }
 
@@ -68,12 +93,7 @@ class PostgresCredentialDB implements CredentialDB {
     client: Client;
     constructor(client: Client) { this.client = client; }
     async getUserByCredentials(credentials: Credentials): Promise<User | null> {
-        console.log(credentials);
-
         const userMatchingByLogin = await getUser(this.client, credentials.login);
-
-        console.log(userMatchingByLogin);
-
         if (userMatchingByLogin == null) {
             //User doesn't even exist
             return null;

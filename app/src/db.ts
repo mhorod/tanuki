@@ -91,8 +91,8 @@ interface Language {
 
 
 interface ContestDB {
-  getContests(): Promise<Array<Contest>>;
-  getSubmits(): Promise<Array<Submit>>;
+  getUserContests(user_id: number): Promise<Array<Contest>>;
+  getUserSubmits(user_id: number, limit: number): Promise<Array<Submit>>;
   getContestById(id: number): Promise<Contest | null>
 }
 
