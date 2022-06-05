@@ -319,10 +319,11 @@ class PostgresPermissionDB implements PermissionDB {
         //To submit: permission_id 1
         const query = `
             SELECT permission_id
-            FROM contests_permissions
-            WHERE user_id = $1 AND contest_id = $2 AND permission_id = $3
+            FROM contests_permissions cp
+            JOIN permissions_for_contests pfc ON cp.permission_id = pfc.id
+            WHERE user_id = $1 AND contest_id = $2 AND pfc.name = $3
         `;
-        const permissionType = await this.client.queryObject(query, [user, contest, 1]);
+        const permissionType = await this.client.queryObject(query, [user, contest, 'SUBMIT']);
 
         if (permissionType.rowCount == 0) {
             return false;
@@ -348,9 +349,20 @@ class PostgresPermissionDB implements PermissionDB {
             return true;
         }
     }
+
+    async ownsSubmit(user: number, submit: number): Promise<boolean> {
+        const query = `SELECT 1 FROM submits WHERE user_id = $1 and id = $2`;
+        const queryResult = await this.client.queryArray(query, [user, submit]);
+        return queryResult.rowCount != 0;
+    }
+
     async canViewSubmit(user: number, submit: number): Promise<boolean> {
         // TODO: remove this line in release
-        return true;
+        //return true;
+
+        // If user owns the submit we don't have do anything
+        if (await this.ownsSubmit(user, submit)) return true;
+
         //First, we will check the ID of contest that user is in
         //Then, we will check whether such user has permissions to view submits there.
 
@@ -376,13 +388,13 @@ class PostgresPermissionDB implements PermissionDB {
         }
         else {
             const contest = queryResult.rows[0].contest_id;
-            //Permission of type 2 means that you can manage such contest
             const query = `
             SELECT permission_id
-            FROM contests_permissions
-            WHERE user_id = $1 AND contest_id = $2 AND permission_id = $3
+            FROM contests_permissions cp
+            JOIN permissions_for_contests pfc ON cp.permission_id = pfc.id
+            WHERE user_id = $1 AND contest_id = $2 AND pfc.name = $3
             `;
-            const permissionType = await this.client.queryObject(query, [user, contest, 2]);
+            const permissionType = await this.client.queryObject(query, [user, contest, 'MANAGE']);
 
             if (permissionType.rowCount == 0) {
                 return false;
