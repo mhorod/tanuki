@@ -3,39 +3,42 @@
 
 <head>
   <%- await include("views/common-head.ejs"); %>
-  <title>
-    Tanuki
-  </title>
+    <title>
+      Tanuki
+    </title>
 </head>
 
 <body class="bg-zinc-900 text-white">
   <%- await include("views/nav.ejs", { user : user }); %>
-  <div class=" container mx-auto p-6">
-    <h2 class="text-4xl text-center mb-8"> Submit </h2>
-    <h3 class="text-2xl text-center mb-8"> Contest: <%= contest %> </h3>
-    <form method="post" action="/submit/<%= contest_id %>" class="flex justify-center" enctype="multipart/form-data">
-      <div class="flex gap-4 flex-col max-w-sm align-middle">
-        Problem:
-        <select required name="problem_id" class="p-2 text-black">
-          <% for (var problem of problems) { %>
+    <div class=" container mx-auto p-6">
+      <h2 class="text-4xl text-center mb-8"> Submit </h2>
+      <h3 class="text-2xl text-center mb-8"> Contest: <%= contest %>
+      </h3>
+      <form method="post" action="/submit/<%= contest_id %>" class="flex justify-center" enctype="multipart/form-data">
+        <div class="flex gap-4 flex-col max-w-sm align-middle">
+          Problem:
+          <select required name="problem_id" class="p-2 text-black">
+            <% for (var problem of problems) { %>
 
-          <option <% if (selected_problem == problem.id) { %> selected <% } %> value="<%= problem.id %>"> <%= problem.name %> </option>
-          <% } %>
-        </select>
-        <input type="file" name="source" />
-        <button type="submit" class="submit-btn">
-          Submit
-        </button>
+              <option <% if (selected_problem==problem.id) { %> selected <% } %> value="<%= problem.id %>"> <%=
+                      problem.name %>
+              </option>
+              <% } %>
+          </select>
+          <input type="file" name="source" />
+          <button type="submit" class="submit-btn">
+            Submit
+          </button>
 
-        <span class="text-red-500">
-          <% if (typeof(error) != 'undefined') { %>
-          <%= error %>
-          <% } %>
-        </span>
-      </div>
-    </form>
-  </div>
-  <%- await include("views/common-scripts.ejs"); %>
+          <span class="text-red-500">
+            <% if (typeof(error) !='undefined' ) { %>
+              <%= error %>
+                <% } %>
+          </span>
+        </div>
+      </form>
+    </div>
+    <%- await include("views/common-scripts.ejs"); %>
 </body>
 
 </html>

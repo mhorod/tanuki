@@ -1,7 +1,7 @@
 // Mock connection to the database
 
-import { User, NewUser, Submit, Problem } from "../db.ts";
-import { UserDB, CredentialDB, SubmitDB, ProblemDB } from "../db.ts";
+import { User, NewUser, Language } from "../db.ts";
+import { UserDB, CredentialDB, LanguageDB } from "../db.ts";
 import { PermissionDB } from "../permissions.ts"
 
 import { bcrypt } from "../../deps.ts"
@@ -65,7 +65,17 @@ class MockPermissionDB implements PermissionDB {
     async canViewSubmit(user: number, submit: number): Promise<boolean> {
         return await true;
     }
+}
+
+class MockLanguageDB implements LanguageDB {
+    async getProblemLanguages(problem: number): Promise<Language[]> {
+        return await [{
+            id: 2,
+            name: "C++",
+            extensions: ["cpp", "hpp", "h"],
+        }]
+    }
 
 }
 
-export { MockClient, MockUserDB, MockCredentialDB, MockPermissionDB }
+export { MockClient, MockUserDB, MockCredentialDB, MockPermissionDB, MockLanguageDB }

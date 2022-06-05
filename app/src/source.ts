@@ -12,6 +12,9 @@ class BasicSourceManager implements SourceManager {
             //  Directory already exists, skip
         }
     }
+    async getFullPath(uri: string): Promise<string> {
+        return await join(SUBMIT_DIR, uri);
+    }
 
     async addSource(uri: string, content: any): Promise<boolean> {
         try {

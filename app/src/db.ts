@@ -9,14 +9,6 @@ interface Contest {
   active: boolean
 }
 
-interface Submit {
-  id: number,
-  problem_id: number,
-  user_id: number,
-  source_uri: string,
-  submission_time: Date,
-}
-
 interface User {
   id: number,
   login: string,
@@ -61,6 +53,20 @@ interface GraphicalProblem {
   status: string
 }
 
+/**
+ * Information for displaying submit results
+ */
+interface Submit {
+  id: number,
+  source_uri: string,
+  points: number,
+  status: string,
+  contest_name: string,
+  short_problem_name: string,
+  language_name: string,
+  submission_time: Date,
+}
+
 //Used to convey information about progress of a student
 interface GraphicalProblemStatus {
   id: number
@@ -74,6 +80,12 @@ interface NewSubmit {
   user_id: number,
   problem_id: number,
   language_id: number
+}
+
+interface Language {
+  id: number,
+  name: string;
+  extensions: Array<string>,
 }
 
 interface ContestDB {
@@ -106,7 +118,15 @@ interface GraphicalProblemDB {
   getGraphicalProblemById(problem_id: number, user_id: number): Promise<GraphicalProblem | null>;
 }
 
-export type { Submit, NewSubmit, Contest, Problem, GraphicalProblem };
+interface LanguageDB {
+  getProblemLanguages(problem: number): Promise<Array<Language>>;
+}
+
+interface ResultDB {
+  setSubmitResults(id: number, points: number, status: string): Promise<boolean>;
+}
+
+export type { Submit, NewSubmit, Contest, Problem, GraphicalProblem, Language };
 export type { User, NewUser };
 export type { GraphicalProblemStatus };
-export type { ContestDB, UserDB, CredentialDB, SubmitDB, ProblemDB, GraphicalProblemDB }
+export type { ContestDB, UserDB, CredentialDB, SubmitDB, ProblemDB, GraphicalProblemDB, LanguageDB, ResultDB }

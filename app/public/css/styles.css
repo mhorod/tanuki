@@ -88,3 +88,14 @@ span[contenteditable="true"] {
 .submit-btn:hover {
     background-color: #10b981;
 }
+
+.normal-btn {
+    padding: 1rem;
+    color: white;
+    border: 1px white solid;
+    display: inline-block;
+}
+
+.normal-btn:hover {
+    background-color: #272727;
+}

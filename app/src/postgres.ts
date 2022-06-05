@@ -4,7 +4,7 @@ import { Client, ClientOptions } from "../deps.ts"
 
 import type { Submit, Contest, Problem, GraphicalProblem } from "./db.ts"
 import type { User, NewUser, NewSubmit } from "./db.ts";
-import type { ContestDB, UserDB, CredentialDB, ProblemDB, GraphicalProblemDB, SubmitDB } from "./db.ts";
+import type { ContestDB, UserDB, CredentialDB, ProblemDB, GraphicalProblemDB, SubmitDB, ResultDB } from "./db.ts";
 
 import type { PermissionDB } from "./permissions.ts"
 
@@ -263,19 +263,42 @@ class PostgresSubmitDB implements SubmitDB {
             return null;
         }
         else {
-            return queryResult.rows[0];
+            const submit = queryResult.rows[0];
+            new PostgresResultDB(this.client).setSubmitResults(submit.id, 1, "OK");
+            return submit;
         }
     }
 
     async getSubmitById(id: number): Promise<Submit | null> {
-        const queryResult = await this.client.queryObject<Submit>("SELECT * FROM submits WHERE id = $1", [id]);
+        const query = `
+        SELECT 
+            s.id,
+            source_uri,
+            sr.points,
+            statuses.name "status",
+            c.name "contest_name",
+            p.shortname "short_problem_name",
+            l.name "language_name",
+            submission_time
+        FROM
+            submits s
+            JOIN submit_results sr ON s.id = sr.submit_id
+            JOIN statuses ON statuses.id = sr.status
+            JOIN languages l ON s.language_id = l.id
+            JOIN problems p ON s.problem_id = p.id
+            JOIN contests c ON p.contest_id = c.id
+        WHERE
+            s.id = $1
+        `
+        const queryResult = await this.client.queryObject<Submit>(query, [id]);
 
         if (queryResult.rowCount == 0) {
             return null;
         }
         else {
-            const resultFromDB = queryResult.rows[0];
-            return resultFromDB;
+            const submit = queryResult.rows[0];
+            submit.source_uri = submit.source_uri.trim();
+            return submit;
         }
     }
 
@@ -307,6 +330,8 @@ class PostgresPermissionDB implements PermissionDB {
     }
 
     async canSubmit(user: number, contest: number): Promise<boolean> {
+        // TODO: remove this line in release
+        return true;
         const permissionType = await this.getPermissionType(user, contest);
         if (permissionType >= 2) {
             return true;
@@ -316,6 +341,8 @@ class PostgresPermissionDB implements PermissionDB {
         }
     }
     async canViewContest(user: number, contest: number): Promise<boolean> {
+        // TODO: remove this line in release
+        return true;
         const permissionType = await this.getPermissionType(user, contest);
 
         if (permissionType >= 1) {
@@ -326,6 +353,8 @@ class PostgresPermissionDB implements PermissionDB {
         }
     }
     async canViewSubmit(user: number, submit: number): Promise<boolean> {
+        // TODO: remove this line in release
+        return true;
         //First, we will check the ID of contest that user is in
         //Then, we will check whether such user has permissions to view submits there.
 
@@ -341,7 +370,7 @@ class PostgresPermissionDB implements PermissionDB {
             WHERE s.id = $1
         `;
 
-        const queryResult = await this.client.queryObject<number>(gimmeContestIDQuery, [submit]);
+        const queryResult = await this.client.queryObject<{ contest_id: number }>(gimmeContestIDQuery, [submit]);
 
         if (queryResult.rowCount == 0) {
             //Submit doesn't even exist, so I'm going to say that you can't view such a submit
@@ -350,7 +379,7 @@ class PostgresPermissionDB implements PermissionDB {
             return false;
         }
         else {
-            const contest = queryResult.rows[0];
+            const contest = queryResult.rows[0].contest_id;
             const permissionType = await this.getPermissionType(user, contest);
 
             if (permissionType == 3) {
@@ -364,5 +393,20 @@ class PostgresPermissionDB implements PermissionDB {
     }
 }
 
+class PostgresResultDB implements ResultDB {
+
+    client: Client;
+
+    constructor(client: Client) {
+        this.client = client;
+    }
+    async setSubmitResults(id: number, points: number, status: string): Promise<boolean> {
+        const status_id = (await this.client.queryObject<{ id: number }>("SELECT id FROM statuses WHERE name = $1", [status.toUpperCase()])).rows[0].id;
+        await this.client.queryArray("INSERT INTO submit_results VALUES ($1, $2, $3)", [id, points, status_id]);
+        return true;
+    }
+}
+
+
 export { connectNewClient, PostgresContestDB, PostgresCredentialDB, PostgresUserDB, PostgresProblemDB, PostgresGraphicalProblemDB };
-export { PostgresSubmitDB, PostgresPermissionDB };
+export { PostgresSubmitDB, PostgresPermissionDB, PostgresResultDB };
