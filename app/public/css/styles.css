@@ -1,16 +1,8 @@
-input,
-textarea {
-    padding: 0.5rem;
-    border: 1px solid white;
-    background-color: inherit;
-    color: white;
-}
-
 input:disabled,
 textarea:disabled {
 
-    border: 1px solid #aaa;
-    color: #aaa;
+    border: 2px solid #666;
+    color: #666;
 }
 
 /* Remove blue outline on input focus */
@@ -23,7 +15,7 @@ textarea:focus {
 
 input {
     color-scheme: dark;
-    padding: 2px;
+    padding: 0.5rem;
     background-color: transparent;
     border-color: #777777;
     border-width: 2px;
