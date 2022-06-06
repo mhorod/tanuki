@@ -42,7 +42,7 @@
         </div>
       </div>
 
-      <a class="normal-btn" href="/files/submitted/<%= results.source_uri %>"> Download </a>
+      <a class="normal-btn" href="/files/submitted/<%= results.id %>"> Download </a>
       <%- await include("views/task-results.ejs", {group_results: results.group_results}); %>
         <pre><code class="language-<%= results.language_name %>""><%= results.src %></code></pre>
     </div>
