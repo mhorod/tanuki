@@ -1,4 +1,5 @@
 import type { PermissionDB } from "./../permissions.ts"
+import { PermissionKind } from "./../permissions.ts"
 import { Client, ClientOptions } from "../../deps.ts"
 
 
@@ -100,6 +101,46 @@ class PostgresPermissionDB implements PermissionDB {
         }
 
     }
+
+    permissinKindToNumber(permission: PermissionKind): number {
+        switch (permission) {
+            case PermissionKind.MANAGE:
+                return 1;
+                break;
+            case PermissionKind.SUBMIT:
+                return 2;
+                break;
+            default:
+                throw new Error("Database doesn't accept permissions other than MANAGE or SUBMIT");
+                break;
+        }
+    }
+
+    insertPermissions(user: number, contest: number, permission: number): void {
+        const insertionQuery = `
+            INSERT INTO contests_permissions VALUES($1, $2, $3)
+        `;
+        this.client.queryArray(insertionQuery, [user, permission, contest]);
+        return;
+    }
+
+    deletePermissions(user: number, contest: number, permission: number): void {
+        const deletionQuery = `
+            BEGIN TRANSACTION;
+            DELETE FROM contests_permission WHERE
+            user_id = $1 AND permission_id = $2 AND contest_id = $3;
+            COMMIT;
+        `;
+        this.client.queryArray(deletionQuery, [user, permission, contest]);
+    }
+
+    grantPermission(user: number, contest: number, permission: PermissionKind): void {
+        this.insertPermissions(user, contest, this.permissinKindToNumber(permission));
+    }
+    revokePermission(user: number, contest: number, permission: PermissionKind): void {
+        this.deletePermissions(user, contest, this.permissinKindToNumber(permission));
+    }
+
 }
 
 export { PostgresPermissionDB }
