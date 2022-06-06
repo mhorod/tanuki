@@ -287,10 +287,6 @@ class PostgresSubmitDB implements SubmitDB {
         }
         else {
             const submit = queryResult.rows[0];
-            // TODO: Remove that, it should be done in another place
-            const statuses = ["OK", "ANS", "CME", "TLE"];
-            const i = Math.floor(Math.random() * statuses.length);
-            new PostgresResultDB(this.client).setSubmitResults(submit.id, 1, statuses[i]);
             return submit;
         }
     }
@@ -338,7 +334,6 @@ class PostgresPermissionDB implements PermissionDB {
     }
 
     async canSubmit(user: number, contest: number): Promise<boolean> {
-        return true; // TODO: remove this line
         //To submit: permission_id 1
         const query = `
             SELECT permission_id
@@ -356,7 +351,6 @@ class PostgresPermissionDB implements PermissionDB {
         }
     }
     async canViewContest(user: number, contest: number): Promise<boolean> {
-        return true; // TODO: remove this line
         //ANY permission means that you can view
         const query = `
             SELECT permission_id
@@ -380,9 +374,6 @@ class PostgresPermissionDB implements PermissionDB {
     }
 
     async canViewSubmit(user: number, submit: number): Promise<boolean> {
-        // TODO: remove this line in release
-        //return true;
-
         // If user owns the submit we don't have do anything
         if (await this.ownsSubmit(user, submit)) return true;
 
