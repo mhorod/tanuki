@@ -16,6 +16,28 @@
                 <%- await include("views/student/contest-nav.ejs", {contest: contest}) %>
                     <div class="grow">
                         <%- await include("views/recent-submits.ejs", {submits: submits}); %>
+
+                            <div class="flex flex-row space-x-4 items-center mt-2 p-2 border-t border-zinc-700">
+                                <b> Page </b>
+                                <% for (const page of pages) { %>
+                                    <a class="normal-btn" href="<%= page.href %>">
+                                        <%= page.number %>
+                                    </a>
+                                    <% } %>
+                            </div>
+                            <form method="get" class="flex flex-row space-x-4 items-center mt-2 p-2">
+                                <b>Problem</b>
+                                <select name="problem" class="p-1 text-black">
+                                    <% for (const problem of problems) { %>
+                                        <option value="<%= problem.id %>">
+                                            <%= problem.shortname %> (<%= problem.name %>)
+                                        </option>
+                                        <% } %>
+                                </select>
+                                <button type="submit" class="submit-btn">
+                                    Filter
+                                </button>
+                            </form>
                     </div>
             </div>
         </div>
