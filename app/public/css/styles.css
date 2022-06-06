@@ -119,7 +119,7 @@ span[contenteditable="true"] {
     background-color: #059669;
     color: white;
     cursor: pointer;
-    padding: 1rem;
+    padding: 0.5rem;
     display: inline-block;
 }
 
@@ -132,6 +132,7 @@ span[contenteditable="true"] {
     color: white;
     border: 1px white solid;
     display: inline-block;
+    cursor: pointer;
 }
 
 .normal-btn:hover {
