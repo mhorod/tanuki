@@ -111,6 +111,17 @@ interface Language {
   extensions: Array<string>,
 }
 
+enum SubmitResult {
+  OK,
+  ANS,
+  MEM,
+  RTE,
+  CME,
+  TLE,
+  REJ,
+  RUL
+}
+
 
 interface ContestDB {
   getUserContests(user_id: number): Promise<Array<Contest>>;
@@ -155,7 +166,8 @@ interface LanguageDB {
 }
 
 interface ResultDB {
-  setSubmitResults(id: number, points: number, status: string): Promise<boolean>;
+  addSubmitResults(id: number, points: number, status: string): Promise<boolean>;
+  overrideSubmitResults(id: number, points: number, status: number): void;
 }
 
 
