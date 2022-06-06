@@ -83,6 +83,22 @@ interface NewSubmit {
   language_id: number
 }
 
+//Same as problem, but without ID - used when we need to insert a problem to the database
+interface NewProblem {
+  name: string,
+  shortname: string,
+  contest_id: number,
+  statement_uri: string,
+  uses_points: boolean,
+  position: number,
+  points: number,
+  due_date: Date | null,
+  closing_date: Date | null,
+  published: boolean,
+  scoring_method: string,
+  source_limit: number,
+}
+
 interface Language {
   id: number,
   name: string;
@@ -113,6 +129,8 @@ interface SubmitDB {
 interface ProblemDB {
   getProblemsInContest(contest: number): Promise<Array<Problem>>;
   getProblemById(id: number): Promise<Problem | null>;
+  createProblem(problem: NewProblem): void;
+  updateProblem(newVersion: Problem): Promise<void>;
 }
 
 interface GraphicalProblemDB {
@@ -130,6 +148,6 @@ interface ResultDB {
 
 
 export type { Submit, NewSubmit, Contest, Problem, GraphicalProblem };
-export type { User, NewUser, Language };
+export type { User, NewUser, Language, NewProblem };
 export type { GraphicalProblemStatus };
 export type { ContestDB, UserDB, CredentialDB, SubmitDB, ProblemDB, GraphicalProblemDB, LanguageDB, ResultDB }

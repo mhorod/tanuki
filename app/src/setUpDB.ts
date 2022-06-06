@@ -1,7 +1,8 @@
 
-import { connectNewClient, PostgresContestDB, PostgresProblemDB } from "./postgres.ts"
+import { connectNewClient, PostgresContestDB } from "./postgres.ts"
 import { PostgresCredentialDB, PostgresUserDB, PostgresGraphicalProblemDB, PostgresSubmitDB } from "./postgres.ts"
 import { PostgresPermissionDB } from "./postgres/postgresPermissionDB.ts"
+import { PostgresProblemDB } from "./postgres/postgresProblemDB.ts"
 import { PostgresLanguageDB } from "./queries/language.ts"
 
 import { ClientOptions } from "../deps.ts"
