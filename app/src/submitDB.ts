@@ -74,7 +74,7 @@ class PostgresSubmitResultsDB implements SubmitResultsDB {
             s.id,
 
             s.problem_id,
-            p.shortname "short_problem_name",
+            p.short_name "short_problem_name",
 
             p.contest_id,
             c.name "contest_name",
@@ -85,7 +85,7 @@ class PostgresSubmitResultsDB implements SubmitResultsDB {
             l.name "language_name",
             submission_time,
             source_uri,
-            sr.points,
+            sr.score,
             statuses.name "status",
             statuses.id "status_id"
         FROM
@@ -125,7 +125,7 @@ class PostgresSubmitResultsDB implements SubmitResultsDB {
                 name: row.status || "QUE",
                 points: 0.5,
                 max_points: 0,
-                score: 0.5,
+                score: row.score,
             },
             group_results: [],
         };
