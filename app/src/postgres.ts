@@ -383,7 +383,7 @@ class PostgresPermissionDB implements PermissionDB {
         // TODO: remove this line in release
         //return true;
 
-        // If user owns the submit we don't have do anything
+        // If user owns the submit we don't have to do anything
         if (await this.ownsSubmit(user, submit)) return true;
 
         //First, we will check the ID of contest that user is in
