@@ -18,7 +18,7 @@ class MockChecker {
     }
 
     async submit(id: number, source_uri: string): Promise<string> {
-        const statuses = ["RTE", "ANS", "CME", "TLE"];
+        const statuses = ["OK", "REJ", "RTE", "TLE", "ANS", "CME"];
         return new Promise((resolve, reject) =>
             setTimeout(() => {
                 const status = statuses[Math.floor(Math.random() * statuses.length)];
