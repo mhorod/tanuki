@@ -119,7 +119,7 @@ span[contenteditable="true"] {
     background-color: #059669;
     color: white;
     cursor: pointer;
-    padding: 1rem;
+    padding: 0.5rem;
     display: inline-block;
 }
 
@@ -127,11 +127,28 @@ span[contenteditable="true"] {
     background-color: #10b981;
 }
 
+.critical-btn {
+    background-color: #b91010;
+    color: white;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: inline-block;
+}
+
+.critical-btn:hover {
+    background-color: #e03c26;
+}
+a:hover {
+    color: #34d399;
+}
+
 .normal-btn {
     padding: 0.5rem;
     color: white;
     border: 1px white solid;
     display: inline-block;
+    text-align: center;
+    cursor: pointer;
 }
 
 .normal-btn:hover {

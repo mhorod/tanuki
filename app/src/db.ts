@@ -99,6 +99,12 @@ interface NewProblem {
   source_limit: number,
 }
 
+interface NewContest {
+  name: string,
+  shortname: string,
+  is_active: boolean
+}
+
 interface Language {
   id: number,
   name: string;
@@ -108,13 +114,16 @@ interface Language {
 
 interface ContestDB {
   getUserContests(user_id: number): Promise<Array<Contest>>;
+  getAllContests(): Promise<Array<Contest>>;
   getUserSubmits(user_id: number, limit: number): Promise<Array<Submit>>;
   getContestById(id: number): Promise<Contest | null>
+  addNewContest(contest: NewContest): Promise<Contest | null>
 }
 
 interface UserDB {
   getUserByLogin(login: string): Promise<User | null>;
   addNewUser(user: NewUser): Promise<User | null>;
+  getUserById(id: number): Promise<User | null>;
 }
 
 interface CredentialDB {
@@ -147,7 +156,7 @@ interface ResultDB {
 }
 
 
-export type { Submit, NewSubmit, Contest, Problem, GraphicalProblem };
+export type { Submit, NewSubmit, Contest, NewContest, Problem, GraphicalProblem };
 export type { User, NewUser, Language, NewProblem };
 export type { GraphicalProblemStatus };
 export type { ContestDB, UserDB, CredentialDB, SubmitDB, ProblemDB, GraphicalProblemDB, LanguageDB, ResultDB }

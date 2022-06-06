@@ -1,6 +1,7 @@
 import type { PermissionDB } from "./../permissions.ts"
 import { PermissionKind } from "./../permissions.ts"
 import { Client, ClientOptions } from "../../deps.ts"
+import { User } from '../db.ts'
 
 
 class PostgresPermissionDB implements PermissionDB {
@@ -8,6 +9,17 @@ class PostgresPermissionDB implements PermissionDB {
 
     constructor(client: Client) {
         this.client = client;
+    }
+
+    async getAllThatCanEdit(contest: number): Promise<User[]> {
+        const query = `
+            SELECT users.*
+            FROM users JOIN 
+            contests_permissions ON(id = user_id)
+            WHERE contest_id = $1 AND permission_id=1
+        `
+
+        return (await this.client.queryObject<User>(query, [contest])).rows;
     }
 
     async canSubmit(user: number, contest: number): Promise<boolean> {

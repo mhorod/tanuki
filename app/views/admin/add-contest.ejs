@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- await include("views/common-head.ejs"); %>
+        <title>
+            Tanuki
+        </title>
+</head>
+
+<body class="bg-slate-900 text-white">
+    <%- await include("views/nav.ejs", {user: user}); %>
+
+        <div class=" container mx-auto p-6 divide-x ">
+            <div class="flex place-content-center">
+                <form method="post" action="/admin/add-contest" class="flex justify-center">
+                    <div class="flex flex-col gap-4">
+                        <h1 class="text-3xl">Adding new contest </h1>
+                        <div class="grid grid-cols-2 auto-rows-min gap-4 flex-col max-w-sm align-middle">
+                            Name:
+                            <input type="text" name="name" value="<%= contest.name %> " />
+                            Short name:
+                            <input type="text" name="shortname" value="<%= contest.shortname %>" />
+                            Is Active:
+                            <input type="checkbox" name="is_active" <%=contest.is_active ? "checked" : "" %> />
+
+                            <span class=" text-red-500">
+                                <% if (typeof(error) !='undefined' ) { %>
+                                    <%= error %>
+                                        <% } %>
+                            </span>
+                        </div>
+                        <button type="submit" class="submit-btn">
+                            Add
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <%- await include("views/common-scripts.ejs"); %>
+</body>
+
+</html>

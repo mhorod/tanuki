@@ -9,6 +9,7 @@ import { setUpContestRouter } from "./contest.ts"
 import { setUpTeacherRouter } from "./teacher.ts"
 import { setUpAuthRouter } from "./auth.ts"
 import { setUpStudentRouter } from "./student.ts"
+import { setUpAdminRouter } from "./admin.ts"
 
 export default function (router: IRouter, config: any) {
     [
@@ -17,6 +18,7 @@ export default function (router: IRouter, config: any) {
         setUpAccountRouter,
         setUpContestRouter,
         setUpTeacherRouter,
+        setUpAdminRouter,
         setUpStudentRouter
     ].forEach(f => f(router, config))
 }

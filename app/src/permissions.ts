@@ -1,4 +1,4 @@
-
+import { User } from './db.ts'
 enum PermissionKind {
     MANAGE,
     SUBMIT,
@@ -14,6 +14,7 @@ interface Permission {
 
 interface PermissionDB {
     canSubmit(user: number, contest: number): Promise<boolean>;
+    getAllThatCanEdit(contest: number): Promise<User[]>;
     canViewContest(user: number, contest: number): Promise<boolean>;
     canViewSubmit(user: number, submit: number): Promise<boolean>;
     grantPermission(user: number, contest: number, permission: PermissionKind): void;

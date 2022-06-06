@@ -5,7 +5,7 @@
 import { Client, ClientOptions } from "../deps.ts"
 
 import type { Submit, Contest, Problem, GraphicalProblem } from "./db.ts"
-import type { User, NewUser, NewSubmit } from "./db.ts";
+import type { User, NewUser, NewSubmit, NewContest } from "./db.ts";
 import type { ContestDB, UserDB, CredentialDB, ProblemDB, GraphicalProblemDB, SubmitDB, ResultDB } from "./db.ts";
 
 import type { PermissionDB } from "./permissions.ts"
@@ -57,6 +57,27 @@ class PostgresContestDB implements ContestDB {
             uc.user_id = $1
         `
         return (await this.client.queryObject<Contest>(query, [user_id])).rows;
+    }
+
+    async addNewContest(contest: NewContest): Promise<Contest | null> {
+        console.log(contest);
+        const query = `
+        INSERT INTO contests VALUES ($1, $2, $3) RETURNING *;
+        `;
+        try {
+            return (await this.client.queryObject<Contest>(query, [contest.name, contest.shortname, contest.is_active])).rows[0];
+        } catch {
+            return null;
+        }
+    }
+
+
+    async getAllContests(): Promise<Contest[]> {
+        const query = `
+        SELECT * 
+        FROM contests
+        `;
+        return (await this.client.queryObject<Contest>(query)).rows;
     }
 
     async getUserSubmits(user_id: number, limit: number): Promise<Submit[]> {
@@ -124,6 +145,13 @@ class PostgresUserDB implements UserDB {
 
     async hash(password: string): Promise<string> {
         return await bcrypt.hash(password, await bcrypt.genSalt(8));
+    }
+    async getUserById(id: number): Promise<User | null> {
+        const query = `
+        SELECT * FROM users WHERE id=$1
+        `;
+
+        return (await this.client.queryObject<User>(query, [id])).rows[0] || null;
     }
 
     async addNewUser(user: NewUser): Promise<User | null> {
