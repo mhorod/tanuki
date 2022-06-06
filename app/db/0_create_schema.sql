@@ -133,6 +133,7 @@ CREATE  TABLE tanuki.task_groups (
 
 CREATE  TABLE tanuki.tasks ( 
 	task_group           integer  NOT NULL  ,
+	name                 varchar(32) NOT NULL ,
 	test_uri             varchar(256)  NOT NULL  ,
 	points               numeric  NOT NULL  ,
 	time_limit           numeric  NOT NULL  ,
@@ -262,23 +263,23 @@ INSERT INTO problems VALUES ('Brzydka klasa', 'A', 3, 'problems/java2024/A', tru
 INSERT INTO problem_languages VALUES (6, 3);
 
 INSERT INTO task_groups VALUES (2, 'main', true);
-INSERT INTO tasks VALUES (1, 'cpp/tests/A', 1, 10.0, 100000000, false);
+INSERT INTO tasks VALUES (1,'0', 'cpp/tests/A', 1, 10.0, 100000000, false);
 INSERT INTO task_groups VALUES (3, 'main', true);
-INSERT INTO tasks VALUES (2, 'cpp/tests/B', 1, 10.0, 100000000, false);
+INSERT INTO tasks VALUES (2,'0', 'cpp/tests/B', 1, 10.0, 100000000, false);
 INSERT INTO task_groups VALUES (4, 'main', true);
-INSERT INTO tasks VALUES (3, 'cpp/tests/C', 1, 10.0, 100000000, false);
+INSERT INTO tasks VALUES (3,'0', 'cpp/tests/C', 1, 10.0, 100000000, false);
 INSERT INTO task_groups VALUES (5, 'main', true);
-INSERT INTO tasks VALUES (4, 'cpp/tests/D', 1, 10.0, 100000000, false);
+INSERT INTO tasks VALUES (4, '0', 'cpp/tests/D', 1, 10.0, 100000000, false);
 
 INSERT INTO task_groups VALUES (6, 'public tests', true);
-INSERT INTO tasks VALUES (5, 'java/tests/A/00', 1, 10.0, 100000000, true);
-INSERT INTO tasks VALUES (5, 'java/tests/A/01', 1, 10.0, 100000000, true);
-INSERT INTO tasks VALUES (5, 'java/tests/A/02', 1, 10.0, 100000000, true);
+INSERT INTO tasks VALUES (5,'00', 'java/tests/A/00', 1, 10.0, 100000000, true);
+INSERT INTO tasks VALUES (5,'01', 'java/tests/A/01', 1, 10.0, 100000000, true);
+INSERT INTO tasks VALUES (5,'02', 'java/tests/A/02', 1, 10.0, 100000000, true);
 
 INSERT INTO task_groups VALUES (6, 'private tests', true);
-INSERT INTO tasks VALUES (6, 'java/tests/A/03', 1, 10.0, 100000000, false);
-INSERT INTO tasks VALUES (6, 'java/tests/A/04', 1, 10.0, 100000000, false);
-INSERT INTO tasks VALUES (6, 'java/tests/A/05', 1, 10.0, 100000000, false);
+INSERT INTO tasks VALUES (6,'03', 'java/tests/A/03', 1, 10.0, 100000000, false);
+INSERT INTO tasks VALUES (6,'04', 'java/tests/A/04', 1, 10.0, 100000000, false);
+INSERT INTO tasks VALUES (6,'05', 'java/tests/A/05', 1, 10.0, 100000000, false);
 
 INSERT INTO statuses VALUES ('OK', 'Program works correctly', 0);
 INSERT INTO statuses VALUES ('ANS', 'Program produces wrong answer', 2);
