@@ -2,9 +2,10 @@ import { IRouter, Client, OpineRequest } from "../deps.ts"
 
 import { RequestAuthenticator, redirectIfAuthenticated, authenticatedOnly } from "./auth.ts"
 import { renderWithUserData, formatDateWithTime, formatDateWithoutTime, authorizeContestAccess } from "./utils.ts"
-import { ContestDB, ProblemDB } from "./db.ts"
+import { ContestDB, ProblemDB, Submit } from "./db.ts"
 import { getUnsolvedProblemsThatAreCloseToTheDeadline } from "./queries/submits.ts"
 import { PermissionKind, PermissionDB } from "./permissions.ts"
+import { Filters, getFilters, getResults, SubmitResultsDB } from "./results.ts"
 
 interface StudentRouterConfig {
     authenticator: RequestAuthenticator,
@@ -44,11 +45,25 @@ function setUpDashboard(router: IRouter, config: StudentRouterConfig) {
 
 }
 
-interface ResultsParams {
-    page: number,
-    limit: number,
-    problem: number | null,
+class UserSubmitResultDB implements SubmitResultsDB {
+    user: number;
+    contest: number;
+    config: StudentRouterConfig;
+
+    constructor(user: number, contest: number, config: StudentRouterConfig) {
+        this.user = user;
+        this.contest = contest;
+        this.config = config;
+    }
+
+    async getSubmits(first: number, last: number, filters: Filters): Promise<Submit[]> {
+        return (await this.config.contestDB.getUserSubmits(this.user, 20)).slice(first, last);
+    }
+    async getPageCount(filters: Filters): Promise<number> {
+        return 5;
+    }
 }
+
 
 function setUpResults(router: IRouter, config: StudentRouterConfig) {
     router.get("/contest/:contest_id/results",
@@ -59,80 +74,25 @@ function setUpResults(router: IRouter, config: StudentRouterConfig) {
                 throw Error("User was authorized and should not be null");
 
             const contest_id = parseInt(req.params.contest_id);
-            const params = loadParams(req);
+            const filters = getFilters(req);
 
             const contest = await config.contestDB.getContestById(contest_id)
 
-            const submits = await getDisplayedSubmits(user.id, contest_id, params, config);
-            submits?.map(s => (s as any).submission_time = formatDateWithTime(s.submission_time))
-
-            const page_count = await getPageCount(user.id, contest_id, params, config)
-            const pages = [...Array(page_count).keys()]
-                .map(n => n + 1)
-                .map(
-                    number => { return { number: number, href: paramsToHref({ ...params, page: number }) } }
-                )
+            const db = new UserSubmitResultDB(user.id, contest_id, config);
+            const results = await getResults(filters, db);
+            results.submits?.map(s => (s as any).submission_time = formatDateWithTime(s.submission_time))
 
             const problems = await config.problemDB.getProblemsInContest(contest_id)
             renderWithUserData(config.authenticator, "student/contest-results", {
-                pages: pages,
-                active_page: params.page,
+                ...results,
+                active_page: filters.page,
                 contest: contest,
-                submits: submits,
                 problems: problems,
             })(req, res, next);
         }
 
     )
 }
-
-// TODO: Replace with actual query to database
-async function getDisplayedSubmits(user: number, contest: number, params: ResultsParams, config: StudentRouterConfig) {
-    const begin = (params.page - 1) * params.limit;
-    const end = params.page * params.limit;
-    return (await config.contestDB.getUserSubmits(user, 20)).slice(begin, end);
-}
-
-// TODO: Replace with actual query to database
-async function getPageCount(user: number, contest: number, params: ResultsParams, config: StudentRouterConfig) {
-    return 5;
-}
-
-
-function loadParams(req: OpineRequest): ResultsParams {
-    const DEFAULT_PAGE = 1;
-    const DEFAULT_LIMIT = 20;
-
-    let problem: number | null = parseInt(req.query.problem || '');
-    problem = isNaN(problem) ? null : problem;
-
-    let page: number | null = parseInt(req.query.page || '');
-    page = isNaN(page) ? DEFAULT_PAGE : page;
-
-    let limit: number | null = parseInt(req.query.limit || '');
-    limit = isNaN(limit) ? DEFAULT_LIMIT : limit;
-
-    return { page, problem, limit }
-}
-
-function paramsToHref(params: ResultsParams): string {
-    let result = "";
-    const append = (name: string, value: any) => {
-        if (result == "")
-            result += "?"
-        else
-            result += "&"
-        result += name + "=" + value;
-
-    }
-
-    if (params.page) append("page", params.page)
-    if (params.limit) append("limit", params.limit)
-    if (params.problem) append("problem", params.problem)
-
-    return result;
-}
-
 
 
 export { setUpStudentRouter }
