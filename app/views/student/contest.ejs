@@ -12,9 +12,10 @@
     <%- await include("views/nav.ejs", {user: user}); %>
 
         <div class=" container mx-auto p-6 divide-x">
-            <div class="flex flex-col md:flex-row space-x-4">
+            <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
                 <%- await include("views/student/contest-nav.ejs", {contest: contest}) %>
                     <div class="grow">
+                        <h3 class="text-2xl font-semibold mt-0 mb-2 text-slate-100">Problems</h3>
                         <% if (typeof(problems)=='undefined' ) { problems=[] } %>
                             <%- await include("views/student/problems-list.ejs", { problems: problems }); %>
                     </div>
