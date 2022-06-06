@@ -1,9 +1,8 @@
 
 import { MultipartReader, R } from "../deps.ts"
 import type { IRouter, OpineRequest, OpineResponse, NextFunction } from "../deps.ts"
-import { format } from "../deps.ts"
 import { RequestAuthenticator, authorizeUsing } from "./auth.ts"
-import { renderWithUserData, renderStatusWithUserData, authorizeContestAccess } from "./utils.ts"
+import { renderWithUserData, renderStatusWithUserData, authorizeContestAccess, formatDateWithTime } from "./utils.ts"
 import { SubmitDB, ProblemDB, ContestDB, LanguageDB, NewSubmit, Language } from "./db.ts"
 import { PermissionDB, PermissionKind } from "./permissions.ts"
 import { SourceManager } from "./source.ts"
@@ -191,7 +190,7 @@ function setUpSubmitRouter(router: IRouter, config: SubmitRouterConfig) {
                     language: submit.language_name,
                     source_uri: submit.id,
                     src: src,
-                    date: format(submit.submission_time, "yyyy-MM-dd, HH:mm:ss")
+                    date: formatDateWithTime(submit.submission_time),
                 }
             )(req, res, next);
         }

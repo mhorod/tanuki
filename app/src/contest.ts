@@ -4,11 +4,10 @@
 
 
 import { IRouter } from "../deps.ts";
-import { format } from "../deps.ts"
 import { RequestAuthenticator } from "./auth.ts"
 import { ContestDB, GraphicalProblemDB } from "./db.ts"
 import { PermissionDB, PermissionKind } from "./permissions.ts"
-import { renderWithUserData, authorizeContestAccess, renderStatusWithUserData } from "./utils.ts"
+import { renderWithUserData, authorizeContestAccess, renderStatusWithUserData, formatDateWithoutTime } from "./utils.ts"
 import { SourceManager } from "./source.ts"
 
 interface ContestRouterConfig {
@@ -31,7 +30,7 @@ function setUpContestRouter(router: IRouter, config: ContestRouterConfig) {
             const contest = await config.contestDB.getContestById(contest_id);
             const problems: any[] = await config.graphicalProblemDB.getGraphicalProblemsInContest(contest_id, user.id)
             problems.forEach(
-                p => { p.contest_id = contest_id; p.due_date = format(p.due_date, "dd-MM-yyyy") }
+                p => { p.contest_id = contest_id; p.due_date = formatDateWithoutTime(p.due_date) }
             )
 
             renderWithUserData(config.authenticator, "student/contest", {

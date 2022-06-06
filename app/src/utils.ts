@@ -1,6 +1,7 @@
 import { OpineRequest, OpineResponse, NextFunction } from "../deps.ts"
 import { RequestAuthenticator, authorizeUsing } from "./auth.ts"
 import { PermissionDB, PermissionKind } from "./permissions.ts"
+import { format } from "../deps.ts"
 
 /**
  * Creates a handler that authenticates request and then renders a view
@@ -48,4 +49,17 @@ function authorizeContestAccess(config: ContestAccessConfig, requiredPermission:
 
     };
 }
+
+function formatDateWithTime(date: Date | null): string {
+    // 2022-06-23, 13:14:33
+    return date ? format(date, "yyyy-MM-dd, HH:mm:ss") : "";
+}
+
+function formatDateWithoutTime(date: Date | null): string {
+    // 2022-06-23
+    return date ? format(date, "yyyy-MM-dd") : "";
+}
+
+
 export { renderWithUserData, renderStatusWithUserData, authorizeContestAccess };
+export { formatDateWithTime, formatDateWithoutTime }
