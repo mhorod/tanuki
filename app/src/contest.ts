@@ -19,6 +19,11 @@ interface ContestRouterConfig {
 }
 
 function setUpContestRouter(router: IRouter, config: ContestRouterConfig) {
+    [setUpContestPage, setUpProblemPage].forEach(f => f(router, config))
+}
+
+
+function setUpContestPage(router: IRouter, config: ContestRouterConfig) {
     router.get("/contest/:contest_id",
         authorizeContestAccess(config, PermissionKind.VIEW),
         async (req, res, next) => {
@@ -38,7 +43,9 @@ function setUpContestRouter(router: IRouter, config: ContestRouterConfig) {
                 problems: problems
             })(req, res, next);
         });
+}
 
+function setUpProblemPage(router: IRouter, config: ContestRouterConfig) {
     router.get("/contest/:contest_id/problem/:problem_id",
         authorizeContestAccess(config, PermissionKind.VIEW),
         async (req, res, next) => {
@@ -57,6 +64,7 @@ function setUpContestRouter(router: IRouter, config: ContestRouterConfig) {
             if (!problem)
                 return renderStatusWithUserData(config.authenticator, 404)(req, res, next);
             (problem as any).contest_id = contest_id;
+            (problem as any).due_date = formatDateWithoutTime(problem.due_date);
 
             const p = {
                 ...problem,
@@ -65,6 +73,7 @@ function setUpContestRouter(router: IRouter, config: ContestRouterConfig) {
             }
             renderWithUserData(config.authenticator, "student/problem", { contest: contest, problem: p })(req, res, next);
         });
+
 }
 
 export { setUpContestRouter }

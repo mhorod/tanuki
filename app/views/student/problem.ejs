@@ -12,24 +12,23 @@
     <%- await include("views/nav.ejs", {user: user}); %>
 
         <div class=" container mx-auto p-6 divide-x">
-            <div class="flex flex-col space-x-4">
+            <div class="flex flex-col items-start space-y-4">
+                <a href="/submit/<%= contest.id %>/<%= problem.id %>" class="submit-btn">
+                    submit
+                </a>
                 <div class="flex flex-row text-lg">
-                    <div class="flex flex-row grow gap-4 items-center mb-4">
-                        <h3 class="text-2xl font-semibold mt-0 mb-2 text-slate-100">
+                    <div class="flex flex-row grow gap-4 items-center">
+                        <h3 class="text-2xl font-semibold mt-0 text-slate-100">
                             <a class="text-link" href="/contest/<%= contest.id %> ">
                                 <%= contest.shortname %>
                             </a> / <%= problem.name %>
                         </h3>
-                        <a href="/submit/<%= contest.id %>/<%= problem.id %>" class="normal-btn">
-                            submit
-                        </a>
+                        <%- await include('views/status.ejs', {status: problem.status}) %>
                     </div>
-
-                    <div>
-                        <%- await include("views/status.ejs", {status: "OK" }); %>
-                    </div>
-
                 </div>
+                <b class="text-xl font-semibold"> Termin:
+                    <%= problem.due_date %>
+                </b>
                 <div class="grow">
                     <h3 class="text-2xl font-semibold mt-0 mb-2 text-slate-100">
                         Treść zadania
