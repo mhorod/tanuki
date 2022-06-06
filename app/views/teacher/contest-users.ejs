@@ -24,15 +24,21 @@
                                     <th>actions</th>
                                 </tr>
                             </thead>
-
-                            <tr class="even:bg-slate-900 odd:bg-slate-800 text-center">
-                                <td class="px-2 py-2"> Hichał</td>
-                                <td class="px-2 py-2"> Morodecki </td>
-                                <td class="px-2 py-2"> 0.0 </td>
-                                <td class="px-2 py-2 gap-2">
-                                    <a href="/contest/<%= contest.id %>/kick/1" class="text-red-500">kick</a>
-                                </td>
-                            </tr>
+                            <% for(const user of users) { %>
+                                <tr class="even:bg-slate-900 odd:bg-slate-800 text-center">
+                                    <td class="p-2">
+                                        <%= user.name %>
+                                    </td>
+                                    <td class="p-2">
+                                        <%= user.surname %>
+                                    </td>
+                                    <td class="p-2"> 0.0 </td>
+                                    <td class="p-2 gap-2">
+                                        <a href="/contest/<%= contest.id %>/kick/<%= user.id %>"
+                                            class="text-red-500">kick</a>
+                                    </td>
+                                </tr>
+                                <% } %>
                         </table>
                         <a href="/contest/<%=contest.id%>/adduser">add user</a>
                     </div>

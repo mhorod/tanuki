@@ -178,6 +178,13 @@ class PostgresUserDB implements UserDB {
         return (await this.client.queryObject<User>(query, [id])).rows[0] || null;
     }
 
+    async getAllUsers(): Promise<User[]> {
+        const query = `
+        SELECT * FROM users
+        `;
+        return (await this.client.queryObject<User>(query)).rows;
+    }
+
     async addNewUser(user: NewUser): Promise<User | null> {
         if (await this.getUserByLogin(user.login) != null) {
             //Such user already exists

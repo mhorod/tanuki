@@ -21,6 +21,16 @@ class PostgresPermissionDB implements PermissionDB {
 
         return (await this.client.queryObject<User>(query, [contest])).rows;
     }
+    async getAllThatCanSubmit(contest: number): Promise<User[]> {
+        const query = `
+            SELECT users.*
+            FROM users JOIN 
+            contests_permissions ON(id = user_id)
+            WHERE contest_id = $1 AND permission_id=2
+        `
+
+        return (await this.client.queryObject<User>(query, [contest])).rows;
+    }
 
     async canSubmit(user: number, contest: number): Promise<boolean> {
         return true; // TODO: remove this line
@@ -57,6 +67,7 @@ class PostgresPermissionDB implements PermissionDB {
             return true;
         }
     }
+
     async canManageContest(user: number, contest: number): Promise<boolean> {
         const query = `
             SELECT permission_id
@@ -145,29 +156,31 @@ class PostgresPermissionDB implements PermissionDB {
         }
     }
 
-    insertPermissions(user: number, contest: number, permission: number): void {
+    async insertPermissions(user: number, contest: number, permission: number): Promise<void> {
         const insertionQuery = `
             INSERT INTO contests_permissions VALUES($1, $2, $3)
         `;
-        this.client.queryArray(insertionQuery, [user, permission, contest]);
-        return;
+        try {
+            await this.client.queryArray(insertionQuery, [user, permission, contest]);
+        } catch { }
     }
 
-    deletePermissions(user: number, contest: number, permission: number): void {
+    async deletePermissions(user: number, contest: number, permission: number): Promise<void> {
         const deletionQuery = `
-            BEGIN TRANSACTION;
-            DELETE FROM contests_permission WHERE
+            DELETE FROM contests_permissions WHERE
             user_id = $1 AND permission_id = $2 AND contest_id = $3;
-            COMMIT;
         `;
-        this.client.queryArray(deletionQuery, [user, permission, contest]);
+        try {
+            await this.client.queryArray(deletionQuery, [user, permission, contest]);
+        } catch { }
     }
 
-    grantPermission(user: number, contest: number, permission: PermissionKind): void {
-        this.insertPermissions(user, contest, this.permissinKindToNumber(permission));
+    async grantPermission(user: number, contest: number, permission: PermissionKind): Promise<void> {
+        await this.insertPermissions(user, contest, this.permissinKindToNumber(permission));
     }
-    revokePermission(user: number, contest: number, permission: PermissionKind): void {
-        this.deletePermissions(user, contest, this.permissinKindToNumber(permission));
+
+    async revokePermission(user: number, contest: number, permission: PermissionKind): Promise<void> {
+        await this.deletePermissions(user, contest, this.permissinKindToNumber(permission));
     }
 
 }

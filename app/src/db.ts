@@ -123,6 +123,7 @@ interface ContestDB {
 }
 
 interface UserDB {
+  getAllUsers(): Promise<User[]>;
   getUserByLogin(login: string): Promise<User | null>;
   addNewUser(user: NewUser): Promise<User | null>;
   getUserById(id: number): Promise<User | null>;
