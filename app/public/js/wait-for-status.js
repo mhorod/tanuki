@@ -4,41 +4,39 @@
 host = window.location.hostname
 port = window.location.port
 protocol = window.protocol == 'https' ? 'wss' : 'ws';
-const socket = new WebSocket(protocol + '://' + host + ':' + port + '/ws');
-const element = document.getElementById('status')
+
+function newSocket(path) { 
+    return new WebSocket(protocol + '://' + host + ':' + port + '/ws/' + path);
+}
 
 
-socket.onopen = function () {
-    console.log("socket is open")
-};
 
-socket.onmessage = function(event) {
-   const status = event.data;
-   element.querySelector(".status-text").innerText = status;
-   const classes = element.classList;
-   for (const cl of classes)
-   {
-       console.log(cl)
-        if (cl.includes('status'))
-        {
-            console.log(cl)
-            element.classList.remove(cl);
-        }
+function waitForStatus(id) {
+    const element = document.getElementById('status-' + id)
+    const statusElement = element.querySelector(".status-text")
+    const socket = newSocket("submit/" + id)
+    socket.onopen = function () {
+        console.log("socket is open")
+    };
+
+    socket.onmessage = function(event) {
+        const status = event.data;
+        console.log(status)
+        statusElement.innerText = status;
+        statusElement.classList.remove('status-que');
+        statusElement.classList.add('status-'+status.toLowerCase())
+    };
+
+    socket.onclose = function(_event) {
+        stopLoading();
+    };
+
+    socket.onerror = function(_event) {
+        stopLoading();
+    };
+
+    function stopLoading()
+    {
+        element.querySelector('.loading').remove()
     }
-
-   element.classList.remove('status-que');
-   element.classList.add('status-'+status.toLowerCase())
-};
-
-socket.onclose = function(_event) {
-    stopLoading();
-};
-
-socket.onerror = function(_event) {
-    stopLoading();
-};
-
-function stopLoading()
-{
-    element.querySelector('.loading').remove()
 }

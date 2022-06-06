@@ -5,7 +5,7 @@
   <%- await include("views/common-head.ejs"); %>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/vs2015.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
-
+    <script src="/js/wait-for-status.js"></script>
     <title>
       Tanuki
     </title>
@@ -26,12 +26,13 @@
         <div class="flex flex-col justify-center p-2">
           <%= results.submission_time %>
         </div>
-        <div id="status" class="flex align-middle p-3 space-x-4">
+        <div id="status-<%= results.id %>" class="flex align-middle p-3 space-x-4">
           <div class="">
             <%- await include("views/rich-status.ejs", {status: results.status}); %>
           </div>
           <% if (results.status.name.toLowerCase()=="que" ) { %>
             <div class="loading lds-dual-ring"></div>
+            <script> waitForStatus("<%= results.id %>") </script>
             <% } %>
         </div>
       </div>

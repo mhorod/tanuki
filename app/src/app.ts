@@ -11,6 +11,7 @@ import { MockChecker } from "./checker.ts"
 
 import setUpRouter from "./setUpRouter.ts"
 import setUpDB from "./setUpDB.ts"
+import setUpWebSocket from "./websocket.ts"
 
 const dir = dirname(import.meta.url);
 await config({ export: true });
@@ -48,6 +49,7 @@ const appConfig = {
 checker.configure(appConfig)
 
 setUpRouter(router, appConfig);
+setUpWebSocket(router, appConfig);
 
 const app = opine();
 
