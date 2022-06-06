@@ -17,14 +17,25 @@
       <form method="post" action="/submit/<%= contest_id %>" class="flex justify-center" enctype="multipart/form-data">
         <div class="flex gap-4 flex-col max-w-sm align-middle">
           Problem:
-          <select required name="problem_id" class="p-2 text-black">
-            <% for (var problem of problems) { %>
+          <select required name="problem_id" class="p-2 text-black" onchange="updateLanguageSelect()"
+            id="problemSelect">
+            <% for (const problem of problems) { %>
 
               <option <% if (selected_problem==problem.id) { %> selected <% } %> value="<%= problem.id %>"> <%=
                       problem.name %>
               </option>
               <% } %>
           </select>
+
+          Language:
+          <select required name="language_id" class="p-2 text-black" id="languageSelect">
+            <% for (const language of selected_problem_languages) { %>
+              <option <% if (selected_language==language.id) { %> selected <% } %> value="<%= language.id %>">
+                    <%= language.name %>
+              </option>
+              <% } %>
+          </select>
+
           <input type="file" name="source" />
           <button type="submit" class="submit-btn">
             Submit
@@ -39,6 +50,11 @@
       </form>
     </div>
     <%- await include("views/common-scripts.ejs"); %>
+      <span id="problem_languages" style="display:none">
+        <%= JSON.stringify(problem_languages) %>
+      </span>
+      <script src="/js/language-select.js">
+      </script>
 </body>
 
 </html>

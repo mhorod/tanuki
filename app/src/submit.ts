@@ -50,14 +50,19 @@ function setUpSubmission(router: IRouter, config: SubmitRouterConfig) {
             if (submission == null)
                 return renderStatusWithUserData(config.authenticator, 400)(req, res, next);
 
-            const onSubmitFail = (error: string) => renderSubmitPage(submission.contest_id, submission.problem_id, config, { error: error })(req, res, next);
-
+            const onSubmitFail = (error: string) => renderSubmitPage(
+                submission.contest_id,
+                submission.problem_id,
+                submission.language_id,
+                config, { error: error })(req, res, next);
 
             const extension = getFileExtension(submission.file.filename);
-            const languages = await config.languageDB.getProblemLanguages(submission.problem_id);
-            const language = findLanguageByExtension(extension, languages);
+            const availableLanguages = await config.languageDB.getProblemLanguages(submission.problem_id);
+            const language = availableLanguages.find(l => l.id == submission.language_id);
 
             if (!language)
+                return onSubmitFail("invalid language");
+            else if (language.extensions.every(e => e != extension))
                 return onSubmitFail("invalid file extension");
 
             const uri = "submitted/" + crypto.randomUUID() + "." + extension;
@@ -88,10 +93,12 @@ function setUpSubmission(router: IRouter, config: SubmitRouterConfig) {
  */
 async function loadSubmission(req: OpineRequest) {
     const form = await readMultipartForm(req);
-    const values = form?.values("problem_id");
+    const problem_id = parseInt(form?.values("problem_id")?.at(0) || '');
+    const language_id = parseInt(form?.values("language_id")?.at(0) || '');
     const contest_id = parseInt(req.params.contest_id);
-    const problem_id = values == undefined ? NaN : parseInt(values[0]);
-    if (isNaN(contest_id) || isNaN(problem_id)) return null;
+
+    if ([contest_id, problem_id, language_id].some(isNaN))
+        return null;
 
     const file = form?.files('source')?.at(0);
     if (!file)
@@ -100,6 +107,7 @@ async function loadSubmission(req: OpineRequest) {
     return {
         contest_id: contest_id,
         problem_id: problem_id,
+        language_id: language_id,
         file: file,
     }
 }
@@ -158,14 +166,14 @@ function setUpSubmitPage(router: IRouter, config: SubmitRouterConfig) {
     router.get("/submit/:contest_id",
         authorizeContestAccess(config, PermissionKind.SUBMIT),
         (req, res, next) => {
-            renderSubmitPage(parseInt(req.params.contest_id), null, config)(req, res, next);
+            renderSubmitPage(parseInt(req.params.contest_id), null, null, config)(req, res, next);
         }
     )
 
     router.get("/submit/:contest_id/:problem_id",
         authorizeContestAccess(config, PermissionKind.SUBMIT),
         (req, res, next) => {
-            renderSubmitPage(parseInt(req.params.contest_id), parseInt(req.params.problem_id), config)(req, res, next);
+            renderSubmitPage(parseInt(req.params.contest_id), parseInt(req.params.problem_id), null, config)(req, res, next);
         },
     );
 }
@@ -177,7 +185,7 @@ function setUpSubmitPage(router: IRouter, config: SubmitRouterConfig) {
  * @param config 
  * @returns 
  */
-function renderSubmitPage(contest_id: number, problem_id: number | null, config: SubmitRouterConfig, ctx = {}) {
+function renderSubmitPage(contest_id: number, problem_id: number | null, language_id: number | null, config: SubmitRouterConfig, ctx = {}) {
     return async (req: OpineRequest, res: OpineResponse, next: NextFunction) => {
         const contest = await config.contestDB.getContestById(contest_id);
         if (contest == null) {
@@ -185,7 +193,24 @@ function renderSubmitPage(contest_id: number, problem_id: number | null, config:
         }
 
         const problems = await config.problemDB.getProblemsInContest(contest_id);
+        // Validate that given problem_id matches the contest
+        if (problems.every(p => p.id != problem_id)) problem_id = null;
         if (problem_id == null || isNaN(problem_id)) problem_id = problems[0].id;
+
+
+        const problem_languages = new Map<number, Array<{ id: number, name: string }>>();
+        for (const problem of problems) {
+
+            const languages = (await config.languageDB.getProblemLanguages(problem.id))
+            const mapped_names = languages.map(l => {
+                return { id: l.id, name: l.name + " (" + l.extensions.map(e => "." + e).join(", ") + ")" }
+            });
+
+            problem_languages.set(problem.id, mapped_names)
+        }
+
+        if (language_id == null)
+            language_id = problem_languages.get(problem_id)?.at(0)?.id || 0;
 
 
         await renderWithUserData(config.authenticator, "submit", {
@@ -194,6 +219,9 @@ function renderSubmitPage(contest_id: number, problem_id: number | null, config:
             contest: contest.name,
             selected_problem: problem_id,
             problems: problems,
+            problem_languages: Array.from(problem_languages.entries()),
+            selected_problem_languages: problem_languages.get(problem_id),
+            selected_language: language_id,
         })(req, res, next);
     }
 }
