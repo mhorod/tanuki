@@ -3,6 +3,7 @@ import { connectNewClient, PostgresContestDB, PostgresProblemDB } from "./postgr
 import { PostgresCredentialDB, PostgresUserDB, PostgresGraphicalProblemDB, PostgresSubmitDB } from "./postgres.ts"
 import { PostgresPermissionDB } from "./postgres.ts"
 import { PostgresLanguageDB } from "./queries/language.ts"
+import { PostgresSubmitResultsDB } from "./submitDB.ts"
 
 import { ClientOptions } from "../deps.ts"
 /**
@@ -24,6 +25,7 @@ export default async function (options: ClientOptions) {
         permissionDB: new PostgresPermissionDB(client),
         languageDB: new PostgresLanguageDB(client),
         graphicalProblemDB: new PostgresGraphicalProblemDB(client),
+        submitResultsDB: new PostgresSubmitResultsDB(client),
     }
 
 

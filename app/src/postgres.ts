@@ -304,8 +304,8 @@ class PostgresSubmitDB implements SubmitDB {
             submission_time
         FROM
             submits s
-            JOIN submit_results sr ON s.id = sr.submit_id
-            JOIN statuses ON statuses.id = sr.status
+            LEFT JOIN submit_results sr ON s.id = sr.submit_id
+            LEFT JOIN statuses ON statuses.id = sr.status
             JOIN languages l ON s.language_id = l.id
             JOIN problems p ON s.problem_id = p.id
             JOIN contests c ON p.contest_id = c.id
@@ -313,12 +313,16 @@ class PostgresSubmitDB implements SubmitDB {
             s.id = $1
         `
         const queryResult = await this.client.queryObject<Submit>(query, [id]);
+        console.log(queryResult)
 
         if (queryResult.rowCount == 0) {
             return null;
         }
         else {
             const submit = queryResult.rows[0];
+            if (!submit.status)
+                submit.status = "QUE"
+
             submit.source_uri = submit.source_uri.trim();
             return submit;
         }

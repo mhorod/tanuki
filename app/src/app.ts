@@ -7,6 +7,8 @@ import { renderStatusWithUserData } from "./utils.ts"
 import { JWTSession } from "./jwt.ts"
 import { BasicSourceManager } from "./source.ts"
 
+import { MockChecker } from "./checker.ts"
+
 import setUpRouter from "./setUpRouter.ts"
 import setUpDB from "./setUpDB.ts"
 
@@ -26,6 +28,7 @@ const db = await setUpDB(dbClientOptions)
 const router = Router();
 const session = new JWTSession();
 const sourceManager = new BasicSourceManager();
+const checker = new MockChecker();
 
 /**
  * Global application config with all databases and managers
@@ -37,10 +40,12 @@ const appConfig = {
 
   // takes care of loading and saving files
   sourceManager: sourceManager,
+  checker: checker,
 
   // database connections
   ...db
 }
+checker.configure(appConfig)
 
 setUpRouter(router, appConfig);
 

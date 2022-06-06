@@ -6,9 +6,11 @@ import { renderWithUserData, renderStatusWithUserData, authorizeContestAccess, f
 import { SubmitDB, ProblemDB, ContestDB, LanguageDB, NewSubmit, Language } from "./db.ts"
 import { PermissionDB, PermissionKind } from "./permissions.ts"
 import { SourceManager } from "./source.ts"
-import { MockSubmitResultsDB } from "./submitDB.ts"
+import { Checker } from "./checker.ts"
+import { SubmitResultsDB } from "./submitDB.ts"
 
 export { setUpSubmitRouter }
+
 
 const { compose, nth, split } = R;
 const TMP_DIR = '/app/public/uploads'
@@ -24,6 +26,8 @@ interface SubmitRouterConfig {
     permissionDB: PermissionDB,
     languageDB: LanguageDB,
     sourceManager: SourceManager,
+    checker: Checker,
+    submitResultsDB: SubmitResultsDB,
 }
 
 /**
@@ -84,6 +88,7 @@ function setUpSubmission(router: IRouter, config: SubmitRouterConfig) {
             if (!submit)
                 return onSubmitFail("failed to save submission");
 
+            config.checker.submit(submit.id, uri);
             res.redirect("/results/" + submit.id.toString())
         })
 
@@ -138,7 +143,7 @@ function setUpResults(router: IRouter, config: SubmitRouterConfig) {
                 return renderStatusWithUserData(config.authenticator, 404)(req, res, next);
             }
             const src = await config.sourceManager.loadSource(submit.source_uri.trim());
-            const submit_results = new MockSubmitResultsDB().getSubmitResults(submit_id);
+            const submit_results = await config.submitResultsDB.getSubmitResults(submit_id, config.sourceManager);
 
             await renderWithUserData(config.authenticator, "submit-results", { results: submit_results }
             )(req, res, next);

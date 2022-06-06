@@ -1,3 +1,7 @@
+import { Client } from "../deps.ts"
+import { formatDateWithTime } from "./utils.ts"
+import { SourceManager } from "./source.ts"
+
 interface SubmitResults {
     id: number,
 
@@ -6,6 +10,9 @@ interface SubmitResults {
 
     contest_id: number,
     contest_name: string,
+
+    user_id: number,
+    user_login: string,
 
 
     language_name: string,
@@ -49,73 +56,84 @@ interface TaskStatus {
     max_points: number,
 }
 
-class MockSubmitResultsDB {
-    getSubmitResults(submit_id: number): SubmitResults {
-        const s1 = {
-            id: 0,
-            name: "OK",
-            points: 0.5,
-            max_points: 1,
-            score: 0.5,
-        }
-        const s2 = {
-            id: 0,
-            name: "OK",
-            points: 0.5,
-            max_points: 1,
-        }
-        const s3 = {
-            id: 0,
-            name: "ANS",
-            points: 0.0,
-            max_points: 1,
-        }
-
-        const tr1: TaskResult = {
-            id: 1,
-            name: "Task 1",
-            status: s2,
-            summary: "",
-            execution_time: 3.1415,
-            used_memory: 42000
-        }
-        const tr2: TaskResult = {
-            id: 3,
-            name: "This is a task",
-            status: s3,
-            summary: "",
-            execution_time: 0.001,
-            used_memory: 1234
-        }
-
-        const gr1: GroupResult = {
-            id: 1,
-            name: "Group 1",
-            status: s2,
-            task_results: [tr1, tr2]
-        };
-
-        const gr2: GroupResult = {
-            id: 2,
-            name: "Another group",
-            status: s2,
-            task_results: [tr2, tr1]
-        };
-
-        return {
-            id: 0,
-            problem_id: 0,
-            short_problem_name: "A",
-            contest_id: 0,
-            contest_name: "Jeszcze pożałujecie",
-            language_name: "C++",
-            submission_time: "2022-01-01, 00:00:01",
-            source_uri: "/problems/java/A",
-            src: "print('Hello, World!)",
-            status: s1,
-            group_results: [gr1, gr2]
-        };
-    }
+interface SubmitResultsDB {
+    getSubmitResults(submit_id: number, sourceManager: SourceManager): Promise<SubmitResults>;
 }
 
-export { MockSubmitResultsDB }
+class PostgresSubmitResultsDB implements SubmitResultsDB {
+
+    client: Client;
+
+    constructor(client: Client) {
+        this.client = client;
+    }
+
+    async getSubmitResults(submit_id: number, sourceManager: SourceManager): Promise<SubmitResults> {
+        const query = `
+        SELECT 
+            s.id,
+
+            s.problem_id,
+            p.shortname "short_problem_name",
+
+            p.contest_id,
+            c.name "contest_name",
+
+            s.user_id,
+            u.login "user_login",
+
+            l.name "language_name",
+            submission_time,
+            source_uri,
+            sr.points,
+            statuses.name "status",
+            statuses.id "status_id"
+        FROM
+            submits s
+            LEFT JOIN submit_results sr ON s.id = sr.submit_id
+            LEFT JOIN statuses ON statuses.id = sr.status
+            JOIN languages l ON s.language_id = l.id
+            JOIN problems p ON s.problem_id = p.id
+            JOIN contests c ON p.contest_id = c.id
+            JOIN users u ON s.user_id = u.id
+        WHERE
+            s.id = $1
+        `
+        const queryResult = await this.client.queryObject<any>(query, [submit_id]);
+
+
+        const row: any = queryResult.rows[0];
+        console.log(row)
+        let results: SubmitResults = {
+            id: row.id,
+
+            problem_id: row.problem_id,
+            short_problem_name: row.short_problem_name,
+
+            contest_id: row.contest_id,
+            contest_name: row.contest_name,
+
+            user_id: row.user_id,
+            user_login: row.user_login,
+
+            language_name: row.language_name,
+            submission_time: formatDateWithTime(row.submission_time),
+            source_uri: row.source_uri.trim(),
+            src: await sourceManager.loadSource(row.source_uri.trim()) || "",
+            status: {
+                id: row.status_id,
+                name: row.status || "QUE",
+                points: 0.5,
+                max_points: 0,
+                score: 0.5,
+            },
+            group_results: [],
+        };
+
+        return results;
+    }
+
+}
+
+export type { SubmitResultsDB }
+export { PostgresSubmitResultsDB }
