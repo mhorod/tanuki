@@ -1,13 +1,15 @@
-import { IRouter, Client, format } from "../deps.ts"
+import { IRouter, Client } from "../deps.ts"
 
 import { RequestAuthenticator, redirectIfAuthenticated, authenticatedOnly } from "./auth.ts"
-import { renderWithUserData, formatDateWithTime, formatDateWithoutTime } from "./utils.ts"
+import { renderWithUserData, formatDateWithTime, formatDateWithoutTime, authorizeContestAccess } from "./utils.ts"
 import { ContestDB } from "./db.ts"
 import { getUnsolvedProblemsThatAreCloseToTheDeadline } from "./queries/submits.ts"
+import { PermissionKind, PermissionDB } from "./permissions.ts"
 
 interface StudentRouterConfig {
     authenticator: RequestAuthenticator,
     contestDB: ContestDB,
+    permissionDB: PermissionDB,
     client: Client,
 }
 
@@ -35,5 +37,25 @@ function setUpStudentRouter(router: IRouter, config: StudentRouterConfig) {
                 due_problems: due_problems,
             })(req, res, next);
         });
+
+    router.get("/contest/:contest_id/results",
+        authorizeContestAccess(config, PermissionKind.VIEW),
+        async (req, res, next) => {
+            const user = await config.authenticator.authenticateRequest(req);
+            if (!user)
+                throw Error("User was authorized and should not be null");
+
+            const contest = await config.contestDB.getContestById(parseInt(req.params.contest_id))
+            console.log(contest)
+            const recent_submits = await config.contestDB.getUserSubmits(user.id, 20);
+            recent_submits?.map(s => (s as any).submission_time = formatDateWithTime(s.submission_time))
+
+            renderWithUserData(config.authenticator, "student/contest-results", {
+                contest: contest,
+                submits: recent_submits,
+            })(req, res, next);
+        }
+
+    )
 }
 export { setUpStudentRouter }
