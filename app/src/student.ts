@@ -5,7 +5,7 @@ import { renderWithUserData, formatDateWithTime, formatDateWithoutTime, authoriz
 import { ContestDB, ProblemDB, Submit } from "./db.ts"
 import { getUnsolvedProblemsThatAreCloseToTheDeadline } from "./queries/submits.ts"
 import { PermissionKind, PermissionDB } from "./permissions.ts"
-import { Filters, getFilters, getResults, SubmitResultsDB } from "./results.ts"
+import { Filters, getFilters, getResults, SubmitResultsDB } from "./contest-results.ts"
 
 interface StudentRouterConfig {
     authenticator: RequestAuthenticator,

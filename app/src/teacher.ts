@@ -8,7 +8,7 @@ import { ContestDB, ProblemDB, Submit } from "./db.ts"
 import { renderWithUserData, formatDateWithTime, formatDateWithoutTime, authorizeContestAccess } from "./utils.ts"
 import { PermissionKind, PermissionDB } from "./permissions.ts"
 
-import { Filters, getFilters, getResults, SubmitResultsDB } from "./results.ts"
+import { Filters, getFilters, getResults, SubmitResultsDB } from "./contest-results.ts"
 
 interface TeacherRouterConfig {
     authenticator: RequestAuthenticator,

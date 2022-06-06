@@ -1,7 +1,7 @@
 // Common interface of rendering user results for students and for teachers
 // The difference is that teacher sees results of all users and student only their own
 
-export type { Filters, Results, SubmitResultsDB }
+export type { Filters, ContestResults, SubmitResultsDB }
 export { getResults, getFilters }
 
 import { OpineRequest } from "../deps.ts"
@@ -24,12 +24,12 @@ interface Page {
     href: string,
 }
 
-interface Results {
+interface ContestResults {
     submits: Submit[],
     pages: Page[],
 }
 
-async function getResults(filters: Filters, db: SubmitResultsDB): Promise<Results> {
+async function getResults(filters: Filters, db: SubmitResultsDB): Promise<ContestResults> {
     const first = (filters.page - 1) * filters.limit;
     const last = filters.page * filters.limit;
     const submits = await db.getSubmits(first, last, filters);
