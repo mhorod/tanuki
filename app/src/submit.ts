@@ -6,6 +6,7 @@ import { renderWithUserData, renderStatusWithUserData, authorizeContestAccess, f
 import { SubmitDB, ProblemDB, ContestDB, LanguageDB, NewSubmit, Language } from "./db.ts"
 import { PermissionDB, PermissionKind } from "./permissions.ts"
 import { SourceManager } from "./source.ts"
+import { MockSubmitResultsDB } from "./submitDB.ts"
 
 export { setUpSubmitRouter }
 
@@ -137,17 +138,9 @@ function setUpResults(router: IRouter, config: SubmitRouterConfig) {
                 return renderStatusWithUserData(config.authenticator, 404)(req, res, next);
             }
             const src = await config.sourceManager.loadSource(submit.source_uri.trim());
-            await renderWithUserData(config.authenticator, "submit-results",
-                {
-                    submit: req.params.submit_id,
-                    contest: submit.contest_name,
-                    problem: submit.short_problem_name,
-                    status: submit.status,
-                    language: submit.language_name,
-                    source_uri: submit.id,
-                    src: src,
-                    date: formatDateWithTime(submit.submission_time),
-                }
+            const submit_results = new MockSubmitResultsDB().getSubmitResults(submit_id);
+
+            await renderWithUserData(config.authenticator, "submit-results", { results: submit_results }
             )(req, res, next);
         }
     )

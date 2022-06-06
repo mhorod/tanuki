@@ -28,7 +28,7 @@ export default async function (options: ClientOptions) {
 
 
     //Sanity check - should be rejected by the database
-    db.userDB.addNewUser({
+    await db.userDB.addNewUser({
         login: "admin",
         name: "",
         surname: "",
@@ -38,7 +38,7 @@ export default async function (options: ClientOptions) {
     })
 
     //Not really an admin, but it's a ufesul account for test purposes
-    db.userDB.addNewUser({
+    await db.userDB.addNewUser({
         login: "admin2",
         name: "Zawodowy",
         surname: "Administrator",

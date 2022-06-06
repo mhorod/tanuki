@@ -1,0 +1,15 @@
+<% if (typeof(status) !='undefined' && status !=null) { %>
+    <div class="status-<%= status.name.toLowerCase() %>">
+        <p class="text-lg">
+            <b>
+                <%= status.name %>
+                    <% if (status.max_points !=0) { %>
+                        <%= status.points %> / <%= status.max_points %>
+                                <% if (typeof(status.score) !='undefined' ) { %>
+                                    (<%= status.score %>)
+                                        <% } %>
+                                            <% } %>
+            </b>
+        </p>
+    </div>
+    <% } %>
