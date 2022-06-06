@@ -40,7 +40,7 @@ class MockChecker {
 
     setStatus(submit_id: number, points: number, status: string) {
         if (this.config == null) throw Error("nope.")
-        new PostgresResultDB(this.config.client).setSubmitResults(submit_id, points, status);
+        new PostgresResultDB(this.config.client).addSubmitResults(submit_id, points, status);
     }
 
 

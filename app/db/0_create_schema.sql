@@ -287,6 +287,10 @@ INSERT INTO statuses VALUES ('MEM', 'Memory limit exceeded', 3);
 INSERT INTO statuses VALUES ('RTE', 'Runtime error', 4);
 INSERT INTO statuses VALUES ('CME', 'Compilation failed', 5);
 INSERT INTO statuses VALUES ('TLE', 'Time limit exceeded', 1);
+INSERT INTO statuses VALUES ('REJ', 'Manually rejected', -1); --task won't be manually rejected, ever
+INSERT INTO statuses VALUES ('RUL', 'Solution incompliant with rules', 899);
+
+
 
 INSERT INTO submits VALUES ('submitted_files/234jka.cpp', 3, 1, 1, '2022-11-01 16:24');
 INSERT INTO task_results VALUES (1, 1, 1, NULL, 3.0, 123456);

@@ -1,9 +1,11 @@
 // Postgres connection to the database
 
+//TODO: SEPARATE THIS CODE INTO DIFFERENT FILES AND PLACE THEM IN postgres FOLDER
+
 import { Client, ClientOptions } from "../deps.ts"
 
 import type { Submit, Contest, Problem, GraphicalProblem } from "./db.ts"
-import type { User, NewUser, NewSubmit } from "./db.ts";
+import type { User, NewUser, NewSubmit, NewContest } from "./db.ts";
 import type { ContestDB, UserDB, CredentialDB, ProblemDB, GraphicalProblemDB, SubmitDB, ResultDB } from "./db.ts";
 
 import type { PermissionDB } from "./permissions.ts"
@@ -44,6 +46,30 @@ class PostgresContestDB implements ContestDB {
 
     constructor(client: Client) { this.client = client; }
 
+    async deleteContest(id: number): Promise<boolean> {
+        const query = `
+        DELETE FROM contests WHERE id = $1
+        `
+        try {
+            (await this.client.queryObject(query, [id]));
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    async editContest(id: number, contest: NewContest): Promise<boolean> {
+        const query = `
+        UPDATE contests SET name=$1, shortname=$2, is_active=$3 WHERE id=$4
+        `
+        try {
+            (await this.client.queryObject(query, [contest.name, contest.shortname, contest.is_active, id]));
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
     async getUserContests(user_id: number): Promise<Contest[]> {
         const query = `
         SELECT 
@@ -55,6 +81,27 @@ class PostgresContestDB implements ContestDB {
             uc.user_id = $1
         `
         return (await this.client.queryObject<Contest>(query, [user_id])).rows;
+    }
+
+    async addNewContest(contest: NewContest): Promise<Contest | null> {
+        console.log(contest);
+        const query = `
+        INSERT INTO contests VALUES ($1, $2, $3) RETURNING *;
+        `;
+        try {
+            return (await this.client.queryObject<Contest>(query, [contest.name, contest.shortname, contest.is_active])).rows[0];
+        } catch {
+            return null;
+        }
+    }
+
+
+    async getAllContests(): Promise<Contest[]> {
+        const query = `
+        SELECT * 
+        FROM contests
+        `;
+        return (await this.client.queryObject<Contest>(query)).rows;
     }
 
     async getUserSubmits(user_id: number, limit: number): Promise<Submit[]> {
@@ -123,6 +170,20 @@ class PostgresUserDB implements UserDB {
     async hash(password: string): Promise<string> {
         return await bcrypt.hash(password, await bcrypt.genSalt(8));
     }
+    async getUserById(id: number): Promise<User | null> {
+        const query = `
+        SELECT * FROM users WHERE id=$1
+        `;
+
+        return (await this.client.queryObject<User>(query, [id])).rows[0] || null;
+    }
+
+    async getAllUsers(): Promise<User[]> {
+        const query = `
+        SELECT * FROM users
+        `;
+        return (await this.client.queryObject<User>(query)).rows;
+    }
 
     async addNewUser(user: NewUser): Promise<User | null> {
         if (await this.getUserByLogin(user.login) != null) {
@@ -150,63 +211,6 @@ class PostgresUserDB implements UserDB {
     async getUserByLogin(login: string): Promise<User | null> {
         return await getUser(this.client, login);
     }
-}
-
-class PostgresProblemDB implements ProblemDB {
-
-    client: Client;
-    constructor(client: Client) { this.client = client; }
-    async getProblemById(id: number): Promise<Problem | null> {
-
-        const query = `
-        select
-        p.id,
-        p.name,
-        shortname,
-        contest_id,
-        statement_uri,
-        uses_points,
-        position,
-        points,
-        due_date,
-        closing_date,
-        published,
-        sm.name "scoring_method",
-        source_limit
-        from problems p
-        join scoring_methods sm on p.scoring_method = sm.id
-        where p.id = $1
-        `;
-        const rows = (await this.client.queryObject<Problem>(query, [id])).rows;
-        return rows.length != 1 ? null : rows[0];
-    }
-    async getProblemsInContest(contest_id: number): Promise<Problem[]> {
-        const query = `
-        select
-        p.id,
-        p.name,
-        shortname,
-        contest_id,
-        statement_uri,
-        uses_points,
-        position,
-        points,
-        due_date,
-        closing_date,
-        published,
-        sm.name "scoring_method",
-        source_limit
-        from problems p
-        join scoring_methods sm on p.scoring_method = sm.id
-        where contest_id = $1
-        order by position
-        `
-        return (await this.client.queryObject<Problem>(query, [contest_id])).rows;
-    }
-
-
-
-
 }
 
 class PostgresGraphicalProblemDB implements GraphicalProblemDB {
@@ -258,173 +262,6 @@ class PostgresGraphicalProblemDB implements GraphicalProblemDB {
     }
 }
 
-class PostgresSubmitDB implements SubmitDB {
-    client: Client;
-
-    constructor(client: Client) {
-        this.client = client;
-    }
-
-    async addSubmit(newSubmit: NewSubmit): Promise<Submit | null> {
-        const insertTable = [newSubmit.source_uri, newSubmit.user_id, newSubmit.problem_id, newSubmit.language_id];
-
-        const query = `
-        INSERT INTO submits VALUES(
-            $1,
-            $2,
-            $3,
-            $4,
-            current_timestamp
-        )
-        `;
-        this.client.queryObject<Submit>(query, insertTable);
-
-        //That's a truly terrible query
-        const queryResult = await this.client.queryObject<Submit>("SELECT * FROM submits WHERE source_uri = $1", [newSubmit.source_uri]);
-
-        if (queryResult.rowCount == 0) {
-            return null;
-        }
-        else {
-            const submit = queryResult.rows[0];
-            return submit;
-        }
-    }
-
-    async getSubmitById(id: number): Promise<Submit | null> {
-        const query = `
-        SELECT 
-            s.id,
-            source_uri,
-            sr.points,
-            statuses.name "status",
-            c.name "contest_name",
-            p.shortname "short_problem_name",
-            l.name "language_name",
-            submission_time
-        FROM
-            submits s
-            LEFT JOIN submit_results sr ON s.id = sr.submit_id
-            LEFT JOIN statuses ON statuses.id = sr.status
-            JOIN languages l ON s.language_id = l.id
-            JOIN problems p ON s.problem_id = p.id
-            JOIN contests c ON p.contest_id = c.id
-        WHERE
-            s.id = $1
-        `
-        const queryResult = await this.client.queryObject<Submit>(query, [id]);
-        console.log(queryResult)
-
-        if (queryResult.rowCount == 0) {
-            return null;
-        }
-        else {
-            const submit = queryResult.rows[0];
-            if (!submit.status)
-                submit.status = "QUE"
-
-            submit.source_uri = submit.source_uri.trim();
-            return submit;
-        }
-    }
-
-}
-
-class PostgresPermissionDB implements PermissionDB {
-    client: Client;
-
-    constructor(client: Client) {
-        this.client = client;
-    }
-
-    async canSubmit(user: number, contest: number): Promise<boolean> {
-        //To submit: permission_id 1
-        const query = `
-            SELECT permission_id
-            FROM contests_permissions cp
-            JOIN permissions_for_contests pfc ON cp.permission_id = pfc.id
-            WHERE user_id = $1 AND contest_id = $2 AND pfc.name = $3
-        `;
-        const permissionType = await this.client.queryObject(query, [user, contest, 'SUBMIT']);
-
-        if (permissionType.rowCount == 0) {
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
-    async canViewContest(user: number, contest: number): Promise<boolean> {
-        //ANY permission means that you can view
-        const query = `
-            SELECT permission_id
-            FROM contests_permissions
-            WHERE user_id = $1 AND contest_id = $2
-        `;
-        const permissionType = await this.client.queryObject(query, [user, contest]);
-
-        if (permissionType.rowCount == 0) {
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
-
-    async ownsSubmit(user: number, submit: number): Promise<boolean> {
-        const query = `SELECT 1 FROM submits WHERE user_id = $1 and id = $2`;
-        const queryResult = await this.client.queryArray(query, [user, submit]);
-        return queryResult.rowCount != 0;
-    }
-
-    async canViewSubmit(user: number, submit: number): Promise<boolean> {
-        // If user owns the submit we don't have do anything
-        if (await this.ownsSubmit(user, submit)) return true;
-
-        //First, we will check the ID of contest that user is in
-        //Then, we will check whether such user has permissions to view submits there.
-
-        //I am using 2 separate queries here, so this is likely to be ineffective,
-        //however combinig those 2 into 1 big would create an absolute utter mess.
-
-        //(Optimize it at your own risk)
-
-        const gimmeContestIDQuery = `
-            SELECT p.contest_id
-            FROM submits s
-            JOIN problems p ON s.problem_id = p.id
-            WHERE s.id = $1
-        `;
-
-        const queryResult = await this.client.queryObject<{ contest_id: number }>(gimmeContestIDQuery, [submit]);
-
-        if (queryResult.rowCount == 0) {
-            //Submit doesn't even exist, so I'm going to say that you can't view such a submit
-            //You may argue with that, I guess
-            //However, we're programming, not having fun with the set theory
-            return false;
-        }
-        else {
-            const contest = queryResult.rows[0].contest_id;
-            const query = `
-            SELECT permission_id
-            FROM contests_permissions cp
-            JOIN permissions_for_contests pfc ON cp.permission_id = pfc.id
-            WHERE user_id = $1 AND contest_id = $2 AND pfc.name = $3
-            `;
-            const permissionType = await this.client.queryObject(query, [user, contest, 'MANAGE']);
-
-            if (permissionType.rowCount == 0) {
-                return false;
-            }
-            else {
-                return true;
-            }
-        }
-
-    }
-}
-
 class PostgresResultDB implements ResultDB {
 
     client: Client;
@@ -432,13 +269,18 @@ class PostgresResultDB implements ResultDB {
     constructor(client: Client) {
         this.client = client;
     }
-    async setSubmitResults(id: number, points: number, status: string): Promise<boolean> {
+    async addSubmitResults(id: number, points: number, status: string): Promise<boolean> {
         const status_id = (await this.client.queryObject<{ id: number }>("SELECT id FROM statuses WHERE name = $1", [status.toUpperCase()])).rows[0].id;
         await this.client.queryArray("INSERT INTO submit_results VALUES ($1, $2, $3)", [id, points, status_id]);
         return true;
     }
+
+    //Todo: fix
+    overrideSubmitResults(id: number, points: number, status: number): void {
+        return;
+    }
+
 }
 
-
-export { connectNewClient, PostgresContestDB, PostgresCredentialDB, PostgresUserDB, PostgresProblemDB, PostgresGraphicalProblemDB };
-export { PostgresSubmitDB, PostgresPermissionDB, PostgresResultDB };
+export { connectNewClient, PostgresContestDB, PostgresCredentialDB, PostgresUserDB, PostgresGraphicalProblemDB };
+export { PostgresResultDB };

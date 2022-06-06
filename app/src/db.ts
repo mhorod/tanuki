@@ -39,7 +39,7 @@ interface Problem {
   due_date: Date | null,
   closing_date: Date | null,
   published: boolean,
-  scoring_method: string,
+  scoring_method: number,
   source_limit: number,
 }
 
@@ -83,22 +83,61 @@ interface NewSubmit {
   language_id: number
 }
 
+//Same as problem, but without ID - used when we need to insert a problem to the database
+interface NewProblem {
+  name: string,
+  shortname: string,
+  contest_id: number,
+  statement_uri: string,
+  uses_points: boolean,
+  position: number,
+  points: number,
+  due_date: Date | null,
+  closing_date: Date | null,
+  published: boolean,
+  scoring_method: number,
+  source_limit: number,
+}
+
+interface NewContest {
+  name: string,
+  shortname: string,
+  is_active: boolean
+}
+
 interface Language {
   id: number,
   name: string;
   extensions: Array<string>,
 }
 
+enum SubmitResult {
+  OK,
+  ANS,
+  MEM,
+  RTE,
+  CME,
+  TLE,
+  REJ,
+  RUL
+}
+
 
 interface ContestDB {
   getUserContests(user_id: number): Promise<Array<Contest>>;
+  getAllContests(): Promise<Array<Contest>>;
   getUserSubmits(user_id: number, limit: number): Promise<Array<Submit>>;
-  getContestById(id: number): Promise<Contest | null>
+  getContestById(id: number): Promise<Contest | null>;
+  addNewContest(contest: NewContest): Promise<Contest | null>;
+  deleteContest(id: number): Promise<boolean>;
+  editContest(id: number, contest: NewContest): Promise<boolean>;
 }
 
 interface UserDB {
+  getAllUsers(): Promise<User[]>;
   getUserByLogin(login: string): Promise<User | null>;
   addNewUser(user: NewUser): Promise<User | null>;
+  getUserById(id: number): Promise<User | null>;
 }
 
 interface CredentialDB {
@@ -113,6 +152,8 @@ interface SubmitDB {
 interface ProblemDB {
   getProblemsInContest(contest: number): Promise<Array<Problem>>;
   getProblemById(id: number): Promise<Problem | null>;
+  createProblem(problem: NewProblem): Promise<boolean>;
+  updateProblem(newVersion: Problem): Promise<boolean>;
 }
 
 interface GraphicalProblemDB {
@@ -126,11 +167,12 @@ interface LanguageDB {
 }
 
 interface ResultDB {
-  setSubmitResults(id: number, points: number, status: string): Promise<boolean>;
+  addSubmitResults(id: number, points: number, status: string): Promise<boolean>;
+  overrideSubmitResults(id: number, points: number, status: number): void;
 }
 
 
-export type { Submit, NewSubmit, Contest, Problem, GraphicalProblem };
-export type { User, NewUser, Language };
+export type { Submit, NewSubmit, Contest, NewContest, Problem, GraphicalProblem };
+export type { User, NewUser, Language, NewProblem };
 export type { GraphicalProblemStatus };
 export type { ContestDB, UserDB, CredentialDB, SubmitDB, ProblemDB, GraphicalProblemDB, LanguageDB, ResultDB }

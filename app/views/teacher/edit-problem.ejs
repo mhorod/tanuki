@@ -13,34 +13,36 @@
 
         <div class=" container mx-auto p-6 divide-x">
             <div class="flex flex-col md:flex-row gap-10">
-                <form method="post" action="/edit/<%= problem.id%>" class="flex justify-center">
+                <form method="post" action="/contest/<%= contest.id %>/problem/<%= problem.id%>/edit"
+                    class="flex justify-center">
                     <div class="flex flex-col gap-4">
                         <h1 class="text-3xl">Information</h1>
                         <div class="grid grid-cols-2 auto-rows-min gap-4 flex-col max-w-sm align-middle">
                             Name:
-                            <input type="text" name="name" />
+                            <input type="text" name="name" value="<%= problem.name %>" />
                             Short name:
-                            <input type="text" name="shortname" />
+                            <input type="text" name="shortname" value="<%= problem.shortname %>" />
                             URI:
-                            <input type="text" name="statement-uri" />
+                            <input type="text" name="statement-uri" value="<%= problem.statement_uri %>" />
                             Uses points:
-                            <input type="checkbox" name="uses-points" />
+                            <input type="checkbox" name="uses-points" <%=problem.uses_points ? "checked" : "" %>/>
                             Points:
-                            <input type="number" step="0.1" min="0" name="points" />
+                            <input type="number" step="0.1" min="0" name="points" value="<%= problem.points %>" />
                             Due date:
-                            <input type="date" name="due-date" />
+                            <input type="date" name="due-date"
+                                value="<%= new Date(problem.due_date).toISOString().split('T')[0] %>" />
                             Closing date:
-                            <input type="date" name="closing-date" />
+                            <input type="date" name="closing-date"
+                                value="<%= new Date(problem.closing_date).toISOString().split('T')[0] %>" />
                             Published:
-                            <input type="checkbox" name="published" />
-                            <input id="tests-input" name="tests" class="invisible">
+                            <input type="checkbox" name="published" <%=problem.published ? "checked" : "" %>/>
 
-                            <span class="text-red-500">
-                                <% if (typeof(error) !='undefined' ) { %>
-                                    <%= error %>
-                                        <% } %>
-                            </span>
                         </div>
+                        <span class="text-red-500">
+                            <% if (typeof(error) !='undefined' ) { %>
+                                <%= error %>
+                                    <% } %>
+                        </span>
                         <button type="submit" class="submit-btn">
                             Edit
                         </button>

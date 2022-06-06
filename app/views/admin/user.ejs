@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- await include("views/common-head.ejs"); %>
+        <title>
+            Account
+        </title>
+</head>
+
+<body class="bg-slate-900">
+    <%- await include("views/nav.ejs", {user: user}); %>
+        <div class="container mx-auto p-6">
+            <h2 class="text-4xl text-center mb-8 text-white"> User account </h2>
+            <form method="post" action="/admin/user/<%= edited_user.id %>" class="flex flex-col items-center">
+                <h2 class="text-2xl text-white"> Profile </h2>
+                <div class="text-white flex flex-col mx-auto p-2">
+                    <div class="m-2">
+                        LOGIN <br>
+                        <input disabled type="text" value="<%= edited_user.login %>" />
+                    </div>
+
+                    <div class="flex flex-col m-2">
+                        NAME
+                        <input name="name" type="text" value="<%= edited_user.name %>" />
+                    </div>
+
+                    <div class="flex flex-col m-2 ">
+                        SURNAME
+                        <input name="surname" type="text" value="<%= edited_user.surname %>" />
+                    </div>
+                </div>
+                <div class="flex flex-row gap-10">
+                    <button type="submit" class="submit-btn">
+                        Edit
+                    </button>
+                    <button type="button" class="critical-btn"
+                        onclick="location.href='/admin/delete-user/<%= edited_user.id %>'">
+                        Delete
+                    </button>
+                </div>
+            </form>
+        </div>
+        <%- await include("views/common-scripts.ejs"); %>
+</body>
+
+</html>

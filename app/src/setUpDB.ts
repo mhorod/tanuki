@@ -1,9 +1,13 @@
 
-import { connectNewClient, PostgresContestDB, PostgresProblemDB } from "./postgres.ts"
-import { PostgresCredentialDB, PostgresUserDB, PostgresGraphicalProblemDB, PostgresSubmitDB } from "./postgres.ts"
-import { PostgresPermissionDB } from "./postgres.ts"
+import { connectNewClient, PostgresContestDB } from "./postgres.ts"
+import { PostgresCredentialDB, PostgresUserDB, PostgresGraphicalProblemDB } from "./postgres.ts"
+import { PostgresPermissionDB } from "./postgres/postgresPermissionDB.ts"
+import { PostgresProblemDB } from "./postgres/postgresProblemDB.ts"
+import { PostgresSubmitDB } from "./postgres/postgresSubmitDB.ts"
 import { PostgresLanguageDB } from "./queries/language.ts"
 import { PostgresSubmitResultsDB } from "./submitDB.ts"
+
+import { Populator, PostgresPopulator } from "./populator.ts"
 
 import { ClientOptions } from "../deps.ts"
 /**
@@ -57,5 +61,8 @@ export default async function (options: ClientOptions) {
         // If that failed then welp, he already has those permissions
     }
 
+    let populator = new PostgresPopulator();
+    // populator.generatePeople(db.userDB);
+    ///asdasdas
     return db;
 }
