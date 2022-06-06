@@ -40,8 +40,7 @@ function setUpAdminRouter(router: IRouter, config: AdminRouterConfig) {
 
         const added_contest = await config.contestDB.addNewContest(new_contest);
         if (added_contest) {
-            const contests = await getContests();
-            renderWithUserData(config.authenticator, "admin/dashboard", { contests })(req, res, next);
+            res.redirect("/dashboard/admin");
         } else {
             renderWithUserData(config.authenticator, "admin/add-contest", { error: 'failed to add contest', contest: req.parsedBody })(req, res, next);
         }
@@ -57,7 +56,29 @@ function setUpAdminRouter(router: IRouter, config: AdminRouterConfig) {
     });
 
     router.get("/admin/delete-contest/:contestid", async (req, res, next) => {
-        //TODO
+        await config.contestDB.deleteContest(+req.params.contestid);
+        const contests = await getContests();
+        renderWithUserData(config.authenticator, "admin/dashboard", { contests })(req, res, next);
+    });
+
+    router.post("/admin/edit-contest/:contestid", async (req, res, next) => {
+        const new_contest = {
+            name: req.parsedBody['name'],
+            shortname: req.parsedBody['shortname'],
+            is_active: req.parsedBody['is_active'] !== undefined,
+        } as NewContest;
+
+        console.log(new_contest.shortname);
+
+        const edited_contest = await config.contestDB.editContest(+req.params.contestid, new_contest);
+        if (edited_contest) {
+            const contests = await getContests();
+            res.redirect("/dashboard/admin");
+        } else {
+            const contest = await config.contestDB.getContestById(+req.params.contestid);
+            const owners = await config.permissionDB.getAllThatCanEdit(+req.params.contestid);
+            renderWithUserData(config.authenticator, "admin/contest", { contest, owners, error: 'failed to edit contest' })(req, res, next);
+        }
     });
 
     router.get("/admin/add-owner/:contestid", async (req, res, next) => {

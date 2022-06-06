@@ -54,20 +54,35 @@ class PostgresProblemDB implements ProblemDB {
         return (await this.client.queryObject<Problem>(query, [contest_id])).rows;
     }
 
-    createProblem(problem: NewProblem): void {
+    async createProblem(problem: NewProblem): Promise<boolean> {
         const insertionQuery = `
-            INSERT INTO problems VALUES($1)
-        `;
+            INSERT INTO problems VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        `
         try {
-            this.client.queryArray(insertionQuery, [problem]);
-        }
-        catch (exception) {
-            console.error(exception);
-        }
+            const valArray = [
+                problem.name,
+                problem.shortname,
+                problem.contest_id,
+                problem.statement_uri,
+                problem.uses_points,
+                problem.position,
+                problem.points,
+                problem.due_date,
+                problem.closing_date,
+                problem.published,
+                problem.scoring_method,
+                problem.source_limit
+            ];
 
+            await this.client.queryArray(insertionQuery, valArray);
+            return true;
+        } catch (exception) {
+            console.error(exception);
+            return false;
+        }
     }
 
-    async updateProblem(newVersion: Problem): Promise<void> {
+    async updateProblem(newVersion: Problem): Promise<boolean> {
         //oh well
         const update = `
             UPDATE problems SET
@@ -104,9 +119,11 @@ class PostgresProblemDB implements ProblemDB {
             ];
 
             await this.client.queryArray(update, valArray);
+            return true;
         }
         catch (exception) {
             console.error(exception);
+            return false;
         }
     }
 

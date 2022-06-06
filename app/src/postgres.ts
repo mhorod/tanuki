@@ -46,6 +46,30 @@ class PostgresContestDB implements ContestDB {
 
     constructor(client: Client) { this.client = client; }
 
+    async deleteContest(id: number): Promise<boolean> {
+        const query = `
+        DELETE FROM contests WHERE id = $1
+        `
+        try {
+            (await this.client.queryObject(query, [id]));
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    async editContest(id: number, contest: NewContest): Promise<boolean> {
+        const query = `
+        UPDATE contests SET name=$1, shortname=$2, is_active=$3 WHERE id=$4
+        `
+        try {
+            (await this.client.queryObject(query, [contest.name, contest.shortname, contest.is_active, id]));
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
     async getUserContests(user_id: number): Promise<Contest[]> {
         const query = `
         SELECT 

@@ -28,6 +28,9 @@ function setUpContestRouter(router: IRouter, config: ContestRouterConfig) {
                 throw Error("User was authentiated and should not be null");
 
             const contest_id = parseInt(req.params.contest_id);
+            if (await config.permissionDB.canManageContest(user.id, contest_id))
+                res.redirect("/teacher/contest/" + contest_id);
+
             const contest = await config.contestDB.getContestById(contest_id);
             const problems: any[] = await config.graphicalProblemDB.getGraphicalProblemsInContest(contest_id, user.id)
             problems.forEach(

@@ -42,13 +42,15 @@ const appConfig = {
   ...db
 }
 
-setUpRouter(router, appConfig);
 
 const app = opine();
 
 // Handling of incoming formats
 app.use(json())
-app.use(urlencoded())
+app.use(urlencoded({
+  extended: false
+}))
+setUpRouter(router, appConfig);
 
 // Frontend configuration
 app.set("views", join(dir, "../views"));

@@ -4,19 +4,34 @@
             <tr class="border-b border-white">
                 <th>code</th>
                 <th>name</th>
+                <th>full points</th>
                 <th>deadline</th>
                 <th>actions</th>
             </tr>
         </thead>
-
-        <tr class="hover:bg-slate-700 hover:cursor-pointer even:bg-slate-900 odd:bg-slate-800 text-center">
-            <td class="px-2 py-2" onclick="location.href = '/contest/1/problem/2'"> A</td>
-            <td class="px-2 py-2" onclick="location.href = '/contest/1/problem/2'"> Brzydka klasa</td>
-            <td class="px-2 py-2" onclick="location.href = '/contest/1/problem/2'"> 04-06-2022 </td>
-            <td class="px-2 py-2 gap-2">
-                <a href="/contest/1/problem/2/edit">edit</a>
-            </td>
-        </tr>
+        <% for(const problem of problems) { %>
+            <tr class="hover:bg-slate-700 hover:cursor-pointer even:bg-slate-900 odd:bg-slate-800 text-center"
+                onclick="location.href='/contest/<%= contest.id %>/problem/<%= problem.id %>'">
+                <td class="p-2">
+                    <%= problem.shortname %>
+                </td>
+                <td class="p-2">
+                    <%= problem.name %>
+                </td>
+                <td class="p-2">
+                    <%= new Date(problem.due_date).toISOString().split('T')[0] %>
+                </td>
+                <td class="p-2">
+                    <%= new Date(problem.closing_date).toISOString().split('T')[0] %>
+                </td>
+                <td class="p-2 flex flex-row gap-5 justify-center">
+                    <a href="/contest/<%= contest.id %>/problem/<%= problem.id %>/edit">edit</a>
+                    <a href="/contest/<%= contest.id %>/problem/<%= problem.id %>/delete">
+                        <ion-icon style="color: red" name="trash-outline"></ion-icon>
+                    </a>
+                </td>
+            </tr>
+            <% } %>
     </table>
     <a href="/contest/<%=contest.id%>/add">new problem</a>
 </div>

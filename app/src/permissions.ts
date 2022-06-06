@@ -13,6 +13,7 @@ interface Permission {
 
 
 interface PermissionDB {
+    canManageContest(user: number, contest: number): Promise<boolean>;
     canSubmit(user: number, contest: number): Promise<boolean>;
     getAllThatCanEdit(contest: number): Promise<User[]>;
     canViewContest(user: number, contest: number): Promise<boolean>;

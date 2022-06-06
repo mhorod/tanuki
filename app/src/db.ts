@@ -39,7 +39,7 @@ interface Problem {
   due_date: Date | null,
   closing_date: Date | null,
   published: boolean,
-  scoring_method: string,
+  scoring_method: number,
   source_limit: number,
 }
 
@@ -95,7 +95,7 @@ interface NewProblem {
   due_date: Date | null,
   closing_date: Date | null,
   published: boolean,
-  scoring_method: string,
+  scoring_method: number,
   source_limit: number,
 }
 
@@ -116,8 +116,10 @@ interface ContestDB {
   getUserContests(user_id: number): Promise<Array<Contest>>;
   getAllContests(): Promise<Array<Contest>>;
   getUserSubmits(user_id: number, limit: number): Promise<Array<Submit>>;
-  getContestById(id: number): Promise<Contest | null>
-  addNewContest(contest: NewContest): Promise<Contest | null>
+  getContestById(id: number): Promise<Contest | null>;
+  addNewContest(contest: NewContest): Promise<Contest | null>;
+  deleteContest(id: number): Promise<boolean>;
+  editContest(id: number, contest: NewContest): Promise<boolean>;
 }
 
 interface UserDB {
@@ -138,8 +140,8 @@ interface SubmitDB {
 interface ProblemDB {
   getProblemsInContest(contest: number): Promise<Array<Problem>>;
   getProblemById(id: number): Promise<Problem | null>;
-  createProblem(problem: NewProblem): void;
-  updateProblem(newVersion: Problem): Promise<void>;
+  createProblem(problem: NewProblem): Promise<boolean>;
+  updateProblem(newVersion: Problem): Promise<boolean>;
 }
 
 interface GraphicalProblemDB {

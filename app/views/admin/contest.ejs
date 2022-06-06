@@ -13,7 +13,8 @@
 
         <div class=" container mx-auto p-6 divide-x ">
             <div class="flex place-content-center gap-10">
-                <form method="post" action="/admin/edit-contest/<%= contest.id %>" class="flex justify-center">
+                <form method="post" enctype="application/x-www-form-urlencoded"
+                    action="/admin/edit-contest/<%= contest.id %>" class="flex justify-center">
                     <div class="flex flex-col gap-4">
                         <h1 class="text-2xl">Editing: <%= contest.shortname %>
                         </h1>

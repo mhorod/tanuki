@@ -57,6 +57,23 @@ class PostgresPermissionDB implements PermissionDB {
             return true;
         }
     }
+    async canManageContest(user: number, contest: number): Promise<boolean> {
+        const query = `
+            SELECT permission_id
+            FROM contests_permissions
+            WHERE user_id = $1 AND contest_id = $2
+            AND permission_id = 1
+        `;
+        const permissionType = await this.client.queryObject(query, [user, contest]);
+        console.log(permissionType);
+
+        if (permissionType.rowCount == 0) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
 
     async ownsSubmit(user: number, submit: number): Promise<boolean> {
         const query = `SELECT 1 FROM submits WHERE user_id = $1 and id = $2`;
