@@ -122,6 +122,7 @@ interface GraphicalProblemDB {
 
 interface LanguageDB {
   getProblemLanguages(problem: number): Promise<Array<Language>>;
+  getLanguageById(id: number): Promise<Language | null>;
 }
 
 interface ResultDB {
