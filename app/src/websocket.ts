@@ -12,8 +12,10 @@ export default function (router: IRouter, config: WebsocketConfig) {
             const socket = req.upgrade();
             const submit_id = parseInt(req.params.submit_id);
             config.checker.listen(submit_id, (status: any) => {
-                socket.send(status);
-                socket.close();
+                if (socket.readyState == socket.OPEN) {
+                    socket.send(status);
+                    socket.close();
+                }
             }
             )
 
