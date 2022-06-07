@@ -15,7 +15,7 @@
             <div class="flex flex-col md:flex-row space-x-4">
                 <%- await include("views/teacher/contest-menu.ejs", {contest}); %>
                     <div class="grow">
-                        <%- await include("views/teacher/problems-list.ejs", {contest}); %>
+                        <%- await include("views/teacher/problems-list.ejs", {contest, problems}); %>
                     </div>
             </div>
         </div>

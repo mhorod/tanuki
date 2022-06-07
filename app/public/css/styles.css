@@ -138,9 +138,7 @@ span[contenteditable="true"] {
 .critical-btn:hover {
     background-color: #e03c26;
 }
-a:hover {
-    color: #34d399;
-}
+
 
 .normal-btn {
     padding: 0.5rem;
@@ -152,7 +150,7 @@ a:hover {
 }
 
 .normal-btn:hover {
-    background-color: #272727;
+    background-color: #ffffff11;
 }
 
 .text-link:hover {

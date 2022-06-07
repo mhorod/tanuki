@@ -3,7 +3,7 @@ import { GraphicalProblemStatus, Problem } from "../db.ts"
 
 async function getAllNewestSubmitsInAContest(client: Client, contest_id: number): Promise<GraphicalProblemStatus[] | null> {
     const query = `
-        SELECT p.id, p.shortname, s.name AS status, np.user_id
+        SELECT p.id, p.short_name, s.name AS status, np.user_id
         FROM newest_submits_in_problems np
         JOIN problems p ON np.problem_id = p.id
         JOIN statuses s ON s.id = np.result 
@@ -27,7 +27,7 @@ interface simplePair {
 
 async function getUnsolvedProblemsThatAreCloseToTheDeadline(client: Client, user_id: number, how_many: number): Promise<Problem[] | null> {
     const allProblemsQuery = `
-        SELECT p.id, p.name, p.shortname, p.contest_id, p.statement_uri,
+        SELECT p.id, p.name, p.short_name, p.contest_id, p.statement_uri,
         p.uses_points, p.points, p.due_date, p.closing_date,
         p.published, p.scoring_method, p.source_limit
         FROM users u

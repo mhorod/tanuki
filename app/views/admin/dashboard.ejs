@@ -19,7 +19,7 @@
                         <table class="table-auto w-full">
                             <thead>
                                 <tr class="border-b border-white">
-                                    <th>shortname</th>
+                                    <th>short_name</th>
                                     <th>name</th>
                                     <th>active</th>
                                     <th>actions</th>
@@ -29,7 +29,7 @@
                                 <tr class="hover:bg-slate-700 hover:cursor-pointer even:bg-slate-900 odd:bg-slate-800 text-center"
                                     onclick="location.href='/admin/contest/<%= contest.id %>'">
                                     <td class="p-2">
-                                        <%= contest.shortname%>
+                                        <%= contest.short_name%>
                                     </td>
                                     <td class="p-2">
                                         <%= contest.name%>
@@ -57,6 +57,8 @@
                     </div>
 
                 </div>
+                <a href="/admin/users" class="normal-btn"> Edit
+                    users</a>
             </div>
         </div>
 

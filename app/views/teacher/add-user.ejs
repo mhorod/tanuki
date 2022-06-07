@@ -13,7 +13,7 @@
 
         <div class=" container mx-auto p-6 divide-x ">
             <div class="flex flex-col gap-10 place-content-center">
-                <h1 class="text-2xl">Adding user to: <%= contest.shortname %>
+                <h1 class="text-2xl">Adding user to: <%= contest.short_name %>
                 </h1>
                 <table class="table-auto">
                     <thead>
@@ -23,13 +23,20 @@
                             <th>surname</th>
                         </tr>
                     </thead>
-
-                    <tr class="even:bg-slate-900 odd:bg-slate-800 text-center hover:bg-slate-700 hover:cursor-pointer"
-                        onclick="location.href='/contest/<%=contest.id%>/adduser/1'">
-                        <td class="px-2 py-2"> Dzban123</td>
-                        <td class="px-2 py-2"> Hichał</td>
-                        <td class="px-2 py-2"> Morodecki </td>
-                    </tr>
+                    <% for(const user of users) { %>
+                        <tr class="even:bg-slate-900 odd:bg-slate-800 text-center hover:bg-slate-700 hover:cursor-pointer"
+                            onclick="location.href='/contest/<%=contest.id%>/adduser/<%= user.id %>'">
+                            <td class="p-2">
+                                <%= user.login %>
+                            </td>
+                            <td class="p-2">
+                                <%= user.name %>
+                            </td>
+                            <td class="p-2">
+                                <%= user.surname %>
+                            </td>
+                        </tr>
+                        <% } %>
                 </table>
             </div>
         </div>

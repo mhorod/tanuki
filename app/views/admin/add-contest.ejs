@@ -13,14 +13,14 @@
 
         <div class=" container mx-auto p-6 divide-x ">
             <div class="flex place-content-center">
-                <form method="post" action="/admin/add-contest" class="flex justify-center">
+                <form method="post" enctype="application/json" action="/admin/add-contest" class="flex justify-center">
                     <div class="flex flex-col gap-4">
                         <h1 class="text-3xl">Adding new contest </h1>
                         <div class="grid grid-cols-2 auto-rows-min gap-4 flex-col max-w-sm align-middle">
                             Name:
                             <input type="text" name="name" value="<%= contest.name %> " />
                             Short name:
-                            <input type="text" name="shortname" value="<%= contest.shortname %>" />
+                            <input type="text" name="short_name" value="<%= contest.short_name %>" />
                             Is Active:
                             <input type="checkbox" name="is_active" <%=contest.is_active ? "checked" : "" %> />
 

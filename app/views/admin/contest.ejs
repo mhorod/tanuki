@@ -13,15 +13,16 @@
 
         <div class=" container mx-auto p-6 divide-x ">
             <div class="flex place-content-center gap-10">
-                <form method="post" action="/admin/edit-contest/<%= contest.id %>" class="flex justify-center">
+                <form method="post" enctype="application/x-www-form-urlencoded"
+                    action="/admin/edit-contest/<%= contest.id %>" class="flex justify-center">
                     <div class="flex flex-col gap-4">
-                        <h1 class="text-2xl">Editing: <%= contest.shortname %>
+                        <h1 class="text-2xl">Editing: <%= contest.short_name %>
                         </h1>
                         <div class="grid grid-cols-2 auto-rows-min gap-4 flex-col max-w-sm align-middle">
                             Name:
                             <input type="text" name="name" value="<%= contest.name %> " />
                             Short name:
-                            <input type="text" name="shortname" value="<%= contest.shortname %>" />
+                            <input type="text" name="short_name" value="<%= contest.short_name %>" />
                             Is Active:
                             <input type="checkbox" name="is_active" <%=contest.is_active ? " checked" : "" %> />
 
@@ -70,7 +71,7 @@
                                 <% } %>
                         </table>
                         <% } %>
-                            <a href="/admin/add-owner" class="normal-btn"> add owner</a>
+                            <a href="/admin/add-owner/<%= contest.id %>" class="normal-btn"> add owner</a>
                 </div>
             </div>
         </div>

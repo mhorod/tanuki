@@ -5,7 +5,7 @@ import { Credentials } from "./auth.ts"
 interface Contest {
   id: number,
   name: string,
-  shortname: string,
+  short_name: string,
   active: boolean
 }
 
@@ -27,10 +27,17 @@ interface NewUser {
   password_repeat: string,
 }
 
+interface EditedUser {
+  login: string,
+  name: string,
+  surname: string,
+  email: string,
+}
+
 interface Problem {
   id: number,
   name: string,
-  shortname: string,
+  short_name: string,
   contest_id: number,
   statement_uri: string,
   uses_points: boolean,
@@ -39,7 +46,7 @@ interface Problem {
   due_date: Date | null,
   closing_date: Date | null,
   published: boolean,
-  scoring_method: string,
+  scoring_method: number,
   source_limit: number,
 }
 
@@ -47,7 +54,7 @@ interface GraphicalProblem {
   id: number,
   name: string,
   statement_uri: string,
-  shortname: string,
+  short_name: string,
   position: number,
   due_date: Date | null,
   closing_date: Date | null,
@@ -71,7 +78,7 @@ interface Submit {
 //Used to convey information about progress of a student
 interface GraphicalProblemStatus {
   id: number
-  shortname: string
+  short_name: string
   status: string
   user_id: number
 }
@@ -86,7 +93,7 @@ interface NewSubmit {
 //Same as problem, but without ID - used when we need to insert a problem to the database
 interface NewProblem {
   name: string,
-  shortname: string,
+  short_name: string,
   contest_id: number,
   statement_uri: string,
   uses_points: boolean,
@@ -95,13 +102,13 @@ interface NewProblem {
   due_date: Date | null,
   closing_date: Date | null,
   published: boolean,
-  scoring_method: string,
+  scoring_method: number,
   source_limit: number,
 }
 
 interface NewContest {
   name: string,
-  shortname: string,
+  short_name: string,
   is_active: boolean
 }
 
@@ -111,19 +118,35 @@ interface Language {
   extensions: Array<string>,
 }
 
+enum SubmitResult {
+  OK,
+  ANS,
+  MEM,
+  RTE,
+  CME,
+  TLE,
+  REJ,
+  RUL
+}
+
 
 interface ContestDB {
   getUserContests(user_id: number): Promise<Array<Contest>>;
   getAllContests(): Promise<Array<Contest>>;
   getUserSubmits(user_id: number, limit: number): Promise<Array<Submit>>;
-  getContestById(id: number): Promise<Contest | null>
-  addNewContest(contest: NewContest): Promise<Contest | null>
+  getContestById(id: number): Promise<Contest | null>;
+  addNewContest(contest: NewContest): Promise<Contest | null>;
+  deleteContest(id: number): Promise<boolean>;
+  editContest(id: number, contest: NewContest): Promise<boolean>;
 }
 
 interface UserDB {
+  getAllUsers(): Promise<User[]>;
   getUserByLogin(login: string): Promise<User | null>;
   addNewUser(user: NewUser): Promise<User | null>;
   getUserById(id: number): Promise<User | null>;
+  editUser(id: number, user: EditedUser): Promise<boolean>
+  deleteUser(id: number): Promise<boolean>
 }
 
 interface CredentialDB {
@@ -138,8 +161,9 @@ interface SubmitDB {
 interface ProblemDB {
   getProblemsInContest(contest: number): Promise<Array<Problem>>;
   getProblemById(id: number): Promise<Problem | null>;
-  createProblem(problem: NewProblem): void;
-  updateProblem(newVersion: Problem): Promise<void>;
+  createProblem(problem: NewProblem): Promise<boolean>;
+  updateProblem(newVersion: Problem): Promise<boolean>;
+  deleteProblem(id: number): Promise<boolean>;
 }
 
 interface GraphicalProblemDB {
@@ -149,14 +173,16 @@ interface GraphicalProblemDB {
 
 interface LanguageDB {
   getProblemLanguages(problem: number): Promise<Array<Language>>;
+  getLanguageById(id: number): Promise<Language | null>;
 }
 
 interface ResultDB {
-  setSubmitResults(id: number, points: number, status: string): Promise<boolean>;
+  addSubmitResults(id: number, points: number, status: string): Promise<boolean>;
+  overrideSubmitResults(id: number, points: number, status: number): void;
 }
 
 
 export type { Submit, NewSubmit, Contest, NewContest, Problem, GraphicalProblem };
-export type { User, NewUser, Language, NewProblem };
+export type { User, NewUser, Language, NewProblem, EditedUser };
 export type { GraphicalProblemStatus };
 export type { ContestDB, UserDB, CredentialDB, SubmitDB, ProblemDB, GraphicalProblemDB, LanguageDB, ResultDB }
