@@ -5,6 +5,7 @@
   <%- await include("views/common-head.ejs"); %>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/vs2015.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/languages/haskell.min.js"></script>
     <script src="/js/wait-for-status.js"></script>
     <title>
       Tanuki
@@ -44,7 +45,7 @@
 
       <a class="normal-btn" href="/files/submitted/<%= results.id %>"> Download </a>
       <%- await include("views/task-results.ejs", {group_results: results.group_results}); %>
-        <pre><code class="language-<%= results.language_name %>""><%= results.src %></code></pre>
+        <pre><code class="language-<%= results.language_name.toLowerCase() %> hljs"><%= results.src %></code></pre>
     </div>
     <%- await include("views/common-scripts.ejs"); %>
       <script>
