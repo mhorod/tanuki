@@ -45,7 +45,7 @@ CREATE  TABLE tanuki.administrators (
 	user_id              integer  NOT NULL REFERENCES tanuki.users
  );
 
-CREATE  TABLE tanuki.contests_permissions ( 
+CREATE  TABLE tanuki.contest_permissions (
 	user_id              integer  NOT NULL REFERENCES tanuki.users ,
 	permission_id        integer  NOT NULL REFERENCES tanuki.permissions_for_contests ,
 	contest_id           integer  NOT NULL REFERENCES tanuki.contests,
