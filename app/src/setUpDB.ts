@@ -7,8 +7,6 @@ import { PostgresSubmitDB } from "./postgres/postgresSubmitDB.ts"
 import { PostgresLanguageDB } from "./queries/language.ts"
 import { PostgresSubmitResultsDB } from "./submitDB.ts"
 
-import { Populator, PostgresPopulator } from "./populator.ts"
-
 import { ClientOptions } from "../deps.ts"
 /**
  * Create all db interfaces used in the app
@@ -66,8 +64,5 @@ export default async function (options: ClientOptions) {
         await client.queryArray("INSERT INTO administrators VALUES (7)");
     } catch { }
 
-    let populator = new PostgresPopulator();
-    //populator.generatePeople(db.userDB);
-    ///asdasdas
     return db;
 }
