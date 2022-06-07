@@ -10,6 +10,12 @@ class PostgresPermissionDB implements PermissionDB {
     constructor(client: Client) {
         this.client = client;
     }
+    async isAdmin(user: number): Promise<boolean> {
+        const query = "SELECT COUNT(*) FROM administrators where user_id = $1";
+        const queryResult = (await this.client.queryArray(query, [user])).rows[0];
+        console.log(queryResult)
+        return queryResult[0] != 0;
+    }
 
     async getAllThatCanEdit(contest: number): Promise<User[]> {
         const query = `
@@ -33,7 +39,6 @@ class PostgresPermissionDB implements PermissionDB {
     }
 
     async canSubmit(user: number, contest: number): Promise<boolean> {
-        return true; // TODO: remove this line
         //To submit: permission_id 1
         const query = `
             SELECT permission_id
@@ -51,7 +56,6 @@ class PostgresPermissionDB implements PermissionDB {
         }
     }
     async canViewContest(user: number, contest: number): Promise<boolean> {
-        return true; // TODO: remove this line
         //ANY permission means that you can view
         const query = `
             SELECT permission_id
@@ -93,8 +97,6 @@ class PostgresPermissionDB implements PermissionDB {
     }
 
     async canViewSubmit(user: number, submit: number): Promise<boolean> {
-        // TODO: remove this line in release
-        //return true;
 
         // If user owns the submit we don't have to do anything
         if (await this.ownsSubmit(user, submit)) return true;

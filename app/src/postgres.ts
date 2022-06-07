@@ -60,10 +60,10 @@ class PostgresContestDB implements ContestDB {
 
     async editContest(id: number, contest: NewContest): Promise<boolean> {
         const query = `
-        UPDATE contests SET name=$1, shortname=$2, is_active=$3 WHERE id=$4
+        UPDATE contests SET name=$1, short_name=$2, is_active=$3 WHERE id=$4
         `
         try {
-            (await this.client.queryObject(query, [contest.name, contest.shortname, contest.is_active, id]));
+            (await this.client.queryObject(query, [contest.name, contest.short_name, contest.is_active, id]));
             return true;
         } catch {
             return false;
@@ -89,7 +89,7 @@ class PostgresContestDB implements ContestDB {
         INSERT INTO contests VALUES ($1, $2, $3) RETURNING *;
         `;
         try {
-            return (await this.client.queryObject<Contest>(query, [contest.name, contest.shortname, contest.is_active])).rows[0];
+            return (await this.client.queryObject<Contest>(query, [contest.name, contest.short_name, contest.is_active])).rows[0];
         } catch {
             return null;
         }
@@ -109,7 +109,7 @@ class PostgresContestDB implements ContestDB {
         SELECT 
             s.id,
             s.source_uri,
-            sr.points,
+            sr.score,
             st.name "status",
             c.name "contest_name",
             p.name "short_problem_name",
@@ -249,7 +249,7 @@ class PostgresGraphicalProblemDB implements GraphicalProblemDB {
         //TODO: Fix it so that OK is always on top
         //This will need a custom comparator provided by our database!
         const query = `
-        SELECT p.id, p.name, p.shortname, p.statement_uri, p.position, p.due_date, p.closing_date, (
+        SELECT p.id, p.name, p.short_name, p.statement_uri, p.position, p.due_date, p.closing_date, (
             SELECT st.name AS status
             FROM submits s 
             JOIN submit_results sr ON s.id = sr.submit_id
@@ -268,7 +268,7 @@ class PostgresGraphicalProblemDB implements GraphicalProblemDB {
 
     async getGraphicalProblemById(problem_id: number, user_id: number): Promise<GraphicalProblem | null> {
         const query = `
-        SELECT p.id, p.name, p.shortname, p.statement_uri, p.position, p.due_date, p.closing_date, (
+        SELECT p.id, p.name, p.short_name, p.statement_uri, p.position, p.due_date, p.closing_date, (
             SELECT st.name AS status
             FROM submits s 
             JOIN submit_results sr ON s.id = sr.submit_id

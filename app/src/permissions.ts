@@ -21,6 +21,7 @@ interface PermissionDB {
     canViewSubmit(user: number, submit: number): Promise<boolean>;
     grantPermission(user: number, contest: number, permission: PermissionKind): Promise<void>;
     revokePermission(user: number, contest: number, permission: PermissionKind): Promise<void>;
+    isAdmin(user: number): Promise<boolean>;
 }
 
 export { PermissionKind };

@@ -34,7 +34,7 @@ function setUpAdminRouter(router: IRouter, config: AdminRouterConfig) {
     router.post("/admin/add-contest", async (req, res, next) => {
         const new_contest = {
             name: req.parsedBody['name'],
-            shortname: req.parsedBody['shortname'],
+            short_name: req.parsedBody['short_name'],
             is_active: req.parsedBody['is_active'] !== undefined,
         } as NewContest;
 
@@ -88,11 +88,11 @@ function setUpAdminRouter(router: IRouter, config: AdminRouterConfig) {
     router.post("/admin/edit-contest/:contestid", async (req, res, next) => {
         const new_contest = {
             name: req.parsedBody['name'],
-            shortname: req.parsedBody['shortname'],
+            short_name: req.parsedBody['short_name'],
             is_active: req.parsedBody['is_active'] !== undefined,
         } as NewContest;
 
-        console.log(new_contest.shortname);
+        console.log(new_contest.short_name);
 
         const edited_contest = await config.contestDB.editContest(+req.params.contestid, new_contest);
         if (edited_contest) {

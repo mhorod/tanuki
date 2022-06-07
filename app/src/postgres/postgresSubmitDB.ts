@@ -32,10 +32,6 @@ class PostgresSubmitDB implements SubmitDB {
         }
         else {
             const submit = queryResult.rows[0];
-            // TODO: Remove that, it should be done in another place
-            const statuses = ["OK", "ANS", "CME", "TLE"];
-            const i = Math.floor(Math.random() * statuses.length);
-            new PostgresResultDB(this.client).addSubmitResults(submit.id, 1, statuses[i]);
             return submit;
         }
     }
@@ -45,16 +41,16 @@ class PostgresSubmitDB implements SubmitDB {
         SELECT 
             s.id,
             source_uri,
-            sr.points,
+            sr.score,
             statuses.name "status",
             c.name "contest_name",
-            p.shortname "short_problem_name",
+            p.short_name "short_problem_name",
             l.name "language_name",
             submission_time
         FROM
             submits s
-            JOIN submit_results sr ON s.id = sr.submit_id
-            JOIN statuses ON statuses.id = sr.status
+            LEFT JOIN submit_results sr ON s.id = sr.submit_id
+            LEFT JOIN statuses ON statuses.id = sr.status
             JOIN languages l ON s.language_id = l.id
             JOIN problems p ON s.problem_id = p.id
             JOIN contests c ON p.contest_id = c.id

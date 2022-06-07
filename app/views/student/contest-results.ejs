@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- await include("views/common-head.ejs"); %>
+        <title>
+            Tanuki
+        </title>
+</head>
+
+<body class="bg-zinc-900 text-white">
+    <%- await include("views/nav.ejs", {user: user}); %>
+
+        <div class=" container mx-auto p-6 divide-x">
+            <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                <%- await include("views/student/contest-nav.ejs", {contest: contest}) %>
+                    <div class="grow">
+                        <%- await include("views/recent-submits.ejs", {submits: submits}); %>
+
+                            <div class="flex flex-row space-x-4 items-center mt-2 p-2 border-t border-zinc-700">
+                                <b> Page </b>
+                                <% for (const page of pages) { %>
+                                    <a class="normal-btn" href="<%= page.href %>">
+                                        <%= page.number %>
+                                    </a>
+                                    <% } %>
+                            </div>
+                            <form method="get" class="flex flex-row space-x-4 items-center mt-2 p-2">
+                                <b>Problem</b>
+                                <select name="problem" class="p-1 text-black">
+                                    <% for (const problem of problems) { %>
+                                        <option value="<%= problem.id %>">
+                                            <%= problem.short_name %> (<%= problem.name %>)
+                                        </option>
+                                        <% } %>
+                                </select>
+                                <button type="submit" class="submit-btn">
+                                    Filter
+                                </button>
+                            </form>
+                    </div>
+            </div>
+        </div>
+
+
+        <%- await include("views/common-scripts.ejs"); %>
+</body>
+
+</html>

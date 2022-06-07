@@ -5,7 +5,7 @@ import { Credentials } from "./auth.ts"
 interface Contest {
   id: number,
   name: string,
-  shortname: string,
+  short_name: string,
   active: boolean
 }
 
@@ -37,7 +37,7 @@ interface EditedUser {
 interface Problem {
   id: number,
   name: string,
-  shortname: string,
+  short_name: string,
   contest_id: number,
   statement_uri: string,
   uses_points: boolean,
@@ -54,7 +54,7 @@ interface GraphicalProblem {
   id: number,
   name: string,
   statement_uri: string,
-  shortname: string,
+  short_name: string,
   position: number,
   due_date: Date | null,
   closing_date: Date | null,
@@ -78,7 +78,7 @@ interface Submit {
 //Used to convey information about progress of a student
 interface GraphicalProblemStatus {
   id: number
-  shortname: string
+  short_name: string
   status: string
   user_id: number
 }
@@ -93,7 +93,7 @@ interface NewSubmit {
 //Same as problem, but without ID - used when we need to insert a problem to the database
 interface NewProblem {
   name: string,
-  shortname: string,
+  short_name: string,
   contest_id: number,
   statement_uri: string,
   uses_points: boolean,
@@ -108,7 +108,7 @@ interface NewProblem {
 
 interface NewContest {
   name: string,
-  shortname: string,
+  short_name: string,
   is_active: boolean
 }
 
@@ -173,6 +173,7 @@ interface GraphicalProblemDB {
 
 interface LanguageDB {
   getProblemLanguages(problem: number): Promise<Array<Language>>;
+  getLanguageById(id: number): Promise<Language | null>;
 }
 
 interface ResultDB {

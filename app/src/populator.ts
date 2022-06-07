@@ -1015,7 +1015,7 @@ class PostgresPopulator implements Populator {
 
     async generatePeople(base: UserDB): Promise<void> {
 
-        for (let i = 0; i < 10000; i++) {
+        for (let i = 0; i < 100; i++) {
             base.addNewUser({
                 login: lastnames[Math.floor(Math.random() * 300)] + firstNames[Math.floor(Math.random() * 300)],
                 name: firstNames[Math.floor(Math.random() * 300)],
