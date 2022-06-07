@@ -6,6 +6,20 @@ class PostgresProblemDB implements ProblemDB {
     client: Client;
     constructor(client: Client) { this.client = client; }
 
+    async deleteProblem(id: number): Promise<boolean> {
+        const query = `
+        DELETE FROM problems WHERE id=$1
+        `
+        try {
+            await this.client.queryArray(query, [id]);
+            return true;
+        }
+        catch (exception) {
+            console.error(exception);
+            return false;
+        }
+    }
+
     async getProblemById(id: number): Promise<Problem | null> {
 
         const query = `

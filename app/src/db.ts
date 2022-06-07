@@ -163,6 +163,7 @@ interface ProblemDB {
   getProblemById(id: number): Promise<Problem | null>;
   createProblem(problem: NewProblem): Promise<boolean>;
   updateProblem(newVersion: Problem): Promise<boolean>;
+  deleteProblem(id: number): Promise<boolean>;
 }
 
 interface GraphicalProblemDB {

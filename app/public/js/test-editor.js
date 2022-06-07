@@ -42,9 +42,9 @@ class TaskGroup {
         const component = template.content.cloneNode(true);
 
         this.tab = component.querySelector("tbody");
-        const delete_group = component.querySelectorAll("button")[3];
-        const add_task = component.querySelectorAll("button")[3];
-        const remove = component.querySelectorAll("button")[2];
+        const add_task = component.querySelectorAll("button")[2];
+        const remove = component.querySelectorAll("button")[1];
+        this.name = component.querySelector("span");
         component.querySelectorAll("button")[0].setAttribute("data-bs-target", "#group-"+id);
         component.getElementById("group-1").setAttribute("id", "group-" + id);
 
@@ -72,7 +72,7 @@ class TaskGroup {
     
     getData() {
         return {
-            name: "group1",
+            name: this.name.textContent,
             tasks: this.tasks.map((task)=>task.getData()),
         }
     }

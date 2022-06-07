@@ -42,8 +42,8 @@ function setUpTeacherRouter(router: IRouter, config: TeacherRouterConfig) {
         renderWithUserData(config.authenticator, "teacher/edit-problem", { contest, problem })(req, res, next);
     });
     router.get("/contest/:contest_id/problem/:problem_id/delete", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
-        //TODO
-        res.redirect("/teacher/contest/" + req.params.problem_id);
+        await config.problemDB.deleteProblem(+req.params.problem_id);
+        res.redirect("/teacher/contest/" + req.params.contest_id);
     });
 
     router.post("/contest/:contest_id/problem/:problem_id/edit", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
@@ -63,7 +63,7 @@ function setUpTeacherRouter(router: IRouter, config: TeacherRouterConfig) {
             source_limit: req.parsedBody['source-limit']
         }
         if (await config.problemDB.updateProblem(problem)) {
-            res.redirect("/teacher/contest/" + req.params.problem_id);
+            res.redirect("/teacher/contest/" + req.params.contest_id);
         } else {
             const contest = await config.contestDB.getContestById(+req.params.contest_id);
             renderWithUserData(config.authenticator, "teacher/edit-problem", { contest, problem, error: "could not edit problem" })(req, res, next);
