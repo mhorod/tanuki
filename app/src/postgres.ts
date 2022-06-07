@@ -5,7 +5,7 @@
 import { Client, ClientOptions } from "../deps.ts"
 
 import type { Submit, Contest, Problem, GraphicalProblem } from "./db.ts"
-import type { User, NewUser, NewSubmit, NewContest } from "./db.ts";
+import type { User, NewUser, NewSubmit, NewContest, EditedUser } from "./db.ts";
 import type { ContestDB, UserDB, CredentialDB, ProblemDB, GraphicalProblemDB, SubmitDB, ResultDB } from "./db.ts";
 
 import type { PermissionDB } from "./permissions.ts"
@@ -183,6 +183,34 @@ class PostgresUserDB implements UserDB {
         SELECT * FROM users
         `;
         return (await this.client.queryObject<User>(query)).rows;
+    }
+
+    async deleteUser(id: number): Promise<boolean> {
+        const query = `
+            DELETE FROM users WHERE id=$1 
+        `
+        const vals = [id];
+        try {
+            await this.client.queryObject(query, vals);
+            return true;
+        } catch {
+            return false;
+        }
+
+    }
+
+    async editUser(id: number, user: EditedUser): Promise<boolean> {
+        const query = `
+            UPDATE users SET login=$1, name=$2, surname=$3, email=$4 WHERE id=$5 
+        `
+        const vals = [user.login, user.name, user.surname, user.email, id];
+        try {
+            await this.client.queryObject(query, vals);
+            return true;
+        } catch {
+            return false;
+        }
+
     }
 
     async addNewUser(user: NewUser): Promise<User | null> {

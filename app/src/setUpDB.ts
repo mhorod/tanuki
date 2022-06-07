@@ -52,7 +52,7 @@ export default async function (options: ClientOptions) {
     });
 
     let populator = new PostgresPopulator();
-    populator.generatePeople(db.userDB);
+    //populator.generatePeople(db.userDB);
     ///asdasdas
     return db;
 }

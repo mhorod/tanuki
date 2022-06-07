@@ -1,7 +1,7 @@
 import { IRouter, OpineRequest } from "../deps.ts"
 import { RequestAuthenticator } from "./auth.ts"
-import { ContestDB, NewContest, UserDB } from "./db.ts"
-import { PermissionDB } from "./permissions.ts"
+import { ContestDB, NewContest, UserDB, EditedUser } from "./db.ts"
+import { PermissionDB, PermissionKind } from "./permissions.ts"
 import { renderWithUserData, renderStatusWithUserData } from "./utils.ts"
 
 interface AdminRouterConfig {
@@ -55,8 +55,32 @@ function setUpAdminRouter(router: IRouter, config: AdminRouterConfig) {
         }
     });
 
-    router.get("/admin/delete-contest/:contestid", async (req, res, next) => {
-        await config.contestDB.deleteContest(+req.params.contestid);
+    router.get("/admin/delete-user/:id", async (req, res, next) => {
+        const deleted_user = await config.userDB.deleteUser(+req.params.id);
+        if (deleted_user) {
+            res.redirect("/admin/users");
+        } else {
+            const edited_user = await config.userDB.getUserById(+req.params.id);
+            renderWithUserData(config.authenticator, "admin/user", { edited_user, error: "could not delete user" })(req, res, next);
+        }
+    });
+    router.post("/admin/user/:id", async (req, res, next) => {
+        const user: EditedUser = {
+            login: req.parsedBody['login'],
+            name: req.parsedBody['name'],
+            surname: req.parsedBody['surname'],
+            email: req.parsedBody['email'],
+        };
+
+        if (await config.userDB.editUser(+req.params.id, user)) {
+            res.redirect("/admin/users");
+        } else {
+            const edited_user = await config.userDB.getUserById(+req.params.id);
+            renderWithUserData(config.authenticator, "admin/user", { edited_user, error: "could not edit user" })(req, res, next);
+        }
+    });
+    router.get("/admin/delete-contest/:contest_id", async (req, res, next) => {
+        await config.contestDB.deleteContest(+req.params.contest_id);
         const contests = await getContests();
         renderWithUserData(config.authenticator, "admin/dashboard", { contests })(req, res, next);
     });
@@ -81,16 +105,24 @@ function setUpAdminRouter(router: IRouter, config: AdminRouterConfig) {
         }
     });
 
-    router.get("/admin/add-owner/:contestid", async (req, res, next) => {
-        //TODO
+    router.get("/admin/add-owner/:contest_id", async (req, res, next) => {
+        const users = await config.userDB.getAllUsers();
+        const contest = await config.contestDB.getContestById(+req.params.contest_id);
+        renderWithUserData(config.authenticator, "admin/add-owner", { contest, users })(req, res, next);
+    });
+    router.get("/admin/users", async (req, res, next) => {
+        const users = await config.userDB.getAllUsers();
+        renderWithUserData(config.authenticator, "admin/users", { users })(req, res, next);
     });
 
-    router.get("/admin/add-owner/:contestid/:userid", async (req, res, next) => {
-        //TODO
+    router.get("/admin/add-owner/:contest_id/:user_id", async (req, res, next) => {
+        await config.permissionDB.grantPermission(+req.params.user_id, +req.params.contest_id, PermissionKind.MANAGE);
+        res.redirect("/admin/contest/" + req.params.contest_id);
     });
 
-    router.get("/admin/delete-owner/:contestid/:userid", async (req, res, next) => {
-        //TODO
+    router.get("/admin/delete-owner/:contest_id/:user_id", async (req, res, next) => {
+        await config.permissionDB.revokePermission(+req.params.user_id, +req.params.contest_id, PermissionKind.MANAGE);
+        res.redirect("/admin/contest/" + req.params.contest_id);
     });
 
 }

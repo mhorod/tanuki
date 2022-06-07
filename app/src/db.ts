@@ -27,6 +27,13 @@ interface NewUser {
   password_repeat: string,
 }
 
+interface EditedUser {
+  login: string,
+  name: string,
+  surname: string,
+  email: string,
+}
+
 interface Problem {
   id: number,
   name: string,
@@ -138,6 +145,8 @@ interface UserDB {
   getUserByLogin(login: string): Promise<User | null>;
   addNewUser(user: NewUser): Promise<User | null>;
   getUserById(id: number): Promise<User | null>;
+  editUser(id: number, user: EditedUser): Promise<boolean>
+  deleteUser(id: number): Promise<boolean>
 }
 
 interface CredentialDB {
@@ -172,6 +181,6 @@ interface ResultDB {
 
 
 export type { Submit, NewSubmit, Contest, NewContest, Problem, GraphicalProblem };
-export type { User, NewUser, Language, NewProblem };
+export type { User, NewUser, Language, NewProblem, EditedUser };
 export type { GraphicalProblemStatus };
 export type { ContestDB, UserDB, CredentialDB, SubmitDB, ProblemDB, GraphicalProblemDB, LanguageDB, ResultDB }

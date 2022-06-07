@@ -58,10 +58,10 @@ CREATE  TABLE tanuki.statuses (
  );
 
 CREATE  TABLE tanuki.users ( 
-	login                char(32)  NOT NULL  ,
+	login                varchar(32)  NOT NULL  ,
 	name                 varchar(64)  NOT NULL  ,
 	surname              varchar(64)  NOT NULL  ,
-	password_hash        char(256)  NOT NULL  ,
+	password_hash        varchar(256)  NOT NULL  ,
 	email                varchar  NOT NULL  ,
 	id                   serial  NOT NULL  ,
 	CONSTRAINT pk_users PRIMARY KEY ( id ),

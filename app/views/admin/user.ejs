@@ -17,7 +17,7 @@
                 <div class="text-white flex flex-col mx-auto p-2">
                     <div class="m-2">
                         LOGIN <br>
-                        <input disabled type="text" value="<%= edited_user.login %>" />
+                        <input type="text" name="login" value="<%= edited_user.login %>" />
                     </div>
 
                     <div class="flex flex-col m-2">
@@ -28,6 +28,10 @@
                     <div class="flex flex-col m-2 ">
                         SURNAME
                         <input name="surname" type="text" value="<%= edited_user.surname %>" />
+                    </div>
+                    <div class="flex flex-col m-2 ">
+                        EMAIL
+                        <input name="email" type="text" value="<%= edited_user.email %>" />
                     </div>
                 </div>
                 <div class="flex flex-row gap-10">
