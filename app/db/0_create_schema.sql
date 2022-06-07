@@ -24,7 +24,7 @@ CREATE SEQUENCE tanuki.users_id_seq START WITH 1 INCREMENT BY 1;
 
 CREATE  TABLE tanuki.contests ( 
 	name                 varchar(64)  NOT NULL  ,
-	shortname            varchar(16)    ,
+	short_name            varchar(16)    ,
 	is_active            boolean  NOT NULL  ,
 	id                   serial  NOT NULL  ,
 	CONSTRAINT pk_contests PRIMARY KEY ( id )
@@ -92,7 +92,7 @@ CREATE  TABLE tanuki.extensions (
 
 CREATE  TABLE tanuki.problems ( 
 	name                 varchar(64)  NOT NULL  ,
-	shortname            varchar(16)  NOT NULL  ,
+	short_name            varchar(16)  NOT NULL  ,
 	contest_id           integer  NOT NULL  ,
 	statement_uri        varchar(256)  NOT NULL  ,
 	uses_points          boolean  NOT NULL  ,
@@ -125,7 +125,7 @@ CREATE  TABLE tanuki.submits (
 CREATE  TABLE tanuki.task_groups ( 
 	problem_id           integer  NOT NULL  ,
 	name                 varchar(32)  NOT NULL  ,
-	requires_full_points boolean  NOT NULL  ,
+	requires_all_ok      boolean  NOT NULL  ,
 	id                   serial  NOT NULL  ,
 	CONSTRAINT pk_tasks PRIMARY KEY ( id ),
 	CONSTRAINT problem_id FOREIGN KEY ( problem_id ) REFERENCES tanuki.problems( id )   
@@ -153,8 +153,8 @@ CREATE  TABLE tanuki.problem_languages (
 
 CREATE  TABLE tanuki.submit_results ( 
 	submit_id            integer  NOT NULL  ,
-	points               numeric  NOT NULL  ,
-	status               integer    ,
+	score                numeric  NOT NULL  ,
+	status               integer  NOT NULL  ,
 	CONSTRAINT idx_submit_results PRIMARY KEY ( submit_id ),
 	CONSTRAINT fk_submit_results_statuses FOREIGN KEY ( status ) REFERENCES tanuki.statuses( id )   ,
 	CONSTRAINT fk_submit_results_submits FOREIGN KEY ( submit_id ) REFERENCES tanuki.submits( id )   
@@ -181,11 +181,11 @@ ALTER TABLE tanuki.task_results ADD CONSTRAINT used_memory_is_positive CHECK ( (
 
 ALTER TABLE tanuki.task_results ADD CONSTRAINT time_is_positive CHECK ( (execution_time > (0)::numeric) );
 
-COMMENT ON COLUMN tanuki.contests.shortname IS 'abbreviated name of the contest';
+COMMENT ON COLUMN tanuki.contests.short_name IS 'abbreviated name of the contest';
 
 COMMENT ON COLUMN tanuki.statuses.priority IS 'in case of multiple statuses in group the one with highest priority is displayed';
 
-COMMENT ON COLUMN tanuki.problems.shortname IS 'abbreviated name of the problem';
+COMMENT ON COLUMN tanuki.problems.short_name IS 'abbreviated name of the problem';
 
 COMMENT ON COLUMN tanuki.problems.statement_uri IS 'link to statement that is rendered on the problem page';
 
@@ -193,7 +193,7 @@ COMMENT ON COLUMN tanuki.problems.source_limit IS 'Limits the size of submitted 
 
 COMMENT ON COLUMN tanuki.submits.source_uri IS 'link to submitted source file';
 
-COMMENT ON COLUMN tanuki.task_groups.requires_full_points IS 'has every task to be completed for group to have points';
+COMMENT ON COLUMN tanuki.task_groups.requires_all_ok IS 'has every task to be completed for group to have points';
 
 COMMENT ON COLUMN tanuki.tasks.test_uri IS 'link to test that is invoked on submit';
 

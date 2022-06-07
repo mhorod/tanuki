@@ -56,6 +56,7 @@ export default async function (options: ClientOptions) {
     try {
         // Give admin2 permission to submit to two contests
         await client.queryArray("INSERT INTO contests_permissions VALUES (7, 2, 2)");
+        await client.queryArray("INSERT INTO contests_permissions VALUES (7, 1, 2)");
         await client.queryArray("INSERT INTO contests_permissions VALUES (7, 2, 1)");
     } catch {
         // If that failed then welp, he already has those permissions

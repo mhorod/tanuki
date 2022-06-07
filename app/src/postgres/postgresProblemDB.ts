@@ -12,7 +12,7 @@ class PostgresProblemDB implements ProblemDB {
         select
         p.id,
         p.name,
-        shortname,
+        short_name,
         contest_id,
         statement_uri,
         uses_points,
@@ -35,7 +35,7 @@ class PostgresProblemDB implements ProblemDB {
         select
         p.id,
         p.name,
-        shortname,
+        short_name,
         contest_id,
         statement_uri,
         uses_points,
@@ -61,7 +61,7 @@ class PostgresProblemDB implements ProblemDB {
         try {
             const valArray = [
                 problem.name,
-                problem.shortname,
+                problem.short_name,
                 problem.contest_id,
                 problem.statement_uri,
                 problem.uses_points,
@@ -87,7 +87,7 @@ class PostgresProblemDB implements ProblemDB {
         const update = `
             UPDATE problems SET
                 name = $2,
-                shortname = $3,
+                short_name = $3,
                 contest_id = $4,
                 statement_uri = $5,
                 uses_points = $6,
@@ -105,7 +105,7 @@ class PostgresProblemDB implements ProblemDB {
             //It's bad, but I've got no idea how to make that prettier
             const valArray = [newVersion.id,
             newVersion.name,
-            newVersion.shortname,
+            newVersion.short_name,
             newVersion.contest_id,
             newVersion.statement_uri,
             newVersion.uses_points,

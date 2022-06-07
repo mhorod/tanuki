@@ -41,10 +41,10 @@ class PostgresSubmitDB implements SubmitDB {
         SELECT 
             s.id,
             source_uri,
-            sr.points,
+            sr.score,
             statuses.name "status",
             c.name "contest_name",
-            p.shortname "short_problem_name",
+            p.short_name "short_problem_name",
             l.name "language_name",
             submission_time
         FROM

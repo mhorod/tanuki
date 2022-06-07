@@ -56,7 +56,7 @@ function setUpTeacherRouter(router: IRouter, config: TeacherRouterConfig) {
         const problem: Problem = {
             id: +req.params.problem_id,
             name: req.parsedBody['name'],
-            shortname: req.parsedBody['shortname'],
+            short_name: req.parsedBody['short_name'],
             contest_id: +req.params.contest_id,
             statement_uri: req.parsedBody['statement-uri'],
             uses_points: req.parsedBody['uses_points'] !== undefined,
@@ -106,7 +106,7 @@ function setUpTeacherRouter(router: IRouter, config: TeacherRouterConfig) {
     router.post("/teacher/add-problem/:contest_id", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
         const problem: NewProblem = {
             name: req.parsedBody['name'],
-            shortname: req.parsedBody['shortname'],
+            short_name: req.parsedBody['short_name'],
             contest_id: +req.params.contest_id,
             statement_uri: req.parsedBody['statement-uri'],
             uses_points: req.parsedBody['uses_points'] !== undefined,

@@ -30,7 +30,7 @@
                                 <select name="problem" class="p-1 text-black">
                                     <% for (const problem of problems) { %>
                                         <option value="<%= problem.id %>">
-                                            <%= problem.shortname %> (<%= problem.name %>)
+                                            <%= problem.short_name %> (<%= problem.name %>)
                                         </option>
                                         <% } %>
                                 </select>
