@@ -10,6 +10,12 @@ class PostgresPermissionDB implements PermissionDB {
     constructor(client: Client) {
         this.client = client;
     }
+    async isAdmin(user: number): Promise<boolean> {
+        const query = "SELECT COUNT(*) FROM administrators where user_id = $1";
+        const queryResult = (await this.client.queryArray(query, [user])).rows[0];
+        console.log(queryResult)
+        return queryResult[0] != 0;
+    }
 
     async getAllThatCanEdit(contest: number): Promise<User[]> {
         const query = `

@@ -21,7 +21,6 @@ function setUpStudentRouter(router: IRouter, config: StudentRouterConfig) {
 
 function setUpDashboard(router: IRouter, config: StudentRouterConfig) {
     router.get("/", redirectIfAuthenticated(config.authenticator, '/dashboard'), (_, res, __) => res.render("index"));
-    router.get("/dashboard", (_, res, __) => res.redirect("/dashboard/student"));
 
     router.get("/dashboard/student",
         authenticatedOnly(config.authenticator),
