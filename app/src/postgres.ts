@@ -117,8 +117,8 @@ class PostgresContestDB implements ContestDB {
             s.submission_time
         FROM 
             submits s 
-            JOIN submit_results sr on s.id = sr.submit_id 
-            JOIN statuses st ON sr.status = st.id 
+            LEFT JOIN submit_results sr on s.id = sr.submit_id 
+            LEFT JOIN statuses st ON sr.status = st.id 
             JOIN problems p ON s.problem_id = p.id
             JOIN contests c ON p.contest_id = c.id
             JOIN languages l ON s.language_id = l.id
