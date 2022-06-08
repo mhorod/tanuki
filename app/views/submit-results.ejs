@@ -27,6 +27,13 @@
         </div>
 
         <div class="flex md:flex-col justify-center p-2">
+          <b class="grow">User: </b>
+          <span>
+            <%= results.user_name %>
+          </span>
+        </div>
+
+        <div class="flex md:flex-col justify-center p-2">
           <b class="grow">Problem: </b>
           <a href="/contest/<%= results.contest_id %>/problem/<%= results.problem_id %>" class="text-link">
             <%= results.short_problem_name %>

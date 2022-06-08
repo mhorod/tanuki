@@ -8,7 +8,7 @@
         </title>
 </head>
 
-<body class="bg-zinc-900 text-white">
+<body class="bg-slate-900 text-white">
     <%- await include("views/nav.ejs", {user: user}); %>
 
         <div class=" container mx-auto p-6 divide-x">
@@ -17,7 +17,7 @@
                     <div class="grow">
                         <%- await include("views/teacher/contest-submits.ejs", {submits: submits}); %>
 
-                            <div class="flex flex-row space-x-4 items-center mt-2 p-2 border-t border-zinc-700">
+                            <div class="flex flex-row space-x-4 items-center mt-2 p-2 border-t border-slate-700">
                                 <b> Page </b>
                                 <% for (const page of pages) { %>
                                     <a class="<% if (page.number == active_page) { %> 
