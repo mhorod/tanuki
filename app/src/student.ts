@@ -18,40 +18,8 @@ interface StudentRouterConfig {
 }
 
 function setUpStudentRouter(router: IRouter, config: StudentRouterConfig) {
-    [setUpDashboard, setUpResults].forEach(f => f(router, config))
+    [setUpResults].forEach(f => f(router, config))
 }
-
-function setUpDashboard(router: IRouter, config: StudentRouterConfig) {
-    router.get("/", redirectIfAuthenticated(config.authenticator, '/dashboard'), (_, res, __) => res.render("index"));
-
-    router.get("/dashboard/student",
-        authenticatedOnly(config.authenticator),
-        async (req, res, next) => {
-            const user = await config.authenticator.authenticateRequest(req);
-            if (!user)
-                throw Error("User was authorized and should not be null");
-
-            const contests = await config.contestDB.getUserContests(user.id);
-            const filters = {
-                user: user.id,
-                page: 1,
-                limit: 5,
-                problem: null,
-                contest: null
-            }
-            const recent_submits = await config.recentResultsDB.getSubmits(filters)
-            const due_problems = await getUnsolvedProblemsThatAreCloseToTheDeadline(config.client, user.id, 5);
-            due_problems?.map(p => (p as any).due_date = formatDateWithoutTime(p.due_date))
-
-            renderWithUserData(config.authenticator, "student-dashboard", {
-                contests: contests,
-                recent_submits: recent_submits,
-                due_problems: due_problems,
-            })(req, res, next);
-        });
-
-}
-
 
 
 function setUpResults(router: IRouter, config: StudentRouterConfig) {

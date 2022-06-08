@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <%- await include("views/common-head.ejs"); %>
+    <title>
+      Tanuki
+    </title>
+</head>
+
+<body class="bg-zinc-900 text-white">
+  <%- await include("views/nav.ejs", {user: user}); %>
+
+    <div class=" container mx-auto p-6 divide-x">
+      <div class="flex flex-col md:flex-row gap-5">
+        <div class="grow flex flex-col gap-5">
+          <% if (is_admin) { %>
+            <a class="normal-btn" href="/dashboard/admin"> Admin panel </a>
+            <% } %>
+
+              <% if (teacher_contests.length> 0) { %>
+                <div>
+                  <h3 class="text-2xl font-semibold mt-0 mb-2 text-slate-100">Managed contests</h3>
+                  <% for (const contest of teacher_contests) { %>
+                    <a href="/teacher/contest/<%= contest.id %>" class="text-link cursor-pointer py-2 ">
+                      <%= contest.name %>
+                    </a>
+                    <% } %>
+                </div>
+                <% } %>
+
+                  <% if (student_contests.length> 0) { %>
+
+                    <div>
+                      <h3 class="text-2xl font-semibold mt-0 mb-2 text-slate-100">Your contests</h3>
+                      <div class="flex flex-col mb-4 items-start">
+                        <% for (const contest of student_contests) { %>
+                          <a href="/contest/<%= contest.id %>" class="text-link cursor-pointer py-2 ">
+                            <%= contest.name %>
+                          </a>
+                          <% } %>
+                      </div>
+
+                      <%- await include("views/recent-submits.ejs", {submits: recent_submits}); %>
+                    </div>
+                    <% } %>
+
+        </div>
+        <% if (due_problems.length> 0) { %>
+          <%- await include("views/sidebar.ejs", {problems: due_problems}); %>
+            <% } %>
+      </div>
+    </div>
+
+    <%- await include("views/common-scripts.ejs"); %>
+</body>
+
+</html>
