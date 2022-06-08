@@ -9,3 +9,115 @@ CREATE OR REPLACE VIEW problem_scores AS
         st.name != 'REJ'
     GROUP BY
         1, 2; 
+
+CREATE OR REPLACE FUNCTION task_group_status(submit_id INT, task_group_id INT)
+RETURNS INT AS $$
+    SELECT tr.status_id 
+    FROM tasks t
+    LEFT JOIN (SELECT * FROM task_results tr WHERE tr.submit_id = $1) tr ON (tr.task_id = t.id)
+    LEFT JOIN statuses s ON (tr.status_id = s.id)
+    WHERE t.task_group = $2
+    ORDER BY s.priority DESC NULLS FIRST
+    LIMIT 1;
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION task_group_points(submit_id INT, task_group_id INT)
+RETURNS NUMERIC AS $$
+    SELECT SUM(
+        CASE
+            WHEN tr.status_id IS NULL THEN NULL
+            WHEN tr.status_id = 1 THEN t.points
+            ELSE 0
+        END
+    ) 
+    FROM tasks t
+    LEFT JOIN (SELECT * FROM task_results tr WHERE tr.submit_id = $1) tr ON (tr.task_id = t.id)
+    WHERE t.task_group = $2
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION submit_status(submit_id INT)
+RETURNS INT AS $$
+    WITH tg_statuses AS (
+        SELECT tg.id AS "id", task_group_status($1, tg.id) AS "status"
+        FROM submits s
+        JOIN task_groups tg USING(problem_id)
+        WHERE s.id = $1
+    )
+    SELECT tgs.status 
+    FROM tg_statuses tgs 
+    JOIN statuses s ON(tgs.status = s.id)
+    ORDER BY s.priority DESC NULLS FIRST
+    LIMIT 1;
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION submit_points(submit_id INT)
+RETURNS NUMERIC AS $$
+    SELECT  SUM (
+        CASE 
+            WHEN task_group_status($1, tg.id) IS NULL THEN NULL
+            WHEN tg.requires_all_ok AND task_group_status($1, tg.id) != 1 THEN 0
+            ELSE task_group_points($1, tg.id)
+        END
+    )
+    FROM submits s
+    JOIN task_groups tg USING(problem_id)
+    WHERE s.id = $1
+$$ LANGUAGE SQL;
+
+SELECT submit_points(1);
+
+CREATE OR REPLACE FUNCTION check_results_integrity(submit_id INT)
+RETURNS BOOLEAN AS $$
+    SELECT COALESCE(bool_and(tr.id IS NOT NULL AND t.id IS NOT NULL), True)
+    FROM (
+        SELECT task_id AS id 
+        FROM task_results 
+        WHERE submit_id = $1
+    ) tr 
+    FULL OUTER JOIN 
+    (
+        SELECT t.id AS id 
+        FROM tasks t 
+        JOIN task_groups tg ON (t.task_group = tg.id) 
+        JOIN submits s ON (tg.problem_id = s.problem_id)
+        WHERE s.id = $1
+    ) t 
+    ON (t.id = tr.id)
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION max_points(problem_id INT)
+RETURNS NUMERIC AS $$
+    SELECT SUM(points) 
+    FROM tasks t 
+    JOIN task_groups tg ON (tg.id = t.task_group)
+    WHERE tg.problem_id = $1;
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION score_multiplier(due_date timestamptz, closing_date timestamptz, submit_time timestamptz, scoring_method INT)
+RETURNS NUMERIC AS $$
+    SELECT CASE scoring_method 
+        WHEN 1 THEN CASE
+            WHEN submit_time < due_date THEN 1.0
+            WHEN submit_time < closing_date THEN EXTRACT(EPOCH FROM (closing_date - submit_time)) / EXTRACT(EPOCH FROM (closing_date - due_date))
+            ELSE 0
+        END
+        WHEN 2 THEN CASE
+            WHEN submit_time < due_date THEN 1.0
+            ELSE EXTRACT(EPOCH FROM (closing_date - submit_time)) / EXTRACT(EPOCH FROM (closing_date - due_date))
+        END
+    END
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION submit_score(submit_id INT)
+RETURNS NUMERIC AS $$
+    SELECT 
+    CASE p.uses_points
+        WHEN true THEN p.points * submit_points(s.id) / max_points(p.id) * score_multiplier(p.due_date, p.closing_date, s.submission_time, p.scoring_method)
+        ELSE CASE submit_status(submit_id) 
+            WHEN 1 THEN p.points 
+            ELSE 0
+        END
+    END
+    FROM submits s JOIN problems p ON (p.id = s.problem_id)
+    WHERE s.id = $1;
+$$ LANGUAGE SQL;

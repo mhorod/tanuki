@@ -297,7 +297,7 @@ INSERT INTO task_results VALUES (1, 1, 1, NULL, 3.0, 123456);
 INSERT INTO submit_results VALUES (1, 5.0, 1);
 
 INSERT INTO submits VALUES ('submitted_files/321aja.cpp', 4, 3, 2, '2022-11-01 21:38');
-INSERT INTO task_results VALUES (2, 1, 1, NULL, 3.0, 123456);
+INSERT INTO task_results VALUES (2, 2, 1, NULL, 3.0, 123456);
 INSERT INTO submit_results VALUES (2, 5.0, 1);
 
 INSERT INTO submits VALUES ('submitted_files/adsf23.cpp', 4, 6, 3, '2025-11-01 16:24');
