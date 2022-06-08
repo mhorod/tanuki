@@ -51,9 +51,6 @@ class Problems:
         due = due.strftime('%Y-%m-%d, %H:%M:%S')
         close = close.strftime('%Y-%m-%d, %H:%M:%S')
 
-        if random.random() < 0.1:
-            due = close = None
-
         statement_uri = "/problems/dummy"
         uses_points = random.random() < 0.5
 

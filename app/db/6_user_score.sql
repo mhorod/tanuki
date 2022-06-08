@@ -119,7 +119,7 @@ RETURNS NUMERIC AS $$
             WHEN submit_time < closing_date THEN EXTRACT(EPOCH FROM (closing_date - submit_time)) / EXTRACT(EPOCH FROM (closing_date - due_date))
             ELSE 0
         END
-        WHEN 3 THEN CASE -- LINER_TO_NEGATIVE
+        WHEN 3 THEN CASE -- LINEAR_TO_NEGATIVE
             WHEN submit_time < due_date THEN 1.0
             ELSE EXTRACT(EPOCH FROM (closing_date - submit_time)) / EXTRACT(EPOCH FROM (closing_date - due_date))
         END
@@ -132,7 +132,7 @@ RETURNS NUMERIC AS $$
     CASE p.uses_points
         WHEN true THEN p.points * submit_points(s.id) / max_points(p.id) * score_multiplier(p.due_date, p.closing_date, s.submission_time, p.scoring_method)
         ELSE CASE submit_status(submit_id) 
-            WHEN 1 THEN p.points 
+            WHEN 4 THEN p.points  -- 4 is OK
             ELSE 0
         END
     END
