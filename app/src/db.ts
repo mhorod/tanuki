@@ -134,6 +134,10 @@ enum SubmitResult {
 interface ContestDB {
   getUserContests(user_id: number): Promise<Array<Contest>>;
   getAllContests(): Promise<Array<Contest>>;
+
+  getTeacherContests(user_id: number): Promise<Array<Contest>>;
+  getStudentContests(user_id: number): Promise<Array<Contest>>;
+
   getUserSubmits(user_id: number, limit: number): Promise<Array<Submit>>;
   getContestById(id: number): Promise<Contest | null>;
   addNewContest(contest: NewContest): Promise<Contest | null>;

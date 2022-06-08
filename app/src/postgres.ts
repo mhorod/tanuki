@@ -4,11 +4,10 @@
 
 import { Client, ClientOptions } from "../deps.ts"
 
-import type { Submit, Contest, Problem, GraphicalProblem } from "./db.ts"
-import type { User, NewUser, NewSubmit, NewContest, EditedUser } from "./db.ts";
-import type { ContestDB, UserDB, CredentialDB, ProblemDB, GraphicalProblemDB, SubmitDB, ResultDB } from "./db.ts";
+import type { Submit, Contest, GraphicalProblem } from "./db.ts"
+import type { User, NewUser, NewContest, EditedUser } from "./db.ts";
+import type { ContestDB, UserDB, CredentialDB, GraphicalProblemDB, ResultDB } from "./db.ts";
 
-import type { PermissionDB } from "./permissions.ts"
 
 import { bcrypt } from "../deps.ts"
 
@@ -35,16 +34,36 @@ async function getUser(client: Client, login: string): Promise<User | null> {
     }
 }
 
-const submitQuery = `
-`;
-async function getSubmits(client: Client): Promise<Array<Submit>> {
-    return (await client.queryObject<Submit>(submitQuery)).rows;
-}
-
 class PostgresContestDB implements ContestDB {
     client: Client;
 
     constructor(client: Client) { this.client = client; }
+    async getTeacherContests(user_id: number): Promise<Contest[]> {
+        const query = `
+        SELECT 
+            c.* 
+        FROM 
+            contests c 
+            JOIN teacher_contests uc ON c.id = uc.contest_id
+        WHERE 
+            uc.user_id = $1
+        `
+        return (await this.client.queryObject<Contest>(query, [user_id])).rows;
+    }
+
+    async getStudentContests(user_id: number): Promise<Contest[]> {
+
+        const query = `
+        SELECT 
+            c.* 
+        FROM 
+            contests c 
+            JOIN student_contests uc ON c.id = uc.contest_id
+        WHERE 
+            uc.user_id = $1
+        `
+        return (await this.client.queryObject<Contest>(query, [user_id])).rows;
+    }
 
     async deleteContest(id: number): Promise<boolean> {
         const query = `

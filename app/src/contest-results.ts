@@ -1,15 +1,14 @@
 // Common interface of rendering user results for students and for teachers
 // The difference is that teacher sees results of all users and student only their own
 
-export type { Filters, ContestResults, SubmitResultsDB }
+export type { Filters, ContestResults, RecentResultsDB }
 export { getResults, getFilters }
 
 import { OpineRequest } from "../deps.ts"
-import { Submit } from "./db.ts"
+import { ShortSubmitResults } from "./submitDB.ts"
 
-
-interface SubmitResultsDB {
-    getSubmits(first: number, last: number, filters: Filters): Promise<Array<Submit>>;
+interface RecentResultsDB {
+    getSubmits(filters: Filters): Promise<Array<ShortSubmitResults>>;
     getPageCount(filters: Filters): Promise<number>;
 }
 
@@ -17,6 +16,8 @@ interface Filters {
     page: number,
     limit: number,
     problem: number | null,
+    contest: number | null,
+    user: number | null,
 }
 
 interface Page {
@@ -25,14 +26,12 @@ interface Page {
 }
 
 interface ContestResults {
-    submits: Submit[],
+    submits: ShortSubmitResults[],
     pages: Page[],
 }
 
-async function getResults(filters: Filters, db: SubmitResultsDB): Promise<ContestResults> {
-    const first = (filters.page - 1) * filters.limit;
-    const last = filters.page * filters.limit;
-    const submits = await db.getSubmits(first, last, filters);
+async function getResults(filters: Filters, db: RecentResultsDB): Promise<ContestResults> {
+    const submits = await db.getSubmits(filters);
     const page_count = await db.getPageCount(filters)
     const pages = [...Array(page_count).keys()]
         .map(n => n + 1)
@@ -49,7 +48,7 @@ function getFilters(req: OpineRequest): Filters {
     const DEFAULT_LIMIT = 20;
 
     let problem: number | null = parseInt(req.query.problem || '');
-    problem = isNaN(problem) ? null : problem;
+    problem = isNaN(problem) || problem == 0 ? null : problem;
 
     let page: number | null = parseInt(req.query.page || '');
     page = isNaN(page) ? DEFAULT_PAGE : page;
@@ -57,7 +56,7 @@ function getFilters(req: OpineRequest): Filters {
     let limit: number | null = parseInt(req.query.limit || '');
     limit = isNaN(limit) ? DEFAULT_LIMIT : limit;
 
-    return { page, problem, limit }
+    return { page, problem, limit, contest: null, user: null }
 }
 
 function paramsToHref(params: Filters): string {

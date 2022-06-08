@@ -119,7 +119,7 @@ RETURNS NUMERIC AS $$
             WHEN submit_time < closing_date THEN EXTRACT(EPOCH FROM (closing_date - submit_time)) / EXTRACT(EPOCH FROM (closing_date - due_date))
             ELSE 0
         END
-        WHEN 3 THEN CASE -- LINER_TO_NEGATIVE
+        WHEN 3 THEN CASE -- LINEAR_TO_NEGATIVE
             WHEN submit_time < due_date THEN 1.0
             ELSE EXTRACT(EPOCH FROM (closing_date - submit_time)) / EXTRACT(EPOCH FROM (closing_date - due_date))
         END
@@ -132,7 +132,7 @@ RETURNS NUMERIC AS $$
     CASE p.uses_points
         WHEN true THEN p.points * submit_points(s.id) / max_points(p.id) * score_multiplier(p.due_date, p.closing_date, s.submission_time, p.scoring_method)
         ELSE CASE submit_status(submit_id) 
-            WHEN 1 THEN p.points 
+            WHEN 4 THEN p.points  -- 4 is OK
             ELSE 0
         END
     END
@@ -148,35 +148,3 @@ CREATE OR REPLACE VIEW task_scores AS
         t.memory_limit, t.show_output
     FROM task_results tr
     JOIN tasks t ON tr.task_id = t.id;
-
-CREATE OR REPLACE VIEW rich_submit_results AS 
-        SELECT 
-            s.id,
-
-            s.problem_id,
-            p.short_name "short_problem_name",
-
-            p.contest_id,
-            c.name "contest_name",
-
-            s.user_id,
-            u.login "user_login",
-
-            l.name "language_name",
-            submission_time,
-            source_uri,
-            statuses.name "status",
-            statuses.id "status_id",
-
-            submit_points(s.id) "points",
-            max_points(s.problem_id) "max_points",
-            sr.score
-            
-        FROM
-            submits s
-            LEFT JOIN submit_results sr ON s.id = sr.submit_id
-            LEFT JOIN statuses ON statuses.id = sr.status
-            JOIN languages l ON s.language_id = l.id
-            JOIN problems p ON s.problem_id = p.id
-            JOIN contests c ON p.contest_id = c.id
-            JOIN users u ON s.user_id = u.id;
