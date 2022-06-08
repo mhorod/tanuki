@@ -23,8 +23,6 @@ interface TeacherRouterConfig {
 }
 
 function setUpTeacherRouter(router: IRouter, config: TeacherRouterConfig) {
-    router.get("/dashboard/teacher", renderWithUserData(config.authenticator, "teacher-dashboard"));
-
     setUpResults(router, config)
     const getContests = async (req: OpineRequest) => {
         const user = await config.authenticator.authenticateRequest(req);
@@ -142,14 +140,10 @@ function setUpResults(router: IRouter, config: TeacherRouterConfig) {
     router.get("/teacher/contest/:contest_id/results",
         authorizeContestAccess(config, PermissionKind.VIEW),
         async (req, res, next) => {
-            const user = await config.authenticator.authenticateRequest(req);
-            if (!user)
-                throw Error("User was authorized and should not be null");
-
             const contest_id = parseInt(req.params.contest_id);
             const filters = {
                 ...getFilters(req),
-                contest_id: contest_id
+                contest: contest_id
             }
 
             const contest = await config.contestDB.getContestById(contest_id)
@@ -162,6 +156,7 @@ function setUpResults(router: IRouter, config: TeacherRouterConfig) {
                 active_page: filters.page,
                 contest: contest,
                 problems: problems,
+                selected_problem: filters.problem,
             })(req, res, next);
         }
 

@@ -15,12 +15,17 @@
             <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
                 <%- await include("views/student/contest-nav.ejs", {contest: contest}) %>
                     <div class="grow">
-                        <%- await include("views/recent-submits.ejs", {submits: submits}); %>
+                        <%- await include("views/teacher/contest-submits.ejs", {submits: submits}); %>
 
                             <div class="flex flex-row space-x-4 items-center mt-2 p-2 border-t border-zinc-700">
                                 <b> Page </b>
                                 <% for (const page of pages) { %>
-                                    <a class="normal-btn" href="<%= page.href %>">
+                                    <a class="<% if (page.number == active_page) { %> 
+                                            submit-btn
+                                            <% } else { %>
+                                            normal-btn
+                                            <% } %>
+                                        " href="<%= page.href %>">
                                         <%= page.number %>
                                     </a>
                                     <% } %>
@@ -28,9 +33,14 @@
                             <form method="get" class="flex flex-row space-x-4 items-center mt-2 p-2">
                                 <b>Problem</b>
                                 <select name="problem" class="p-1 text-black">
+                                    <option value="<%= 0 %>">
+                                        All
+                                    </option>
                                     <% for (const problem of problems) { %>
-                                        <option value="<%= problem.id %>">
-                                            <%= problem.short_name %> (<%= problem.name %>)
+                                        <option <% if (selected_problem==problem.id) { %>
+                                            selected
+                                            <% } %> value="<%= problem.id %>">
+                                                    <%= problem.short_name %> (<%= problem.name %>)
                                         </option>
                                         <% } %>
                                 </select>

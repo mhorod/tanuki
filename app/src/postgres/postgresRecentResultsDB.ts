@@ -17,7 +17,7 @@ class PostgresRecentResultsDB implements RecentResultsDB {
             FROM 
                 short_submit_results
             WHERE 
-                TRUE AND ${this.filtersToSql(filters)}
+                TRUE ${this.filtersToSql(filters)}
             LIMIT $LIMIT OFFSET $BEGIN
         `
         const begin = filters.limit * (filters.page - 1)
@@ -36,7 +36,7 @@ class PostgresRecentResultsDB implements RecentResultsDB {
             FROM 
                 short_submit_results
             WHERE 
-                TRUE AND ${this.filtersToSql(filters)}
+                TRUE ${this.filtersToSql(filters)}
         `
 
         const query_params = filters;
@@ -50,8 +50,8 @@ class PostgresRecentResultsDB implements RecentResultsDB {
         let result = [0, 1, 2]
             .map(i => [sqls[i], values[i]])
             .filter(e => e[1] != null)
-            .map(e => e[0])
-            .join(" AND ")
+            .map(e => " AND " + e[0])
+            .join("")
         return result
     }
 }
