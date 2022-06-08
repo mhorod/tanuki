@@ -19,6 +19,23 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
  
+CREATE OR REPLACE FUNCTION task_result_points_cannot_exceed_max()
+RETURNS TRIGGER AS 
+$$
+  DECLARE
+    tmp NUMERIC;
+  BEGIN
+    SELECT points FROM task_results WHERE id = NEW.task_id INTO tmp;
+    IF new.points > tmp 
+        THEN RAISE EXCEPTION 'Insertion that compromises data integrity';
+    END IF;  
+    RETURN NEW;
+  END;  
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER task_points
+BEFORE INSERT ON task_results FOR EACH ROW EXECUTE PROCEDURE task_result_points_cannot_exceed_max();
+
 CREATE CONSTRAINT TRIGGER results_integrity_after_submit
     AFTER DELETE ON submits 
     DEFERRABLE INITIALLY DEFERRED 

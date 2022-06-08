@@ -1,3 +1,4 @@
+--A view that for each (user, problem) pair shows the newest submit (or a submit with an OK status)
 CREATE VIEW newest_submits_in_problems AS
 SELECT a1.user_id, a1.problem_id, a1.id, result
 FROM all_submits a1

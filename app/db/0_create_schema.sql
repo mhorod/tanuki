@@ -42,7 +42,7 @@ CREATE  TABLE tanuki.users (
  );
 
 CREATE  TABLE tanuki.administrators ( 
-	user_id              integer  NOT NULL REFERENCES tanuki.users
+	user_id              integer PRIMARY KEY REFERENCES tanuki.users
  );
 
 CREATE  TABLE tanuki.contest_permissions (
