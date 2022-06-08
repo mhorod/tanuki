@@ -1,8 +1,10 @@
---Contests
+-- Indexes on some things that are looked up often
+
+-- Contests
 CREATE INDEX contests_activity
 ON contests (is_active);
 
---Problems
+-- Problems
 CREATE INDEX problems_closing_date
 ON problems(closing_date);
 
@@ -12,7 +14,7 @@ ON problems(due_date);
 CREATE INDEX problems_contest_id
 ON problems(contest_id);
 
---Submits
+-- Submits
 CREATE INDEX submits_subbmision_time
 ON submits(submission_time);
 
@@ -22,19 +24,19 @@ ON submits(user_id);
 CREATE INDEX submits_problem_id
 ON submits(problem_id);
 
---Task groups
+-- Task groups
 CREATE INDEX task_groups_problem_id
 ON task_groups(problem_id);
 
---Tasks
+-- Tasks
 CREATE INDEX tasks_task_group
 ON tasks(task_group);
 
---Submit_results
+-- Submit results
 CREATE INDEX submit_results_status
 ON submit_results(status);
 
---Task_results
+-- Task results
 CREATE INDEX task_results_submit_id
 ON task_results(submit_id);
 

@@ -1,25 +1,19 @@
-CREATE OR REPLACE VIEW problem_scores AS 
+-- Finds status_id of given group for given submit
+-- Essentially it retrieves status with the highest priority from results of all tasks that belong to this group
+CREATE OR REPLACE FUNCTION task_group_status(submit_id INT, task_group_id INT) 
+RETURNS INT AS 
+$$
     SELECT 
-        user_id, problem_id, MAX(sr.score) "score"
+        tr.status_id 
     FROM 
-        submit_results sr
-        JOIN submits s ON s.id = sr.submit_id
-        JOIN statuses st ON sr.status = st.id
-    WHERE
-        st.name != 'REJ'
-    GROUP BY
-        1, 2; 
-
-CREATE OR REPLACE FUNCTION task_group_status(submit_id INT, task_group_id INT)
-RETURNS INT AS $$
-    SELECT tr.status_id 
-    FROM tasks t
-    LEFT JOIN (SELECT * FROM task_results tr WHERE tr.submit_id = $1) tr ON (tr.task_id = t.id)
-    LEFT JOIN statuses s ON (tr.status_id = s.id)
+        tasks t
+        LEFT JOIN (SELECT * FROM task_results tr WHERE tr.submit_id = $1) tr ON (tr.task_id = t.id)
+        LEFT JOIN statuses s ON (tr.status_id = s.id)
     WHERE t.task_group = $2
     ORDER BY s.priority DESC NULLS FIRST
     LIMIT 1;
-$$ LANGUAGE SQL;
+$$
+LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION task_group_points(submit_id INT, task_group_id INT)
 RETURNS NUMERIC AS $$
