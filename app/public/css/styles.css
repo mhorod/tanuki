@@ -1,3 +1,9 @@
+@media only screen and (max-width: 600px) {
+    * {
+        font-size: 14px;
+    }
+}
+
 input:disabled,
 textarea:disabled {
 
@@ -50,9 +56,11 @@ span[contenteditable="true"]:focus {
 /* Status styling */
 .status-tle,
 .status-rte,
+.status-mem,
 .status-ans,
 .status-TLE,
 .status-RTE,
+.status-MEM,
 .status-ANS {
     color: #e03c26;
 }

@@ -38,12 +38,15 @@
                     <h3 class="text-2xl font-semibold mt-0 mb-2 text-slate-100">
                         Treść zadania
                     </h3>
-                    <%= problem.statement %>
+                    <%- problem.statement %>
                 </div>
             </div>
         </div>
 
         <%- await include("views/common-scripts.ejs"); %>
+            <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+            <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+            </script>
 </body>
 
 </html>

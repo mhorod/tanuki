@@ -15,8 +15,9 @@
                     <thead>
                         <tr class="border-b border-white">
                             <th>name</th>
-                            <th>status</th>
                             <th>time</th>
+                            <th>memory</th>
+                            <th>status</th>
                         </tr>
                     </thead>
                     <tbody id="tab">
@@ -25,11 +26,14 @@
                                 <td class="px-2 py-2">
                                     <%= task.name %>
                                 </td>
-                                <td class="px-2 py-2 status-ok">
-                                    <%- await include("views/rich-status.ejs", {status: task.status}); %>
-                                </td>
                                 <td class="px-2 py-2">
                                     <%= task.execution_time %>s
+                                </td>
+                                <td class="px-2 py-2">
+                                    <%= task.used_memory_human_readable %>
+                                </td>
+                                <td class="px-2 py-2">
+                                    <%- await include("views/rich-status.ejs", {status: task.status}); %>
                                 </td>
                             </tr>
                             <% } %>

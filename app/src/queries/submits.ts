@@ -31,7 +31,7 @@ async function getUnsolvedProblemsThatAreCloseToTheDeadline(client: Client, user
         p.uses_points, p.points, p.due_date, p.closing_date,
         p.published, p.scoring_method, p.source_limit
         FROM users u
-        JOIN contests_permissions cp ON cp.user_id = u.id
+        JOIN contest_permissions cp ON cp.user_id = u.id
         JOIN permissions_for_contests pfc ON cp.permission_id = pfc.id
         JOIN contests c ON cp.contest_id = c.id
         JOIN problems p ON p.contest_id = cp.contest_id
@@ -41,7 +41,7 @@ async function getUnsolvedProblemsThatAreCloseToTheDeadline(client: Client, user
             JOIN submits s ON s.id = sr.submit_id
             WHERE sr.status = 1 AND s.problem_id = p.id AND s.user_id = $1
             LIMIT 1
-        ) IS NULL
+        ) IS NULL AND p.closing_date > now()
         ORDER BY p.due_date ASC
         LIMIT $2
     `;
