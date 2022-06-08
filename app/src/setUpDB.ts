@@ -4,6 +4,7 @@ import { PostgresCredentialDB, PostgresUserDB, PostgresGraphicalProblemDB } from
 import { PostgresPermissionDB } from "./postgres/postgresPermissionDB.ts"
 import { PostgresProblemDB } from "./postgres/postgresProblemDB.ts"
 import { PostgresSubmitDB } from "./postgres/postgresSubmitDB.ts"
+import { PostgresTaskDB } from "./postgres/postgresTaskDB.ts"
 import { PostgresLanguageDB } from "./queries/language.ts"
 import { PostgresSubmitResultsDB } from "./submitDB.ts"
 
@@ -29,6 +30,7 @@ export default async function (options: ClientOptions) {
         permissionDB: new PostgresPermissionDB(client),
         languageDB: new PostgresLanguageDB(client),
         graphicalProblemDB: new PostgresGraphicalProblemDB(client),
+        taskDB: new PostgresTaskDB(client),
         submitResultsDB: new PostgresSubmitResultsDB(client),
     }
 
