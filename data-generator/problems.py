@@ -61,7 +61,8 @@ class Problems:
         position = -1
         scoring_method = -1
         published = random.random() < 0.75
-        source_limit = random.choice([1024, 1048576]) * random.randint(1, 100)
+        # Between 5 and 100kB
+        source_limit = 1024 * random.randint(5, 100)
         return Problem(
             name,
             short_name,
