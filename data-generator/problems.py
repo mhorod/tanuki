@@ -42,8 +42,8 @@ class Problems:
         short_name = self.short_names.text(max_nb_chars=8)
 
         points = int(random.random() * 5) / 10
-        due = fake.date_time_between()
-        close = fake.date_time_between()
+        due = fake.date_time_between('-1y', '+1y')
+        close = fake.date_time_between('-1y', '+1y')
 
         if due > close:
             due, close = close, due
@@ -51,7 +51,7 @@ class Problems:
         due = due.strftime('%Y-%m-%d, %H:%M:%S')
         close = close.strftime('%Y-%m-%d, %H:%M:%S')
 
-        if random.random() < 0.25:
+        if random.random() < 0.1:
             due = close = None
 
         statement_uri = "/problems/dummy"
@@ -116,6 +116,7 @@ def populate_contest_problems(db, contest_id, count):
         problem.contest_id = contest_id
         problem.position = i
         problem.scoring_method = random.choice(scoring_methods).id
+        problem.short_name = chr(ord('A') + i)
         assign_languages(db, problem.id, random.randint(1, 3))
 
 
