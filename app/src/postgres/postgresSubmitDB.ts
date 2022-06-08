@@ -20,26 +20,20 @@ class PostgresSubmitDB implements SubmitDB {
             $3,
             $4,
             current_timestamp
-        )
+        ) RETURNING id
         `;
-        this.client.queryObject<Submit>(query, insertTable);
+        const submit_id = (await this.client.queryObject<{ id: number }>(query, insertTable)).rows[0].id;
+        const submit = await this.getSubmitById(submit_id);
+        console.log(submit);
 
-        //That's a truly terrible query
-        const queryResult = await this.client.queryObject<Submit>("SELECT * FROM submits WHERE source_uri = $1", [newSubmit.source_uri]);
-
-        if (queryResult.rowCount == 0) {
-            return null;
-        }
-        else {
-            const submit = queryResult.rows[0];
-            return submit;
-        }
+        return submit;
     }
 
     async getSubmitById(id: number): Promise<Submit | null> {
         const query = `
         SELECT 
             s.id,
+            s.problem_id,
             source_uri,
             sr.score,
             statuses.name "status",

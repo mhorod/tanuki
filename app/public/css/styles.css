@@ -32,10 +32,9 @@ input:focus {
 }
 
 span[contenteditable="true"] {
-    padding: 2px;
     background-color: transparent;
-    border-color: #777777;
-    border-width: 2px;
+    border: 2px #777777 solid;
+    min-width: 30px;
     display: block;
 }
 
@@ -88,10 +87,6 @@ span[contenteditable="true"]:focus {
     height: 32px;
 }
 
-span[contenteditable="true"] {
-    display: block;
-    border: 1px solid #10b981;
-}
 
 .lds-dual-ring:after {
     content: " ";

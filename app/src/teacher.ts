@@ -47,9 +47,6 @@ function setUpTeacherRouter(router: IRouter, config: TeacherRouterConfig) {
         const contest = await config.contestDB.getContestById(+req.params.contest_id);
         const problem = await config.problemDB.getProblemById(+req.params.problem_id);
         const tasks = await config.taskDB.getTasks(+req.params.problem_id);
-        for (const group of tasks.groups) {
-            console.log(group.tasks);
-        }
         renderWithUserData(config.authenticator, "teacher/edit-problem", { contest, problem, tasks })(req, res, next);
     });
     router.get("/contest/:contest_id/problem/:problem_id/delete", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
@@ -66,7 +63,7 @@ function setUpTeacherRouter(router: IRouter, config: TeacherRouterConfig) {
             statement_uri: req.parsedBody['statement-uri'],
             uses_points: req.parsedBody['uses_points'] !== undefined,
             position: 0,
-            points: req.parsedBody['pointes'],
+            points: req.parsedBody['points'],
             due_date: req.parsedBody['due-date'],
             closing_date: req.parsedBody['closing-date'],
             published: req.parsedBody['published'] !== undefined,

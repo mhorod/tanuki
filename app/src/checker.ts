@@ -1,33 +1,52 @@
 // Dummy checker that assigns statuses to problems
 import { Client } from "../deps.ts"
+import { Submit } from "./db.ts";
 import { PostgresResultDB } from "./postgres.ts"
+import { SubmitResultsDB, NewTaskResult } from "./submitDB.ts"
+import { TaskDB } from "./taskDB.ts"
 interface Checker {
-    submit(id: number, source_uri: string): Promise<string>;
+    submit(submit: Submit, source_uri: string): Promise<string>;
     listen(submit_id: number, callback: any): void;
 }
 
 interface CheckerConfig {
     client: Client,
+    submitResultsDB: SubmitResultsDB,
+    taskDB: TaskDB,
 }
 
-class MockChecker {
+class MockChecker implements Checker {
     config: CheckerConfig | null = null;
     listeners: Map<number, Array<any>>;
     constructor() {
         this.listeners = new Map();
     }
 
-    async submit(id: number, source_uri: string): Promise<string> {
-        const statuses = ["OK", "REJ", "RTE", "TLE", "ANS", "CME"];
+    async submit(submit: Submit, source_uri: string): Promise<string> {
+        const statuses = [4, 4, 4, 4, 4, 3, 5, 6, 7];
         return new Promise((resolve, reject) =>
-            setTimeout(() => {
-                const status = statuses[Math.floor(Math.random() * statuses.length)];
-                const listeners = this.listeners.get(id) || [];
+            setTimeout(async () => {
+                const tasks = await this.config?.taskDB.getTasks(submit.problem_id);
+                console.log(tasks);
+                const results: NewTaskResult[] = [];
+                for (const group of tasks.groups) {
+                    for (const task of group.tasks) {
+                        results.push({
+                            task_id: task.id,
+                            summary: "",
+                            execution_time: Math.random(),
+                            used_memory: Math.round(Math.random() * 10000),
+                            status_id: statuses[Math.floor(Math.random() * statuses.length)]
+
+                        })
+                    }
+                }
+                const listeners = this.listeners.get(submit.id) || [];
                 for (const l of listeners)
-                    l(status);
-                this.listeners.delete(id);
-                this.setStatus(id, 2, status);
-                resolve(status)
+                    l("OK");
+                this.listeners.delete(submit.id);
+                this.setStatus(submit.id, 2, "OK");
+                resolve("OK")
             }, 5000))
     }
 
