@@ -1,3 +1,4 @@
+--Triggers that are responsible for deleting things without causing any errors related to foreign keys
 CREATE OR REPLACE FUNCTION delete_user() RETURNS trigger AS $$
 BEGIN
     DELETE FROM contest_permissions WHERE user_id = old.id;
