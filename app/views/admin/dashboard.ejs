@@ -12,53 +12,13 @@
     <%- await include("views/nav.ejs", {user: user}); %>
 
         <div class=" container mx-auto p-6 divide-x">
-            <div class="flex flex-col md:flex-row gap-5">
-                <div class="grow">
-                    <h3 class="text-2xl font-semibold mt-0 mb-2 text-slate-100">Contests</h3>
-                    <div class="flex flex-col mb-4">
-                        <table class="table-auto w-full">
-                            <thead>
-                                <tr class="border-b border-white">
-                                    <th>short_name</th>
-                                    <th>name</th>
-                                    <th>active</th>
-                                    <th>actions</th>
-                                </tr>
-                            </thead>
-                            <% for (const contest of contests) { %>
-                                <tr class="hover:bg-slate-700 hover:cursor-pointer even:bg-slate-900 odd:bg-slate-800 text-center"
-                                    onclick="location.href='/admin/contest/<%= contest.id %>'">
-                                    <td class="p-2">
-                                        <%= contest.short_name%>
-                                    </td>
-                                    <td class="p-2">
-                                        <%= contest.name%>
-                                    </td>
-                                    <td class="p-2">
-                                        <% if(contest.is_active){ %>
-                                            <ion-icon style="color:lime" name="checkmark-outline" class="pt-2">
-                                            </ion-icon>
-                                            <% } else { %>
-                                                <ion-icon style="color:red" name="close-outline" class="pt-2">
-                                                </ion-icon>
-                                                <% } %>
-
-                                    </td>
-                                    <td class="p-2">
-                                        <a href="/admin/delete-contest/<%= contest.id %>">
-                                            <ion-icon style="color: red" name="trash-outline" class="pt-2"></ion-icon>
-                                        </a>
-                                    </td>
-
-                                </tr>
-                                <% } %>
-                        </table>
-                        <a href="/admin/add-contest" class="normal-btn"> add contest</a>
-                    </div>
-
-                </div>
+            <div class="flex flex-col gap-5">
+                <h3 class="text-2xl font-semibold mt-0 mb-2 text-slate-100">Admin panel</h3>
+                <a href="/admin/contests" class="normal-btn"> Edit
+                    contests</a>
                 <a href="/admin/users" class="normal-btn"> Edit
                     users</a>
+                <a href="/dashboard/student" class="normal-btn"> My contests </a>
             </div>
         </div>
 
