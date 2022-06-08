@@ -63,7 +63,7 @@ class PostgresProblemDB implements ProblemDB {
         from problems p
         join scoring_methods sm on p.scoring_method = sm.id
         where contest_id = $1
-        order by position
+        order by short_name
         `
         return (await this.client.queryObject<Problem>(query, [contest_id])).rows;
     }
