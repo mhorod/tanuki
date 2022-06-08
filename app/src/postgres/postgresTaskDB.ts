@@ -1,5 +1,5 @@
 import { Client, Transaction } from "../../deps.ts";
-import { TaskDB } from '../taskDB.ts';
+import { ProblemTasks, TaskDB, Task, TaskGroup } from '../taskDB.ts';
 
 class PostgresTaskDB implements TaskDB {
     client: Client;

@@ -10,6 +10,8 @@ import { PermissionKind, PermissionDB } from "./permissions.ts"
 import { Filters, getFilters, getResults, SubmitResultsDB } from "./contest-results.ts"
 import { ContestDB, ProblemDB, Submit, NewProblem, Problem, UserDB } from "./db.ts"
 
+import { TaskDB } from "./taskDB.ts"
+
 interface TeacherRouterConfig {
     authenticator: RequestAuthenticator,
     contestDB: ContestDB,

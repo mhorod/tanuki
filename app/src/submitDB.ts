@@ -60,6 +60,7 @@ interface TaskStatus {
 interface NewTaskResult {
     task_id: number,
     summary: string,
+    points: number,
     execution_time: number,
     used_memory: number,
     status_id: number,
@@ -84,8 +85,8 @@ class PostgresSubmitResultsDB implements SubmitResultsDB {
             await transaction.begin();
             for (const new_task_result of results) {
                 await transaction.queryObject(`
-                    INSERT INTO task_results VALUES ($1, $2, $3, $4, $5, $6)
-                `, [submit_id, new_task_result.task_id, new_task_result.status_id, new_task_result.summary, new_task_result.execution_time, new_task_result.used_memory]);
+                    INSERT INTO task_results VALUES ($1, $2, $3, $4, $5, $6, $7)
+                `, [submit_id, new_task_result.task_id, new_task_result.status_id, new_task_result.points, new_task_result.summary, new_task_result.execution_time, new_task_result.used_memory]);
             }
             await transaction.commit();
             return true;
@@ -150,6 +151,9 @@ class PostgresSubmitResultsDB implements SubmitResultsDB {
             JOIN task_groups tg ON ts.task_group = tg.id 
         WHERE 
             submit_id = $1
+        ORDER BY
+            group_name,
+            ts.name
         `
         const rows: any[] = (await this.client.queryObject(query, [submit_id])).rows;
         let groups = new Map<number, any>();

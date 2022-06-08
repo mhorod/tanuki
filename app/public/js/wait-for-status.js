@@ -20,6 +20,7 @@ function waitForStatus(id) {
     };
 
     socket.onmessage = function(event) {
+        window.location.reload()
         const status = event.data;
         console.log(status)
         statusElement.innerText = status;

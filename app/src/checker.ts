@@ -29,10 +29,14 @@ class MockChecker implements Checker {
                 const tasks = await this.config?.taskDB.getTasks(submit.problem_id);
                 console.log(tasks);
                 const results: NewTaskResult[] = [];
+                if (!tasks) throw Error("taski nie dziamają");
                 for (const group of tasks.groups) {
                     for (const task of group.tasks) {
+                        if (!task.id)
+                            throw Error("Task id should not be null")
                         results.push({
                             task_id: task.id,
+                            points: Math.round(Math.random() * 20) / 10,
                             summary: "",
                             execution_time: Math.random(),
                             used_memory: Math.round(Math.random() * 10000),
@@ -41,6 +45,9 @@ class MockChecker implements Checker {
                         })
                     }
                 }
+
+                await this.config?.submitResultsDB.setSubmitResults(submit.id, results)
+
                 const listeners = this.listeners.get(submit.id) || [];
                 for (const l of listeners)
                     l("OK");
