@@ -15,6 +15,7 @@ interface TeacherRouterConfig {
     contestDB: ContestDB,
     permissionDB: PermissionDB,
     problemDB: ProblemDB,
+    taskDB: TaskDB,
     userDB: UserDB
 }
 
@@ -45,7 +46,8 @@ function setUpTeacherRouter(router: IRouter, config: TeacherRouterConfig) {
     router.get("/contest/:contest_id/problem/:problem_id/edit", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
         const contest = await config.contestDB.getContestById(+req.params.contest_id);
         const problem = await config.problemDB.getProblemById(+req.params.problem_id);
-        renderWithUserData(config.authenticator, "teacher/edit-problem", { contest, problem })(req, res, next);
+        const tasks = await config.taskDB.getTasks(+req.params.problem_id);
+        renderWithUserData(config.authenticator, "teacher/edit-problem", { contest, problem, tasks })(req, res, next);
     });
     router.get("/contest/:contest_id/problem/:problem_id/delete", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
         await config.problemDB.deleteProblem(+req.params.problem_id);
@@ -61,18 +63,23 @@ function setUpTeacherRouter(router: IRouter, config: TeacherRouterConfig) {
             statement_uri: req.parsedBody['statement-uri'],
             uses_points: req.parsedBody['uses_points'] !== undefined,
             position: 0,
-            points: req.parsedBody['pointes'],
+            points: req.parsedBody['points'],
             due_date: req.parsedBody['due-date'],
             closing_date: req.parsedBody['closing-date'],
             published: req.parsedBody['published'] !== undefined,
             scoring_method: 1,
             source_limit: req.parsedBody['source-limit']
         }
-        if (await config.problemDB.updateProblem(problem)) {
-            res.redirect("/teacher/contest/" + req.params.contest_id);
-        } else {
+        const tasks = JSON.parse(req.parsedBody['tests']);
+
+        if (!await config.taskDB.updateTasks(+req.params.problem_id, tasks)) {
             const contest = await config.contestDB.getContestById(+req.params.contest_id);
-            renderWithUserData(config.authenticator, "teacher/edit-problem", { contest, problem, error: "could not edit problem" })(req, res, next);
+            renderWithUserData(config.authenticator, "teacher/edit-problem", { contest, problem, tasks, error: "could not edit tasks" })(req, res, next);
+        } else if (!await config.problemDB.updateProblem(problem)) {
+            const contest = await config.contestDB.getContestById(+req.params.contest_id);
+            renderWithUserData(config.authenticator, "teacher/edit-problem", { contest, problem, tasks, error: "could not edit problem" })(req, res, next);
+        } else {
+            res.redirect("/teacher/contest/" + req.params.contest_id);
         }
     });
 
