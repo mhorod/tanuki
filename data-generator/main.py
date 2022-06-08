@@ -11,7 +11,9 @@ from administrators import Administrators, populate_administrators
 from problems import Problems, ProblemLanguages, populate_problems
 from submits import Submit, Submits, populate_submits
 from submit_results import SubmitResults, populate_submit_results
-
+from task_groups import TaskGroups, populate_task_groups
+from tasks import Tasks, populate_tasks
+from task_results import TaskResults, populate_task_results
 
 @dataclass
 class DB:
@@ -27,6 +29,9 @@ class DB:
     problems: Problems = Problems()
     problem_languages: ProblemLanguages = ProblemLanguages()
     submits: Submits = Submits()
+    task_groups: TaskGroups = TaskGroups()
+    tasks: Tasks = Tasks()
+    task_results: TaskResults = TaskResults()
     submit_results: SubmitResults = SubmitResults()
 
 
@@ -38,8 +43,12 @@ populate_contest_permissions(db)
 populate_administrators(db, 5)
 populate_problems(db, 10)
 populate_submits(db, 50)
+populate_task_groups(db, 5)
+populate_tasks(db, 10)
+populate_task_results(db)
 populate_submit_results(db)
 
+print("SET search_path TO tanuki;")
 for table_name, table in db.__dict__.items():
     s = serialize(table_name, table.entries())
     print(s)
