@@ -28,9 +28,9 @@ interface SubmitResults {
 interface Status {
     id: number,
     name: string,
-    points: number,
-    max_points: number,
-    score: number,
+    points: number | null,
+    max_points: number | null,
+    score: number | null,
 }
 
 interface GroupResult {
@@ -71,38 +71,19 @@ class PostgresSubmitResultsDB implements SubmitResultsDB {
     async getSubmitResults(submit_id: number, sourceManager: SourceManager): Promise<SubmitResults> {
         const query = `
         SELECT 
-            s.id,
-
-            s.problem_id,
-            p.short_name "short_problem_name",
-
-            p.contest_id,
-            c.name "contest_name",
-
-            s.user_id,
-            u.login "user_login",
-
-            l.name "language_name",
-            submission_time,
-            source_uri,
-            sr.score,
-            statuses.name "status",
-            statuses.id "status_id"
-        FROM
-            submits s
-            LEFT JOIN submit_results sr ON s.id = sr.submit_id
-            LEFT JOIN statuses ON statuses.id = sr.status
-            JOIN languages l ON s.language_id = l.id
-            JOIN problems p ON s.problem_id = p.id
-            JOIN contests c ON p.contest_id = c.id
-            JOIN users u ON s.user_id = u.id
+            * 
+        FROM 
+            rich_submit_results
         WHERE
-            s.id = $1
+            id = $1
         `
         const queryResult = await this.client.queryObject<any>(query, [submit_id]);
         const row: any = queryResult.rows[0];
         const group_results = row.status ? await this.getGroupResults(submit_id) : [];
 
+        const points = row.status ? Math.round(10 * row.points) / 10 : null
+        const max_points = row.status ? Math.round(10 * row.max_points) / 10 : null
+        const score = row.status ? Math.round(10 * row.score) / 10 : null
         let results: SubmitResults = {
             id: row.id,
 
@@ -122,9 +103,9 @@ class PostgresSubmitResultsDB implements SubmitResultsDB {
             status: {
                 id: row.status_id,
                 name: row.status || "QUE",
-                points: 0.5,
-                max_points: 0,
-                score: row.score,
+                points,
+                max_points,
+                score
             },
             group_results: group_results,
         };

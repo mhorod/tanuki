@@ -143,3 +143,35 @@ CREATE OR REPLACE VIEW task_scores AS
         t.memory_limit, t.show_output
     FROM task_results tr
     JOIN tasks t ON tr.task_id = t.id;
+
+CREATE OR REPLACE VIEW rich_submit_results AS 
+        SELECT 
+            s.id,
+
+            s.problem_id,
+            p.short_name "short_problem_name",
+
+            p.contest_id,
+            c.name "contest_name",
+
+            s.user_id,
+            u.login "user_login",
+
+            l.name "language_name",
+            submission_time,
+            source_uri,
+            statuses.name "status",
+            statuses.id "status_id",
+
+            submit_points(s.id) "points",
+            max_points(s.problem_id) "max_points",
+            sr.score
+            
+        FROM
+            submits s
+            LEFT JOIN submit_results sr ON s.id = sr.submit_id
+            LEFT JOIN statuses ON statuses.id = sr.status
+            JOIN languages l ON s.language_id = l.id
+            JOIN problems p ON s.problem_id = p.id
+            JOIN contests c ON p.contest_id = c.id
+            JOIN users u ON s.user_id = u.id;
