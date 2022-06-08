@@ -66,6 +66,7 @@ interface GraphicalProblem {
  */
 interface Submit {
   id: number,
+  problem_id: number,
   source_uri: string,
   points: number,
   status: string,

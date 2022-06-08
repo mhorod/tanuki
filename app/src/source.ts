@@ -36,13 +36,8 @@ class BasicSourceManager implements SourceManager {
     }
 
     async addSource(uri: string, content: any): Promise<boolean> {
-        try {
-            await Deno.writeFile(join(ROOT, uri), content);
-            return true;
-        }
-        catch {
-            return false;
-        }
+        await Deno.writeFile(join(ROOT, uri), content);
+        return true;
     }
 
     async loadSource(uri: string): Promise<string | null> {

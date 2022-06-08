@@ -4,10 +4,9 @@ import { PostgresCredentialDB, PostgresUserDB, PostgresGraphicalProblemDB } from
 import { PostgresPermissionDB } from "./postgres/postgresPermissionDB.ts"
 import { PostgresProblemDB } from "./postgres/postgresProblemDB.ts"
 import { PostgresSubmitDB } from "./postgres/postgresSubmitDB.ts"
+import { PostgresTaskDB } from "./postgres/postgresTaskDB.ts"
 import { PostgresLanguageDB } from "./queries/language.ts"
 import { PostgresSubmitResultsDB } from "./submitDB.ts"
-
-import { Populator, PostgresPopulator } from "./populator.ts"
 
 import { ClientOptions } from "../deps.ts"
 /**
@@ -29,6 +28,7 @@ export default async function (options: ClientOptions) {
         permissionDB: new PostgresPermissionDB(client),
         languageDB: new PostgresLanguageDB(client),
         graphicalProblemDB: new PostgresGraphicalProblemDB(client),
+        taskDB: new PostgresTaskDB(client),
         submitResultsDB: new PostgresSubmitResultsDB(client),
     }
 
@@ -55,9 +55,9 @@ export default async function (options: ClientOptions) {
 
     try {
         // Give admin2 permission to submit to two contests
-        await client.queryArray("INSERT INTO contests_permissions VALUES (7, 2, 2)");
-        await client.queryArray("INSERT INTO contests_permissions VALUES (7, 1, 2)");
-        await client.queryArray("INSERT INTO contests_permissions VALUES (7, 2, 1)");
+        await client.queryArray("INSERT INTO contest_permissions VALUES (7, 2, 2)");
+        await client.queryArray("INSERT INTO contest_permissions VALUES (7, 1, 2)");
+        await client.queryArray("INSERT INTO contest_permissions VALUES (7, 2, 1)");
     } catch {
         // If that failed then welp, he already has those permissions
     }
@@ -66,8 +66,5 @@ export default async function (options: ClientOptions) {
         await client.queryArray("INSERT INTO administrators VALUES (7)");
     } catch { }
 
-    let populator = new PostgresPopulator();
-    //populator.generatePeople(db.userDB);
-    ///asdasdas
     return db;
 }

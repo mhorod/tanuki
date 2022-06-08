@@ -21,7 +21,7 @@ class PostgresPermissionDB implements PermissionDB {
         const query = `
             SELECT users.*
             FROM users JOIN 
-            contests_permissions ON(id = user_id)
+            contest_permissions ON(id = user_id)
             WHERE contest_id = $1 AND permission_id=1
         `
 
@@ -31,7 +31,7 @@ class PostgresPermissionDB implements PermissionDB {
         const query = `
             SELECT users.*
             FROM users JOIN 
-            contests_permissions ON(id = user_id)
+            contest_permissions ON(id = user_id)
             WHERE contest_id = $1 AND permission_id=2
         `
 
@@ -42,7 +42,7 @@ class PostgresPermissionDB implements PermissionDB {
         //To submit: permission_id 1
         const query = `
             SELECT permission_id
-            FROM contests_permissions cp
+            FROM contest_permissions cp
             JOIN permissions_for_contests pfc ON cp.permission_id = pfc.id
             WHERE user_id = $1 AND contest_id = $2 AND pfc.name = $3
         `;
@@ -59,7 +59,7 @@ class PostgresPermissionDB implements PermissionDB {
         //ANY permission means that you can view
         const query = `
             SELECT permission_id
-            FROM contests_permissions
+            FROM contest_permissions
             WHERE user_id = $1 AND contest_id = $2
         `;
         const permissionType = await this.client.queryObject(query, [user, contest]);
@@ -75,7 +75,7 @@ class PostgresPermissionDB implements PermissionDB {
     async canManageContest(user: number, contest: number): Promise<boolean> {
         const query = `
             SELECT permission_id
-            FROM contests_permissions
+            FROM contest_permissions
             WHERE user_id = $1 AND contest_id = $2
             AND permission_id = 1
         `;
@@ -128,7 +128,7 @@ class PostgresPermissionDB implements PermissionDB {
             const contest = queryResult.rows[0].contest_id;
             const query = `
             SELECT permission_id
-            FROM contests_permissions cp
+            FROM contest_permissions cp
             JOIN permissions_for_contests pfc ON cp.permission_id = pfc.id
             WHERE user_id = $1 AND contest_id = $2 AND pfc.name = $3
             `;
@@ -160,7 +160,7 @@ class PostgresPermissionDB implements PermissionDB {
 
     async insertPermissions(user: number, contest: number, permission: number): Promise<void> {
         const insertionQuery = `
-            INSERT INTO contests_permissions VALUES($1, $2, $3)
+            INSERT INTO contest_permissions VALUES($1, $2, $3)
         `;
         try {
             await this.client.queryArray(insertionQuery, [user, permission, contest]);
@@ -169,7 +169,7 @@ class PostgresPermissionDB implements PermissionDB {
 
     async deletePermissions(user: number, contest: number, permission: number): Promise<void> {
         const deletionQuery = `
-            DELETE FROM contests_permissions WHERE
+            DELETE FROM contest_permissions WHERE
             user_id = $1 AND permission_id = $2 AND contest_id = $3;
         `;
         try {

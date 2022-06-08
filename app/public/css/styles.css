@@ -1,3 +1,9 @@
+@media only screen and (max-width: 600px) {
+    * {
+        font-size: 14px;
+    }
+}
+
 input:disabled,
 textarea:disabled {
 
@@ -32,10 +38,9 @@ input:focus {
 }
 
 span[contenteditable="true"] {
-    padding: 2px;
     background-color: transparent;
-    border-color: #777777;
-    border-width: 2px;
+    border: 2px #777777 solid;
+    min-width: 30px;
     display: block;
 }
 
@@ -51,9 +56,11 @@ span[contenteditable="true"]:focus {
 /* Status styling */
 .status-tle,
 .status-rte,
+.status-mem,
 .status-ans,
 .status-TLE,
 .status-RTE,
+.status-MEM,
 .status-ANS {
     color: #e03c26;
 }
@@ -88,10 +95,6 @@ span[contenteditable="true"]:focus {
     height: 32px;
 }
 
-span[contenteditable="true"] {
-    display: block;
-    border: 1px solid #10b981;
-}
 
 .lds-dual-ring:after {
     content: " ";

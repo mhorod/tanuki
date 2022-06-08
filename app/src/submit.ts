@@ -88,7 +88,7 @@ function setUpSubmission(router: IRouter, config: SubmitRouterConfig) {
             if (!submit)
                 return onSubmitFail("failed to save submission");
 
-            config.checker.submit(submit.id, uri);
+            config.checker.submit(submit, uri);
             res.redirect("/results/" + submit.id.toString())
         })
 

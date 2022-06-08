@@ -45,6 +45,13 @@ class TaskGroup {
         const add_task = component.querySelectorAll("button")[2];
         const remove = component.querySelectorAll("button")[1];
         this.name = component.querySelector("span");
+        this.requires_all_ok = component.querySelector("input");
+
+
+        this.name.textContent = task_group_data.name;
+        if(task_group_data.requires_all_ok) this.requires_all_ok.setAttribute("checked", "true");
+        this.id = task_group_data.id;
+
         component.querySelectorAll("button")[0].setAttribute("data-bs-target", "#group-"+id);
         component.getElementById("group-1").setAttribute("id", "group-" + id);
 
@@ -73,6 +80,8 @@ class TaskGroup {
     getData() {
         return {
             name: this.name.textContent,
+            requires_all_ok: this.requires_all_ok.checked,
+            id: +this.id,
             tasks: this.tasks.map((task)=>task.getData()),
         }
     }
@@ -94,9 +103,11 @@ class Task {
 
         this.points.value = task_data.points;
         this.name.textContent = task_data.name;
-        this.time.value = task_data.time;
-        this.memory.value = task_data.memory;
-        this.URI.textContent = task_data.URI;
+        this.time.value = task_data.time_limit;
+        this.memory.value = task_data.memory_limit;
+        this.URI.textContent = task_data.test_uri;
+        this.id = task_data.id;
+
         if(task_data.show_output) this.show_output.setAttribute("checked", "true");
 
         component.querySelector("button").onclick = on_delete;
@@ -104,27 +115,18 @@ class Task {
     }
     getData() {
         return {
-            points: this.points.value,
+            id: +this.id,
+            points: +this.points.value,
             name: this.name.textContent,
-            time: this.time.value,
-            memory: this.memory.value,
+            time_limit: +this.time.value,
+            memory_limit: +this.memory.value,
             show_output: this.show_output.checked,
-            URI: this.URI.textContent,
+            test_uri: this.URI.textContent,
         };
     }
 }
 
-let editor = new TestEditor({groups: [{
-    name: "Group 1",
-    tasks: [{
-        points: 1.0,
-        name: "01-small",
-        time: 3,
-        memory: 1000000,
-        show_output: true,
-        URI: "tests/01"
-    }]
-}]});
+let editor = new TestEditor(tasks);
 console.log(editor.getData());
 document.querySelector("form").onsubmit = (e) => {
     document.getElementById("tests-input").value = JSON.stringify(editor.getData());
