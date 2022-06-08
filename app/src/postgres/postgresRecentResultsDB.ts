@@ -27,7 +27,6 @@ class PostgresRecentResultsDB implements RecentResultsDB {
         }
         const queryResult = (await this.client.queryObject<any>(query, query_params));
         const results = queryResult.rows.map(toShort)
-        console.log(results)
         return results
     }
 
@@ -48,10 +47,11 @@ class PostgresRecentResultsDB implements RecentResultsDB {
     filtersToSql(filters: Filters) {
         const sqls = ["problem_id=$PROBLEM", "contest_id=$CONTEST", "user_id=$USER"]
         const values = [filters.problem, filters.contest, filters.user]
-        return [1, 2, 3]
+        let result = [0, 1, 2]
             .map(i => [sqls[i], values[i]])
             .filter(e => e[1] != null)
             .map(e => e[0])
             .join(" AND ")
+        return result
     }
 }

@@ -29,7 +29,7 @@ CREATE OR REPLACE VIEW short_submit_results AS
         JOIN contests c ON p.contest_id = c.id
         JOIN users u ON s.user_id = u.id
     ORDER BY
-        submission_time;
+        submission_time DESC;
 
 -- Information for rendering an invididual submit
 -- In addition to all short information we also need the language and path to the source file

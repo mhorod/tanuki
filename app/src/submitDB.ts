@@ -137,7 +137,6 @@ class PostgresSubmitResultsDB implements SubmitResultsDB {
         `
         const queryResult = await this.client.queryObject<any>(query, [submit_id]);
         const row: any = queryResult.rows[0];
-        console.log(row)
         const group_results = row.status_name ? await this.getGroupResults(submit_id) : [];
         let short = toShort(row);
         let results: SubmitResults = {
