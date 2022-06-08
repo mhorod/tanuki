@@ -21,9 +21,9 @@ function toShort(results: any): ShortSubmitResults {
             id: results.status_id,
             // If there is no status we return QUE
             name: results.status_name || "QUE",
-            points: roundPoints(results.points),
-            max_points: roundPoints(results.max_points),
-            score: roundPoints(results.score)
+            points: results.status_name && roundPoints(results.points),
+            max_points: results.status_name && roundPoints(results.max_points),
+            score: results.status_name && roundPoints(results.score)
         }
     }
 }
