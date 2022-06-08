@@ -118,6 +118,8 @@ ENV TZ Europe/Warsaw
 WORKDIR /app
 COPY --from=tailwind /wrapper/app /app
 RUN chown -R deno /app
+RUN chmod -R 776 /app
+
 
 USER deno
 
