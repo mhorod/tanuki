@@ -7,7 +7,7 @@ import { PostgresSubmitDB } from "./postgres/postgresSubmitDB.ts"
 import { PostgresTaskDB } from "./postgres/postgresTaskDB.ts"
 import { PostgresLanguageDB } from "./queries/language.ts"
 import { PostgresSubmitResultsDB } from "./submitDB.ts"
-
+import { PostgresRecentResultsDB } from "./postgres/postgresRecentResultsDB.ts"
 import { ClientOptions } from "../deps.ts"
 /**
  * Create all db interfaces used in the app
@@ -30,6 +30,7 @@ export default async function (options: ClientOptions) {
         graphicalProblemDB: new PostgresGraphicalProblemDB(client),
         taskDB: new PostgresTaskDB(client),
         submitResultsDB: new PostgresSubmitResultsDB(client),
+        recentResultsDB: new PostgresRecentResultsDB(client),
     }
 
 

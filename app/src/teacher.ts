@@ -4,16 +4,17 @@ export { setUpTeacherRouter }
 
 import { IRouter, OpineRequest } from "../deps.ts"
 import { RequestAuthenticator } from "./auth.ts"
-import { renderWithUserData, formatDateWithTime, formatDateWithoutTime, authorizeContestAccess } from "./utils.ts"
+import { renderWithUserData, authorizeContestAccess } from "./utils.ts"
 import { PermissionKind, PermissionDB } from "./permissions.ts"
 
-import { Filters, getFilters, getResults, SubmitResultsDB } from "./contest-results.ts"
-import { ContestDB, ProblemDB, Submit, NewProblem, Problem, UserDB } from "./db.ts"
+import { ContestDB, ProblemDB, NewProblem, Problem, UserDB } from "./db.ts"
 
 import { TaskDB } from "./taskDB.ts"
 
+import { getFilters, getResults, RecentResultsDB } from "./contest-results.ts"
 interface TeacherRouterConfig {
     authenticator: RequestAuthenticator,
+    recentResultsDB: RecentResultsDB,
     contestDB: ContestDB,
     permissionDB: PermissionDB,
     problemDB: ProblemDB,
@@ -136,23 +137,6 @@ function setUpTeacherRouter(router: IRouter, config: TeacherRouterConfig) {
     });
 }
 
-class TeacherSubmitResultDB implements SubmitResultsDB {
-    contest: number;
-    config: TeacherRouterConfig;
-
-    constructor(contest: number, config: TeacherRouterConfig) {
-        this.contest = contest;
-        this.config = config;
-    }
-
-    async getSubmits(first: number, last: number, filters: Filters): Promise<Submit[]> {
-        return (await this.config.contestDB.getUserSubmits(7, 20)).slice(first, last);
-    }
-    async getPageCount(filters: Filters): Promise<number> {
-        return 5;
-    }
-}
-
 
 function setUpResults(router: IRouter, config: TeacherRouterConfig) {
     router.get("/teacher/contest/:contest_id/results",
@@ -163,13 +147,14 @@ function setUpResults(router: IRouter, config: TeacherRouterConfig) {
                 throw Error("User was authorized and should not be null");
 
             const contest_id = parseInt(req.params.contest_id);
-            const filters = getFilters(req);
+            const filters = {
+                ...getFilters(req),
+                contest_id: contest_id
+            }
 
             const contest = await config.contestDB.getContestById(contest_id)
 
-            const db = new TeacherSubmitResultDB(contest_id, config);
-            const results = await getResults(filters, db);
-            results.submits?.map(s => (s as any).submission_time = formatDateWithTime(s.submission_time))
+            const results = await getResults(filters, config.recentResultsDB);
 
             const problems = await config.problemDB.getProblemsInContest(contest_id)
             renderWithUserData(config.authenticator, "teacher/contest-results", {

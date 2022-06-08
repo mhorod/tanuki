@@ -1,8 +1,38 @@
+export type { ShortSubmitResults, SubmitResultsDB, NewTaskResult }
+export { PostgresSubmitResultsDB }
+export { toShort }
+
+
 import { Client } from "../deps.ts"
 import { formatDateWithTime } from "./utils.ts"
 import { SourceManager } from "./source.ts"
 
-interface SubmitResults {
+function toShort(results: any): ShortSubmitResults {
+    return {
+        id: results.id,
+        problem_id: results.problem_id,
+        short_problem_name: results.short_problem_name,
+        contest_id: results.contest_id,
+        contest_name: results.short_contest_name,
+        user_id: results.user_id,
+        user_name: results.user_name,
+        submission_time: formatDateWithTime(results.submission_time),
+        status: {
+            id: results.status_id,
+            // If there is no status we return QUE
+            name: results.status_name || "QUE",
+            points: roundPoints(results.points),
+            max_points: roundPoints(results.max_points),
+            score: roundPoints(results.score)
+        }
+    }
+}
+
+function roundPoints(value: number) {
+    return Math.round(value * 10) / 10
+}
+
+interface ShortSubmitResults {
     id: number,
 
     problem_id: number,
@@ -12,16 +42,16 @@ interface SubmitResults {
     contest_name: string,
 
     user_id: number,
-    user_login: string,
+    user_name: string,
 
-
-    language_name: string,
     submission_time: string,
+    status: Status,
+}
 
-
+interface SubmitResults extends ShortSubmitResults {
+    language_name: string,
     source_uri: string,
     src: string,
-    status: Status,
     group_results: Array<GroupResult>,
 }
 
@@ -101,40 +131,20 @@ class PostgresSubmitResultsDB implements SubmitResultsDB {
         SELECT 
             * 
         FROM 
-            rich_submit_results
+            full_submit_results
         WHERE
             id = $1
         `
         const queryResult = await this.client.queryObject<any>(query, [submit_id]);
         const row: any = queryResult.rows[0];
-        const group_results = row.status ? await this.getGroupResults(submit_id) : [];
-
-        const points = row.status ? Math.round(10 * row.points) / 10 : null
-        const max_points = row.status ? Math.round(10 * row.max_points) / 10 : null
-        const score = row.status ? Math.round(10 * row.score) / 10 : null
+        console.log(row)
+        const group_results = row.status_name ? await this.getGroupResults(submit_id) : [];
+        let short = toShort(row);
         let results: SubmitResults = {
-            id: row.id,
-
-            problem_id: row.problem_id,
-            short_problem_name: row.short_problem_name,
-
-            contest_id: row.contest_id,
-            contest_name: row.contest_name,
-
-            user_id: row.user_id,
-            user_login: row.user_login,
-
+            ...short,
             language_name: row.language_name,
-            submission_time: formatDateWithTime(row.submission_time),
             source_uri: row.source_uri.trim(),
             src: await sourceManager.loadSource(row.source_uri.trim()) || "",
-            status: {
-                id: row.status_id,
-                name: row.status || "QUE",
-                points,
-                max_points,
-                score
-            },
             group_results: group_results,
         };
         return results;
@@ -223,8 +233,4 @@ class PostgresSubmitResultsDB implements SubmitResultsDB {
         else if (mem < 1024 * 1024 * 1024) return Math.round(mem / (1024 * 1024)).toString() + "MiB"
         else return Math.round(mem / (1024 * 1024 * 1024)) + "GiB"
     }
-
 }
-
-export type { SubmitResultsDB, NewTaskResult }
-export { PostgresSubmitResultsDB }
