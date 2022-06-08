@@ -18,9 +18,13 @@ function setUpAdminRouter(router: IRouter, config: AdminRouterConfig) {
     }
 
     router.get("/dashboard/admin", async (req, res, next) => {
-        const contests = await getContests();
-        renderWithUserData(config.authenticator, "admin/dashboard", { contests })(req, res, next);
+        renderWithUserData(config.authenticator, "admin/dashboard")(req, res, next);
     });
+    router.get("/admin/contests", async (req, res, next) => {
+        const contests = await getContests();
+        renderWithUserData(config.authenticator, "admin/contests", { contests })(req, res, next);
+    });
+
     router.get("/admin/add-contest", async (req, res, next) => {
         const contests = await getContests();
         renderWithUserData(config.authenticator, "admin/add-contest", { contests, contest: {} })(req, res, next);
@@ -72,10 +76,10 @@ function setUpAdminRouter(router: IRouter, config: AdminRouterConfig) {
             email: req.parsedBody['email'],
         };
 
+        const edited_user = await config.userDB.getUserById(+req.params.id);
         if (await config.userDB.editUser(+req.params.id, user)) {
-            res.redirect("/admin/users");
+            renderWithUserData(config.authenticator, "admin/user", { edited_user, success: "editted user successfully" })(req, res, next);
         } else {
-            const edited_user = await config.userDB.getUserById(+req.params.id);
             renderWithUserData(config.authenticator, "admin/user", { edited_user, error: "could not edit user" })(req, res, next);
         }
     });
@@ -95,12 +99,11 @@ function setUpAdminRouter(router: IRouter, config: AdminRouterConfig) {
         console.log(new_contest.short_name);
 
         const edited_contest = await config.contestDB.editContest(+req.params.contestid, new_contest);
+        const contest = await config.contestDB.getContestById(+req.params.contestid);
+        const owners = await config.permissionDB.getAllThatCanEdit(+req.params.contestid);
         if (edited_contest) {
-            const contests = await getContests();
-            res.redirect("/dashboard/admin");
+            renderWithUserData(config.authenticator, "admin/contest", { contest, owners, success: 'contest editted successfully' })(req, res, next);
         } else {
-            const contest = await config.contestDB.getContestById(+req.params.contestid);
-            const owners = await config.permissionDB.getAllThatCanEdit(+req.params.contestid);
             renderWithUserData(config.authenticator, "admin/contest", { contest, owners, error: 'failed to edit contest' })(req, res, next);
         }
     });

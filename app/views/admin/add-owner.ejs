@@ -12,32 +12,35 @@
     <%- await include("views/nav.ejs", {user: user}); %>
 
         <div class=" container mx-auto p-6 divide-x ">
-            <div class="flex flex-col gap-10 place-content-center">
-                <h1 class="text-2xl">Adding owner to: <%= contest.short_name %>
-                </h1>
-                <table class="table-auto">
-                    <thead>
-                        <tr class="border-b border-white">
-                            <th>login</th>
-                            <th>name</th>
-                            <th>surname</th>
-                        </tr>
-                    </thead>
-                    <% for(const user of users) { %>
-                        <tr class="even:bg-slate-900 odd:bg-slate-800 text-center hover:bg-slate-700 hover:cursor-pointer"
-                            onclick="location.href='/admin/add-owner/<%=contest.id%>/<%= user.id %>'">
-                            <td class="p-2">
-                                <%= user.login %>
-                            </td>
-                            <td class="p-2">
-                                <%= user.name %>
-                            </td>
-                            <td class="p-2">
-                                <%= user.surname %>
-                            </td>
-                        </tr>
-                        <% } %>
-                </table>
+            <div class="flex flex-col gap-7">
+                <a href="/admin/contests" class="normal-btn" style="max-width: 150px;">Return</a>
+                <div class="flex flex-col gap-10 place-content-center">
+                    <h1 class="text-2xl">Adding owner to: <%= contest.short_name %>
+                    </h1>
+                    <table class="table-auto">
+                        <thead>
+                            <tr class="border-b border-white">
+                                <th>login</th>
+                                <th>name</th>
+                                <th>surname</th>
+                            </tr>
+                        </thead>
+                        <% for(const user of users) { %>
+                            <tr class="even:bg-slate-900 odd:bg-slate-800 text-center hover:bg-slate-700 hover:cursor-pointer"
+                                onclick="location.href='/admin/add-owner/<%=contest.id%>/<%= user.id %>'">
+                                <td class="p-2">
+                                    <%= user.login %>
+                                </td>
+                                <td class="p-2">
+                                    <%= user.name %>
+                                </td>
+                                <td class="p-2">
+                                    <%= user.surname %>
+                                </td>
+                            </tr>
+                            <% } %>
+                    </table>
+                </div>
             </div>
         </div>
 

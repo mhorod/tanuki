@@ -81,13 +81,14 @@ function setUpTeacherRouter(router: IRouter, config: TeacherRouterConfig) {
             const contest = await config.contestDB.getContestById(+req.params.contest_id);
             renderWithUserData(config.authenticator, "teacher/edit-problem", { contest, problem, tasks, error: "could not edit problem" })(req, res, next);
         } else {
-            res.redirect("/teacher/contest/" + req.params.contest_id);
+            const contest = await config.contestDB.getContestById(+req.params.contest_id);
+            renderWithUserData(config.authenticator, "teacher/edit-problem", { contest, problem, tasks, success: "editted problem successfully" })(req, res, next);
         }
     });
 
-    router.get("/contest/:contestid/add", async (req, res, next) => {
-        const contests = await getContests(req);
-        renderWithUserData(config.authenticator, "teacher/add-problem", { contest: contests[0], problem: { name: 'Test', id: 1 } })(req, res, next);
+    router.get("/contest/:contest_id/add", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
+        const contest = await config.contestDB.getContestById(+req.params.contest_id);
+        renderWithUserData(config.authenticator, "teacher/add-problem", { contest, problem: {} })(req, res, next);
     });
 
     router.get("/contest/:contest_id/users", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
