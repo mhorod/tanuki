@@ -39,7 +39,7 @@ async function getUnsolvedProblemsThatAreCloseToTheDeadline(client: Client, user
             SELECT sr.status
             FROM submit_results sr
             JOIN submits s ON s.id = sr.submit_id
-            WHERE sr.status = 1 AND s.problem_id = p.id AND s.user_id = $1
+            WHERE sr.status = 1 AND s.problem_id = p.id AND s.user_id = $1 AND p.closing_date > now()
             LIMIT 1
         ) IS NULL
         ORDER BY p.due_date ASC
