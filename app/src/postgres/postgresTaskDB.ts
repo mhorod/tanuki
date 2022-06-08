@@ -42,7 +42,6 @@ class PostgresTaskDB implements TaskDB {
                 await transaction.queryObject(`SELECT erase_all_task_results($1)`, [problem_id]);
                 for (const new_group of groups_to_add) {
                     const new_group_id = (await transaction.queryObject<{ id: number }>('INSERT INTO task_groups VALUES($1, $2, $3) RETURNING id', [problem_id, new_group.name, new_group.requires_all_ok])).rows[0].id;
-                    console.log(new_group_id);
                     for (const new_task of new_group.tasks) {
                         await transaction.queryObject(`INSERT INTO tasks VALUES ($1, $2, $3, $4, $5, $6, $7)`,
                             [new_group_id, new_task.name, new_task.test_uri, new_task.points, new_task.time_limit, new_task.memory_limit, new_task.show_output]);

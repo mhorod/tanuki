@@ -103,7 +103,6 @@ class PostgresContestDB implements ContestDB {
     }
 
     async addNewContest(contest: NewContest): Promise<Contest | null> {
-        console.log(contest);
         const query = `
         INSERT INTO contests VALUES ($1, $2, $3) RETURNING *;
         `;
@@ -165,11 +164,9 @@ class PostgresCredentialDB implements CredentialDB {
             return null;
         }
 
-        console.log("Hi!");
         //User exists, time for password validation
 
         if (await bcrypt.compare(credentials.password, userMatchingByLogin.password_hash.trim())) {
-            console.log("Looking good to me");
             //Also matching by password
             return userMatchingByLogin;
         }
@@ -244,7 +241,6 @@ class PostgresUserDB implements UserDB {
 
         try {
             const insertionResult = await this.client.queryObject<User>("INSERT INTO users VALUES ($1, $2, $3, $4, $5)", insertTable);
-            console.log(insertionResult);
         }
         catch (Exception) {
             return null;

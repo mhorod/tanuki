@@ -27,7 +27,6 @@ class MockChecker implements Checker {
         return new Promise((resolve, reject) =>
             setTimeout(async () => {
                 const tasks = await this.config?.taskDB.getTasks(submit.problem_id);
-                console.log(tasks);
                 const results: NewTaskResult[] = [];
                 if (!tasks) throw Error("taski nie dziamają");
                 for (const group of tasks.groups) {

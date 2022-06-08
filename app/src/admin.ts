@@ -96,7 +96,6 @@ function setUpAdminRouter(router: IRouter, config: AdminRouterConfig) {
             is_active: req.parsedBody['is_active'] !== undefined,
         } as NewContest;
 
-        console.log(new_contest.short_name);
 
         const edited_contest = await config.contestDB.editContest(+req.params.contestid, new_contest);
         const contest = await config.contestDB.getContestById(+req.params.contestid);

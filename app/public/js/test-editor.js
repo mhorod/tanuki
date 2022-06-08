@@ -127,7 +127,6 @@ class Task {
 }
 
 let editor = new TestEditor(tasks);
-console.log(editor.getData());
 document.querySelector("form").onsubmit = (e) => {
     document.getElementById("tests-input").value = JSON.stringify(editor.getData());
 };

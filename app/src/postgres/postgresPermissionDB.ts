@@ -13,7 +13,6 @@ class PostgresPermissionDB implements PermissionDB {
     async isAdmin(user: number): Promise<boolean> {
         const query = "SELECT COUNT(*) FROM administrators where user_id = $1";
         const queryResult = (await this.client.queryArray(query, [user])).rows[0];
-        console.log(queryResult)
         return queryResult[0] != 0;
     }
 
@@ -80,7 +79,6 @@ class PostgresPermissionDB implements PermissionDB {
             AND permission_id = 1
         `;
         const permissionType = await this.client.queryObject(query, [user, contest]);
-        console.log(permissionType);
 
         if (permissionType.rowCount == 0) {
             return false;
