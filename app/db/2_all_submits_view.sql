@@ -1,3 +1,4 @@
+--It does what the name suggests :)
 CREATE OR REPLACE VIEW all_submits AS 
     SELECT s.id, s.problem_id, (
         SELECT sr.status
@@ -6,6 +7,8 @@ CREATE OR REPLACE VIEW all_submits AS
     ) AS result, s.user_id, s.submission_time
     FROM submits s;
 
+--View created to match another interface in an application; provides (pretty much) everything there is to know about any submit
+--It doesn't include task results, but it's good for the GUI to show what's going on.
 CREATE OR REPLACE VIEW all_short_submits AS
     SELECT s.id, p.id AS problem_id, p.short_name AS short_problem_name,
         c.id AS contest_id, c.name AS contest_name, u.id AS user_id,
