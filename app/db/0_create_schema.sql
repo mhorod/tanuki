@@ -64,7 +64,6 @@ CREATE  TABLE tanuki.problems (
 	contest_id           integer  NOT NULL REFERENCES tanuki.contests ,
 	statement_uri        varchar(256)  NOT NULL  ,
 	uses_points          boolean  NOT NULL  ,
-	"position"           integer  NOT NULL  ,
 	points               numeric    ,
 	due_date             timestamptz  NOT NULL,
 	closing_date         timestamptz  NOT NULL,
