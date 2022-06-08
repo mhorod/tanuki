@@ -27,7 +27,7 @@ $$
   BEGIN
     SELECT points FROM task_results WHERE id = NEW.task_id INTO tmp;
     IF new.points > tmp 
-        THEN RETURN NULL;
+        THEN RAISE EXCEPTION 'Insertion that compromises data integrity';
     END IF;  
     RETURN NEW;
   END;  
