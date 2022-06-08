@@ -1,6 +1,6 @@
 CREATE OR REPLACE FUNCTION delete_user() RETURNS trigger AS $$
 BEGIN
-    DELETE FROM contests_permissions WHERE user_id = old.id;
+    DELETE FROM contest_permissions WHERE user_id = old.id;
     DELETE FROM task_results WHERE submit_id IN(
         SELECT s.id FROM submits s WHERE s.user_id = old.id 
     );
@@ -19,7 +19,7 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION delete_contest() RETURNS trigger AS $$
     BEGIN
-        DELETE FROM contests_permissions WHERE contest_id = OLD.id;
+        DELETE FROM contest_permissions WHERE contest_id = OLD.id;
         DELETE FROM problems WHERE contest_id = OLD.id;
 
         RETURN OLD;

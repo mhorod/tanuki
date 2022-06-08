@@ -117,10 +117,11 @@ FROM denoland/deno:1.19.3
 ENV TZ Europe/Warsaw
 WORKDIR /app
 COPY --from=tailwind /wrapper/app /app
+RUN chown -R deno /app
 
 USER deno
 
 RUN deno cache deps.ts
 RUN deno cache main.ts
 EXPOSE 3000
-CMD ["run", "--allow-env", "--allow-net", "--allow-read", "--unstable","main.ts"]
+CMD ["run", "--allow-env", "--allow-net", "--allow-write", "--allow-read", "--unstable","main.ts"]

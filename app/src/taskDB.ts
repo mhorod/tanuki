@@ -23,3 +23,5 @@ interface TaskDB {
     updateTasks(problem_id: number, tasks: ProblemTasks): Promise<boolean>,
     getTasks(problem_id: number): Promise<ProblemTasks>
 }
+
+export type { ProblemTasks, Task, TaskGroup, TaskDB }

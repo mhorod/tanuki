@@ -23,16 +23,23 @@ $$ LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION task_group_points(submit_id INT, task_group_id INT)
 RETURNS NUMERIC AS $$
-    SELECT SUM(
+    SELECT 
         CASE
-            WHEN tr.status_id IS NULL THEN NULL
-            WHEN tr.status_id = 1 THEN t.points
-            ELSE 0
-        END
-    ) 
-    FROM tasks t
-    LEFT JOIN (SELECT * FROM task_results tr WHERE tr.submit_id = $1) tr ON (tr.task_id = t.id)
-    WHERE t.task_group = $2
+            WHEN (SELECT requires_all_ok FROM task_groups WHERE id = $2) AND task_group_status($1, $2) != 4 THEN 0
+            ELSE 
+            (
+                SELECT SUM(
+                CASE
+                    WHEN tr.status_id IS NULL THEN NULL
+                    WHEN tr.status_id = 4 THEN t.points -- OK
+                    ELSE 0
+                END
+                )
+            FROM tasks t
+            LEFT JOIN (SELECT * FROM task_results tr WHERE tr.submit_id = $1) tr ON (tr.task_id = t.id)
+            WHERE t.task_group = $2
+            )
+        END 
 $$ LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION submit_status(submit_id INT)
@@ -55,7 +62,6 @@ RETURNS NUMERIC AS $$
     SELECT  SUM (
         CASE 
             WHEN task_group_status($1, tg.id) IS NULL THEN NULL
-            WHEN tg.requires_all_ok AND task_group_status($1, tg.id) != 1 THEN 0
             ELSE task_group_points($1, tg.id)
         END
     )
@@ -64,7 +70,6 @@ RETURNS NUMERIC AS $$
     WHERE s.id = $1
 $$ LANGUAGE SQL;
 
-SELECT submit_points(1);
 
 CREATE OR REPLACE FUNCTION check_results_integrity(submit_id INT)
 RETURNS BOOLEAN AS $$
@@ -85,23 +90,36 @@ RETURNS BOOLEAN AS $$
     ON (t.id = tr.id)
 $$ LANGUAGE SQL;
 
-CREATE OR REPLACE FUNCTION max_points(problem_id INT)
+CREATE OR REPLACE FUNCTION max_task_group_points(group_id INT)
 RETURNS NUMERIC AS $$
     SELECT SUM(points) 
     FROM tasks t 
-    JOIN task_groups tg ON (tg.id = t.task_group)
+    JOIN task_groups tg ON (t.task_group = tg.id)
+    WHERE tg.id = $1
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION max_points(problem_id INT)
+RETURNS NUMERIC AS $$
+    SELECT SUM(max_task_group_points(tg.id)) 
+    FROM
+    task_groups tg 
     WHERE tg.problem_id = $1;
 $$ LANGUAGE SQL;
+
 
 CREATE OR REPLACE FUNCTION score_multiplier(due_date timestamptz, closing_date timestamptz, submit_time timestamptz, scoring_method INT)
 RETURNS NUMERIC AS $$
     SELECT CASE scoring_method 
-        WHEN 1 THEN CASE
+        WHEN 1 THEN CASE -- ZERO
+            WHEN submit_time < due_date THEN 1.0
+            ELSE 0
+        END
+        WHEN 2 THEN CASE -- LINEAR_TO_ZERO
             WHEN submit_time < due_date THEN 1.0
             WHEN submit_time < closing_date THEN EXTRACT(EPOCH FROM (closing_date - submit_time)) / EXTRACT(EPOCH FROM (closing_date - due_date))
             ELSE 0
         END
-        WHEN 2 THEN CASE
+        WHEN 3 THEN CASE -- LINER_TO_NEGATIVE
             WHEN submit_time < due_date THEN 1.0
             ELSE EXTRACT(EPOCH FROM (closing_date - submit_time)) / EXTRACT(EPOCH FROM (closing_date - due_date))
         END
@@ -121,3 +139,44 @@ RETURNS NUMERIC AS $$
     FROM submits s JOIN problems p ON (p.id = s.problem_id)
     WHERE s.id = $1;
 $$ LANGUAGE SQL;
+
+CREATE OR REPLACE VIEW task_scores AS 
+    SELECT 
+        tr.submit_id, tr.task_id, tr.status_id, tr.points AS points,
+        tr.summary, tr.execution_time, tr.used_memory,
+        t.task_group, t.name, t.test_uri, t.points AS max_points,
+        t.memory_limit, t.show_output
+    FROM task_results tr
+    JOIN tasks t ON tr.task_id = t.id;
+
+CREATE OR REPLACE VIEW rich_submit_results AS 
+        SELECT 
+            s.id,
+
+            s.problem_id,
+            p.short_name "short_problem_name",
+
+            p.contest_id,
+            c.name "contest_name",
+
+            s.user_id,
+            u.login "user_login",
+
+            l.name "language_name",
+            submission_time,
+            source_uri,
+            statuses.name "status",
+            statuses.id "status_id",
+
+            submit_points(s.id) "points",
+            max_points(s.problem_id) "max_points",
+            sr.score
+            
+        FROM
+            submits s
+            LEFT JOIN submit_results sr ON s.id = sr.submit_id
+            LEFT JOIN statuses ON statuses.id = sr.status
+            JOIN languages l ON s.language_id = l.id
+            JOIN problems p ON s.problem_id = p.id
+            JOIN contests c ON p.contest_id = c.id
+            JOIN users u ON s.user_id = u.id;
