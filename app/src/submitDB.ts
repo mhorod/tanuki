@@ -41,11 +41,11 @@ interface GroupResult {
 }
 
 interface TaskResult {
-    id: number,
     name: string,
     summary: string,
     execution_time: number,
     used_memory: number,
+    used_memory_human_readable: string
     status: TaskStatus,
 }
 
@@ -100,10 +100,9 @@ class PostgresSubmitResultsDB implements SubmitResultsDB {
             s.id = $1
         `
         const queryResult = await this.client.queryObject<any>(query, [submit_id]);
-
-
         const row: any = queryResult.rows[0];
-        console.log(row)
+        const group_results = row.status ? await this.getGroupResults(submit_id) : [];
+
         let results: SubmitResults = {
             id: row.id,
 
@@ -127,10 +126,90 @@ class PostgresSubmitResultsDB implements SubmitResultsDB {
                 max_points: 0,
                 score: row.score,
             },
-            group_results: [],
+            group_results: group_results,
         };
-
         return results;
+    }
+
+    async getGroupResults(submit_id: number) {
+        const query = `
+        SELECT 
+            ts.*,
+            tg.name "group_name" ,
+            s.name "status_name"
+        FROM
+            task_scores ts
+            JOIN statuses s ON ts.status_id = s.id
+            JOIN task_groups tg ON ts.task_group = tg.id 
+        WHERE 
+            submit_id = $1
+        `
+        const rows: any[] = (await this.client.queryObject(query, [submit_id])).rows;
+        let groups = new Map<number, any>();
+        for (const row of rows) {
+            if (groups.has(row.task_group))
+                groups.get(row.task_group).push(row)
+            else
+                groups.set(row.task_group, [row])
+        }
+        const result = []
+        for (const group_id of groups.keys())
+            result.push(await this.collectSingleGroup(submit_id, group_id, groups.get(group_id)))
+        return result
+    }
+
+    async collectSingleGroup(submit_id: number, group_id: number, task_data: any[]) {
+        const query = `
+            SELECT
+                task_group_status($1, $2) "status_id",
+                (SELECT name FROM statuses WHERE id = task_group_status($1, $2)) "status_name",
+                task_group_points($1, $2) "points",
+                max_task_group_points($2) "max_points",
+                name
+            FROM
+                task_groups
+            WHERE 
+                id = $2
+        `;
+        const row = (await this.client.queryObject<any>(query, [submit_id, group_id])).rows[0];
+        const task_results: TaskResult[] = []
+        for (const task of task_data) {
+            let result: TaskResult = {
+                name: task.name,
+                summary: task.summary,
+                execution_time: task.execution_time,
+                used_memory: task.used_memory,
+                used_memory_human_readable: this.memory_for_humans(task.used_memory),
+                status: {
+                    id: task.status_id,
+                    name: task.status_name,
+                    points: task.points,
+                    max_points: task.max_points,
+                }
+            }
+            task_results.push(result)
+
+        }
+
+        let result: GroupResult = {
+            id: group_id,
+            name: row.name,
+            status: {
+                id: row.status_id,
+                name: row.status_name,
+                points: row.points,
+                max_points: row.max_points,
+            },
+            task_results: task_results,
+        }
+        return result;
+    }
+
+    memory_for_humans(mem: number) {
+        if (mem < 1024) return mem.toString() + "B"
+        else if (mem < 1024 * 1024) return Math.round(mem / 1024).toString() + "KiB"
+        else if (mem < 1024 * 1024 * 1024) return Math.round(mem / (1024 * 1024)).toString() + "MiB"
+        else return Math.round(mem / (1024 * 1024 * 1024)) + "GiB"
     }
 
 }

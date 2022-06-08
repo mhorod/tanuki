@@ -51,9 +51,11 @@ span[contenteditable="true"]:focus {
 /* Status styling */
 .status-tle,
 .status-rte,
+.status-mem,
 .status-ans,
 .status-TLE,
 .status-RTE,
+.status-MEM,
 .status-ANS {
     color: #e03c26;
 }

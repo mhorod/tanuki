@@ -26,7 +26,7 @@ RETURNS NUMERIC AS $$
     SELECT SUM(
         CASE
             WHEN tr.status_id IS NULL THEN NULL
-            WHEN tr.status_id = 1 THEN t.points
+            WHEN tr.status_id = 4 THEN t.points -- OK
             ELSE 0
         END
     ) 
@@ -85,23 +85,36 @@ RETURNS BOOLEAN AS $$
     ON (t.id = tr.id)
 $$ LANGUAGE SQL;
 
-CREATE OR REPLACE FUNCTION max_points(problem_id INT)
+CREATE OR REPLACE FUNCTION max_task_group_points(group_id INT)
 RETURNS NUMERIC AS $$
     SELECT SUM(points) 
     FROM tasks t 
-    JOIN task_groups tg ON (tg.id = t.task_group)
+    JOIN task_groups tg ON (t.task_group = tg.id)
+    WHERE tg.id = $1
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION max_points(problem_id INT)
+RETURNS NUMERIC AS $$
+    SELECT SUM(max_task_group_points(tg.id)) 
+    FROM
+    task_groups tg 
     WHERE tg.problem_id = $1;
 $$ LANGUAGE SQL;
+
 
 CREATE OR REPLACE FUNCTION score_multiplier(due_date timestamptz, closing_date timestamptz, submit_time timestamptz, scoring_method INT)
 RETURNS NUMERIC AS $$
     SELECT CASE scoring_method 
-        WHEN 1 THEN CASE
+        WHEN 1 THEN CASE -- ZERO
+            WHEN submit_time < due_date THEN 1.0
+            ELSE 0
+        END
+        WHEN 2 THEN CASE -- LINEAR_TO_ZERO
             WHEN submit_time < due_date THEN 1.0
             WHEN submit_time < closing_date THEN EXTRACT(EPOCH FROM (closing_date - submit_time)) / EXTRACT(EPOCH FROM (closing_date - due_date))
             ELSE 0
         END
-        WHEN 2 THEN CASE
+        WHEN 3 THEN CASE -- LINER_TO_NEGATIVE
             WHEN submit_time < due_date THEN 1.0
             ELSE EXTRACT(EPOCH FROM (closing_date - submit_time)) / EXTRACT(EPOCH FROM (closing_date - due_date))
         END
