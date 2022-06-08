@@ -36,7 +36,7 @@ class MockChecker implements Checker {
                             throw Error("Task id should not be null")
                         results.push({
                             task_id: task.id,
-                            points: Math.round(Math.random() * 20) / 10,
+                            points: Math.round(Math.random() * task.points * 10) / 10,
                             summary: "",
                             execution_time: Math.random(),
                             used_memory: Math.round(Math.random() * 10000),
@@ -52,7 +52,6 @@ class MockChecker implements Checker {
                 for (const l of listeners)
                     l("OK");
                 this.listeners.delete(submit.id);
-                this.setStatus(submit.id, 2, "OK");
                 resolve("OK")
             }, 5000))
     }
@@ -63,12 +62,6 @@ class MockChecker implements Checker {
         else
             this.listeners.set(submit_id, [callback]);
     }
-
-    setStatus(submit_id: number, points: number, status: string) {
-        if (this.config == null) throw Error("nope.")
-        new PostgresResultDB(this.config.client).addSubmitResults(submit_id, points, status);
-    }
-
 
     configure(config: CheckerConfig) { this.config = config; }
 }

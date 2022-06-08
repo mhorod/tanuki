@@ -35,6 +35,6 @@ export { email } from "https://deno.land/x/validation/mod.ts";
 
 // hashing
 export * as bcrypt from "https://deno.land/x/bcrypt/mod.ts";
-
+export * from "https://deno.land/x/bcrypt@v0.3.0/src/worker.ts"
 // dates
 export { format } from "https://deno.land/std@0.141.0/datetime/mod.ts";

@@ -23,16 +23,23 @@ $$ LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION task_group_points(submit_id INT, task_group_id INT)
 RETURNS NUMERIC AS $$
-    SELECT SUM(
+    SELECT 
         CASE
-            WHEN tr.status_id IS NULL THEN NULL
-            WHEN tr.status_id = 4 THEN t.points -- OK
-            ELSE 0
-        END
-    ) 
-    FROM tasks t
-    LEFT JOIN (SELECT * FROM task_results tr WHERE tr.submit_id = $1) tr ON (tr.task_id = t.id)
-    WHERE t.task_group = $2
+            WHEN (SELECT requires_all_ok FROM task_groups WHERE id = $2) AND task_group_status($1, $2) != 4 THEN 0
+            ELSE 
+            (
+                SELECT SUM(
+                CASE
+                    WHEN tr.status_id IS NULL THEN NULL
+                    WHEN tr.status_id = 4 THEN t.points -- OK
+                    ELSE 0
+                END
+                )
+            FROM tasks t
+            LEFT JOIN (SELECT * FROM task_results tr WHERE tr.submit_id = $1) tr ON (tr.task_id = t.id)
+            WHERE t.task_group = $2
+            )
+        END 
 $$ LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION submit_status(submit_id INT)
@@ -55,7 +62,6 @@ RETURNS NUMERIC AS $$
     SELECT  SUM (
         CASE 
             WHEN task_group_status($1, tg.id) IS NULL THEN NULL
-            WHEN tg.requires_all_ok AND task_group_status($1, tg.id) != 1 THEN 0
             ELSE task_group_points($1, tg.id)
         END
     )
@@ -64,7 +70,6 @@ RETURNS NUMERIC AS $$
     WHERE s.id = $1
 $$ LANGUAGE SQL;
 
-SELECT submit_points(1);
 
 CREATE OR REPLACE FUNCTION check_results_integrity(submit_id INT)
 RETURNS BOOLEAN AS $$

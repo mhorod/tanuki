@@ -23,3 +23,11 @@ CREATE CONSTRAINT TRIGGER results_integrity_after_submit
     AFTER DELETE ON submits 
     DEFERRABLE INITIALLY DEFERRED 
     FOR EACH ROW EXECUTE PROCEDURE results_integrity_after_submit();
+
+
+
+CREATE OR REPLACE FUNCTION add_submit_results(submit_id int) RETURNS VOID AS 
+$$
+    INSERT INTO submit_results VALUES (submit_id, submit_score(submit_id), submit_status(submit_id))
+$$
+language SQL;

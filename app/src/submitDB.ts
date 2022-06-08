@@ -88,6 +88,7 @@ class PostgresSubmitResultsDB implements SubmitResultsDB {
                     INSERT INTO task_results VALUES ($1, $2, $3, $4, $5, $6, $7)
                 `, [submit_id, new_task_result.task_id, new_task_result.status_id, new_task_result.points, new_task_result.summary, new_task_result.execution_time, new_task_result.used_memory]);
             }
+            transaction.queryObject("SELECT add_submit_results($1)", [submit_id]);
             await transaction.commit();
             return true;
         } catch (Exception) {
