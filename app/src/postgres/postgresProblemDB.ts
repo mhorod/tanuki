@@ -32,7 +32,7 @@ class PostgresProblemDB implements ProblemDB {
 
     async createProblem(problem: NewProblem): Promise<boolean> {
         const insertionQuery = `
-            INSERT INTO problems VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            INSERT INTO problems VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         `
         try {
             const valArray = [
