@@ -24,7 +24,6 @@
                                         <th>short_name</th>
                                         <th>name</th>
                                         <th>active</th>
-                                        <th>actions</th>
                                     </tr>
                                 </thead>
                                 <% for (const contest of contests) { %>
@@ -46,13 +45,6 @@
                                                     <% } %>
 
                                         </td>
-                                        <td class="p-2">
-                                            <a href="/admin/delete-contest/<%= contest.id %>">
-                                                <ion-icon style="color: red" name="trash-outline" class="pt-2">
-                                                </ion-icon>
-                                            </a>
-                                        </td>
-
                                     </tr>
                                     <% } %>
                             </table>

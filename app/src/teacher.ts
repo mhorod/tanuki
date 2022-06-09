@@ -4,14 +4,16 @@ export { setUpTeacherRouter }
 
 import { IRouter, OpineRequest } from "../deps.ts"
 import { RequestAuthenticator } from "./auth.ts"
-import { renderWithUserData, authorizeContestAccess } from "./utils.ts"
+import { renderWithUserData, renderStatusWithUserData, authorizeContestAccess, formatDateWithoutTime } from "./utils.ts"
 import { PermissionKind, PermissionDB } from "./permissions.ts"
 
-import { ContestDB, ProblemDB, NewProblem, Problem, UserDB } from "./db.ts"
+import { ContestDB, ProblemDB, NewProblem, Problem, UserDB, GraphicalProblemDB } from "./db.ts"
 
 import { TaskDB } from "./taskDB.ts"
 
 import { getFilters, getResults, RecentResultsDB } from "./contest-results.ts"
+
+import { SourceManager } from "./source.ts"
 interface TeacherRouterConfig {
     authenticator: RequestAuthenticator,
     recentResultsDB: RecentResultsDB,
@@ -19,11 +21,13 @@ interface TeacherRouterConfig {
     permissionDB: PermissionDB,
     problemDB: ProblemDB,
     taskDB: TaskDB,
-    userDB: UserDB
+    userDB: UserDB,
+    graphicalProblemDB: GraphicalProblemDB
+    sourceManager: SourceManager,
 }
 
 function setUpTeacherRouter(router: IRouter, config: TeacherRouterConfig) {
-    setUpResults(router, config)
+    [setUpResults, setUpProblemPage].forEach(f => f(router, config))
     const getContests = async (req: OpineRequest) => {
         const user = await config.authenticator.authenticateRequest(req);
         if (!user)
@@ -32,30 +36,28 @@ function setUpTeacherRouter(router: IRouter, config: TeacherRouterConfig) {
             return await config.contestDB.getUserContests(user.id)
     }
 
-
-    router.get("/teacher/contest/:contest_id", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
+    const authorize = authorizeContestAccess(config, PermissionKind.MANAGE)
+    router.get("/teacher/contest/:contest_id", authorize, async (req, res, next) => {
         const contest = await config.contestDB.getContestById(+req.params.contest_id);
         const problems = await config.problemDB.getProblemsInContest(+req.params.contest_id);
 
         renderWithUserData(config.authenticator, "teacher/contest", { contest, problems })(req, res, next);
     });
-    router.get("/contest/:contestid/problem/:problemid", async (req, res, next) => {
-        const contests = await getContests(req);
-        renderWithUserData(config.authenticator, "student/problem", { contest: contests[0], problem: { name: 'Test', id: 1 } })(req, res, next);
-    });
 
-    router.get("/contest/:contest_id/problem/:problem_id/edit", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
+    router.get("/teacher/contest/:contest_id/problem/:problem_id/edit", authorize, async (req, res, next) => {
         const contest = await config.contestDB.getContestById(+req.params.contest_id);
         const problem = await config.problemDB.getProblemById(+req.params.problem_id);
         const tasks = await config.taskDB.getTasks(+req.params.problem_id);
+        if (!(contest && problem && tasks))
+            return renderStatusWithUserData(config.authenticator, 404)(req, res, next)
         renderWithUserData(config.authenticator, "teacher/edit-problem", { contest, problem, tasks })(req, res, next);
     });
-    router.get("/contest/:contest_id/problem/:problem_id/delete", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
+    router.post("/teacher/contest/:contest_id/problem/:problem_id/delete", authorize, async (req, res, next) => {
         await config.problemDB.deleteProblem(+req.params.problem_id);
         res.redirect("/teacher/contest/" + req.params.contest_id);
     });
 
-    router.post("/contest/:contest_id/problem/:problem_id/edit", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
+    router.post("/contest/:contest_id/problem/:problem_id/edit", authorize, async (req, res, next) => {
         const problem: Problem = {
             id: +req.params.problem_id,
             name: req.parsedBody['name'],
@@ -84,34 +86,34 @@ function setUpTeacherRouter(router: IRouter, config: TeacherRouterConfig) {
         }
     });
 
-    router.get("/contest/:contest_id/add", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
+    router.get("/contest/:contest_id/add", authorize, async (req, res, next) => {
         const contest = await config.contestDB.getContestById(+req.params.contest_id);
         renderWithUserData(config.authenticator, "teacher/add-problem", { contest, problem: {} })(req, res, next);
     });
 
-    router.get("/contest/:contest_id/users", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
+    router.get("/contest/:contest_id/users", authorize, async (req, res, next) => {
         const users = await config.permissionDB.getAllThatCanSubmit(+req.params.contest_id);
         const contest = await config.contestDB.getContestById(+req.params.contest_id);
         renderWithUserData(config.authenticator, "teacher/contest-users", { contest, users })(req, res, next);
     });
 
-    router.get("/contest/:contest_id/adduser", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
+    router.get("/contest/:contest_id/adduser", authorize, async (req, res, next) => {
         const users = await config.userDB.getAllUsers();
         const contest = await config.contestDB.getContestById(+req.params.contest_id);
         renderWithUserData(config.authenticator, "teacher/add-user", { contest, users })(req, res, next);
     });
 
-    router.get("/contest/:contest_id/adduser/:user_id", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
+    router.get("/contest/:contest_id/adduser/:user_id", authorize, async (req, res, next) => {
         await config.permissionDB.grantPermission(+req.params.user_id, +req.params.contest_id, PermissionKind.SUBMIT);
         res.redirect("/contest/" + req.params.contest_id + "/users");
     });
 
-    router.get("/contest/:contest_id/kick/:user_id", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
+    router.get("/contest/:contest_id/kick/:user_id", authorize, async (req, res, next) => {
         await config.permissionDB.revokePermission(+req.params.user_id, +req.params.contest_id, PermissionKind.SUBMIT);
         res.redirect("/contest/" + req.params.contest_id + "/users");
     });
 
-    router.post("/teacher/add-problem/:contest_id", authorizeContestAccess(config, PermissionKind.MANAGE), async (req, res, next) => {
+    router.post("/teacher/add-problem/:contest_id", authorize, async (req, res, next) => {
         const problem: NewProblem = {
             name: req.parsedBody['name'],
             short_name: req.parsedBody['short_name'],
@@ -132,6 +134,36 @@ function setUpTeacherRouter(router: IRouter, config: TeacherRouterConfig) {
             renderWithUserData(config.authenticator, "teacher/add-problem", { contest, problem, error: "could not add problem" })(req, res, next);
         }
     });
+}
+
+function setUpProblemPage(router: IRouter, config: TeacherRouterConfig) {
+    router.get("/teacher/contest/:contest_id/problem/:problem_id",
+        authorizeContestAccess(config, PermissionKind.VIEW),
+        async (req, res, next) => {
+
+            const user = await config.authenticator.authenticateRequest(req);
+            if (!user)
+                throw Error("User was authentiated and should not be null");
+
+            const contest_id = parseInt(req.params.contest_id);
+            const problem_id = parseInt(req.params.problem_id);
+
+            const contest = await config.contestDB.getContestById(contest_id);
+            const problems = await config.graphicalProblemDB.getGraphicalProblemsInContest(contest_id, user.id);
+
+            const problem = problems.find(p => p.id == problem_id);
+            if (!problem)
+                return renderStatusWithUserData(config.authenticator, 404)(req, res, next);
+            (problem as any).contest_id = contest_id;
+            (problem as any).due_date = formatDateWithoutTime(problem.due_date);
+
+            const p = {
+                ...problem,
+                contest_id: contest_id,
+                statement: await config.sourceManager.loadSource(problem.statement_uri)
+            }
+            renderWithUserData(config.authenticator, "teacher/problem", { contest: contest, problem: p })(req, res, next);
+        });
 }
 
 

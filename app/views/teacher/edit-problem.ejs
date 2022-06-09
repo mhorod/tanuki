@@ -13,7 +13,21 @@
 
         <div class=" container mx-auto p-6 divide-x">
             <div class="flex flex-col gap-7">
-                <a href="/teacher/contest/<%=contest.id%>" class="normal-btn" style="max-width: 150px;">Return</a>
+                <div class="flex">
+                    <div class="grow">
+                        <a href="/teacher/contest/<%=contest.id%>" class="normal-btn"
+                            style="max-width: 150px;">Return</a>
+                    </div>
+
+                    <form method="post" action="/teacher/contest/<%= contest.id %>/problem/<%= problem.id %>/delete">
+
+                        <button class="critical-btn" type="submit"
+                            onclick="return confirm('Do you really want to delete problem <%= problem.short_name %> from contest <%= contest.short_name %>?');">
+                            Delete problem
+                        </button>
+                    </form>
+                </div>
+
                 <div class="flex flex-col md:flex-row gap-10">
                     <form method="post" action="/contest/<%= contest.id %>/problem/<%= problem.id%>/edit"
                         class="flex justify-center">
@@ -24,7 +38,7 @@
                                 <input type="text" name="name" value="<%= problem.name %>" />
                                 Short name:
                                 <input type="text" name="short_name" value="<%= problem.short_name %>" />
-                                URI:
+                                Statement URI:
                                 <input type="text" name="statement-uri" value="<%= problem.statement_uri %>" />
                                 Uses points:
                                 <input type="checkbox" name="uses-points" <%=problem.uses_points ? "checked" : "" %>/>

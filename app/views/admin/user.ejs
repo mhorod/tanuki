@@ -50,9 +50,9 @@
                         <button type="submit" class="submit-btn">
                             Edit
                         </button>
-                        <button type="button" class="critical-btn"
-                            onclick="location.href='/admin/delete-user/<%= edited_user.id %>'">
-                            Delete
+                        <button type="button" class="critical-btn" onclick="if (confirm('Do you really want to delete user <%= edited_user.name %> <%= edited_user.surname %>?'))
+                                location.href='/admin/delete-user/<%= edited_user.id %>'" />
+                        Delete
                         </button>
                     </div>
                 </form>

@@ -13,7 +13,19 @@
 
         <div class=" container mx-auto p-6 divide-x ">
             <div class="flex flex-col gap-7">
-                <a href="/admin/contests" class="normal-btn" style="max-width: 150px;">Return</a>
+                <div class="flex">
+                    <div class="grow">
+                        <a href="/admin/contests" class="normal-btn" style="max-width: 150px;">Return</a>
+                    </div>
+
+                    <form method="post" action="/admin/delete-contest/<%= contest.id %>">
+                        <button class="critical-btn" type="submit"
+                            onclick="return confirm('Do you really want to delete contest <%= contest.short_name %>?');">
+                            Delete contest
+                        </button>
+                    </form>
+                </div>
+
                 <div class="flex place-content-center gap-10">
                     <form method="post" enctype="application/x-www-form-urlencoded"
                         action="/admin/edit-contest/<%= contest.id %>" class="flex justify-center">
@@ -74,7 +86,8 @@
                                             <%= user.surname%>
                                         </td>
                                         <td class="p-2">
-                                            <a href="/admin/delete-owner/<%= contest.id %>/<%= user.id %>">
+                                            <a href="/admin/delete-owner/<%= contest.id %>/<%= user.id %>"
+                                                onclick="return confirm('Do you really want to delete owner <%= user.name %> <%= user.surname %> from contest <%= contest.short_name %>?');">
                                                 <ion-icon style="color: red" name="trash-outline" class="pt-2">
                                                 </ion-icon>
                                             </a>
