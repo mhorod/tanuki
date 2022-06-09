@@ -98,7 +98,9 @@ function setUpTeacherRouter(router: IRouter, config: TeacherRouterConfig) {
     });
 
     router.get("/contest/:contest_id/adduser", authorize, async (req, res, next) => {
-        const users = await config.userDB.getAllUsers();
+        let users = await config.userDB.getAllUsers();
+        const current = await config.permissionDB.getAllThatCanSubmit(+req.params.contest_id)
+        users = users.filter(u => current.every(u2 => u2.id != u.id))
         const contest = await config.contestDB.getContestById(+req.params.contest_id);
         renderWithUserData(config.authenticator, "teacher/add-user", { contest, users })(req, res, next);
     });
