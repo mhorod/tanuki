@@ -57,7 +57,7 @@ function setUpTeacherRouter(router: IRouter, config: TeacherRouterConfig) {
         res.redirect("/teacher/contest/" + req.params.contest_id);
     });
 
-    router.post("/contest/:contest_id/problem/:problem_id/edit", authorize, async (req, res, next) => {
+    router.post("/teacher/contest/:contest_id/problem/:problem_id/edit", authorize, async (req, res, next) => {
         const problem: Problem = {
             id: +req.params.problem_id,
             name: req.parsedBody['name'],
