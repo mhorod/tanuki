@@ -13,7 +13,7 @@
 
         <div class=" container mx-auto p-6 divide-x">
             <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-                <%- await include("views/student/contest-nav.ejs", {contest: contest}) %>
+                <%- await include("views/teacher/contest-menu.ejs", {contest: contest}) %>
                     <div class="grow">
                         <%- await include("views/teacher/contest-submits.ejs", {submits: submits}); %>
 
