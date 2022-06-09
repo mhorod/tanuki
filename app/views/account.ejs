@@ -17,7 +17,7 @@
                 <div class="text-white flex flex-col mx-auto p-2">
                     <div class="m-2">
                         LOGIN <br>
-                        <input disabled type="text" value="<%= login %>" />
+                        <input name="login" disabled type="text" value="<%= login %>" />
                     </div>
 
                     <div class="flex flex-col m-2">
@@ -29,6 +29,18 @@
                         SURNAME
                         <input name="surname" type="text" value="<%= surname %>" />
                     </div>
+                </div>
+                <div>
+                    <span class="text-red-500">
+                        <% if (typeof(profile_error) !='undefined' ) { %>
+                            <%= profile_error %>
+                                <% } %>
+                    </span>
+                    <span class="text-lime-500">
+                        <% if (typeof(profile_success) !='undefined' ) { %>
+                            <%= profile_success %>
+                                <% } %>
+                    </span>
                 </div>
                 <button type="submit" class="submit-btn" />
                 Save profile data
@@ -48,6 +60,20 @@
                         <input name="email-confirm" type="password" />
                     </div>
                 </div>
+
+                <div>
+                    <span class="text-red-500">
+                        <% if (typeof(email_error) !='undefined' ) { %>
+                            <%= email_error %>
+                                <% } %>
+                    </span>
+                    <span class="text-lime-500">
+                        <% if (typeof(email_success) !='undefined' ) { %>
+                            <%= email_success %>
+                                <% } %>
+                    </span>
+                </div>
+
                 <button type="submit" class="submit-btn" />
                 Save email
                 </button>
@@ -70,6 +96,19 @@
                         CONFIRM WITH CURRENT PASSWORD
                         <input name="password-confirm" type="password" />
                     </div>
+                </div>
+
+                <div>
+                    <span class="text-red-500">
+                        <% if (typeof(password_error) !='undefined' ) { %>
+                            <%= password_error %>
+                                <% } %>
+                    </span>
+                    <span class="text-lime-500">
+                        <% if (typeof(password_success) !='undefined' ) { %>
+                            <%= password_success %>
+                                <% } %>
+                    </span>
                 </div>
                 <button type="submit" class="submit-btn" />
                 Save new password

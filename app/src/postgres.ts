@@ -4,11 +4,10 @@
 
 import { Client, ClientOptions } from "../deps.ts"
 
-import type { Submit, Contest, Problem, GraphicalProblem } from "./db.ts"
-import type { User, NewUser, NewSubmit, NewContest, EditedUser } from "./db.ts";
-import type { ContestDB, UserDB, CredentialDB, ProblemDB, GraphicalProblemDB, SubmitDB, ResultDB } from "./db.ts";
+import type { Submit, Contest, GraphicalProblem } from "./db.ts"
+import type { User, NewUser, NewContest, EditedUser } from "./db.ts";
+import type { ContestDB, UserDB, CredentialDB, GraphicalProblemDB, ResultDB } from "./db.ts";
 
-import type { PermissionDB } from "./permissions.ts"
 
 import { bcrypt } from "../deps.ts"
 
@@ -35,16 +34,36 @@ async function getUser(client: Client, login: string): Promise<User | null> {
     }
 }
 
-const submitQuery = `
-`;
-async function getSubmits(client: Client): Promise<Array<Submit>> {
-    return (await client.queryObject<Submit>(submitQuery)).rows;
-}
-
 class PostgresContestDB implements ContestDB {
     client: Client;
 
     constructor(client: Client) { this.client = client; }
+    async getTeacherContests(user_id: number): Promise<Contest[]> {
+        const query = `
+        SELECT 
+            c.* 
+        FROM 
+            contests c 
+            JOIN teacher_contests uc ON c.id = uc.contest_id
+        WHERE 
+            uc.user_id = $1
+        `
+        return (await this.client.queryObject<Contest>(query, [user_id])).rows;
+    }
+
+    async getStudentContests(user_id: number): Promise<Contest[]> {
+
+        const query = `
+        SELECT 
+            c.* 
+        FROM 
+            contests c 
+            JOIN student_contests uc ON c.id = uc.contest_id
+        WHERE 
+            uc.user_id = $1
+        `
+        return (await this.client.queryObject<Contest>(query, [user_id])).rows;
+    }
 
     async deleteContest(id: number): Promise<boolean> {
         const query = `
@@ -84,7 +103,6 @@ class PostgresContestDB implements ContestDB {
     }
 
     async addNewContest(contest: NewContest): Promise<Contest | null> {
-        console.log(contest);
         const query = `
         INSERT INTO contests VALUES ($1, $2, $3) RETURNING *;
         `;
@@ -146,11 +164,9 @@ class PostgresCredentialDB implements CredentialDB {
             return null;
         }
 
-        console.log("Hi!");
         //User exists, time for password validation
 
         if (await bcrypt.compare(credentials.password, userMatchingByLogin.password_hash.trim())) {
-            console.log("Looking good to me");
             //Also matching by password
             return userMatchingByLogin;
         }
@@ -210,7 +226,19 @@ class PostgresUserDB implements UserDB {
         } catch {
             return false;
         }
+    }
 
+    async editUserPassword(id: number, new_hash: string): Promise<boolean> {
+        const query = `
+            UPDATE users SET password_hash=$2 WHERE id=$1 
+        `
+        const vals = [id, new_hash];
+        try {
+            await this.client.queryObject(query, vals);
+            return true;
+        } catch {
+            return false;
+        }
     }
 
     async addNewUser(user: NewUser): Promise<User | null> {
@@ -225,7 +253,6 @@ class PostgresUserDB implements UserDB {
 
         try {
             const insertionResult = await this.client.queryObject<User>("INSERT INTO users VALUES ($1, $2, $3, $4, $5)", insertTable);
-            console.log(insertionResult);
         }
         catch (Exception) {
             return null;
@@ -249,7 +276,7 @@ class PostgresGraphicalProblemDB implements GraphicalProblemDB {
         //TODO: Fix it so that OK is always on top
         //This will need a custom comparator provided by our database!
         const query = `
-        SELECT p.id, p.name, p.short_name, p.statement_uri, p.position, p.due_date, p.closing_date, (
+        SELECT p.id, p.name, p.short_name, p.statement_uri, p.due_date, p.closing_date, (
             SELECT st.name AS status
             FROM submits s 
             JOIN submit_results sr ON s.id = sr.submit_id
@@ -260,6 +287,7 @@ class PostgresGraphicalProblemDB implements GraphicalProblemDB {
         )
         FROM problems p
         WHERE contest_id = $1
+        ORDER BY short_name
         `;
         const result = await this.client.queryObject<GraphicalProblem>(query, [contest_id, user_id]);
 
@@ -268,7 +296,7 @@ class PostgresGraphicalProblemDB implements GraphicalProblemDB {
 
     async getGraphicalProblemById(problem_id: number, user_id: number): Promise<GraphicalProblem | null> {
         const query = `
-        SELECT p.id, p.name, p.short_name, p.statement_uri, p.position, p.due_date, p.closing_date, (
+        SELECT p.id, p.name, p.short_name, p.statement_uri, p.due_date, p.closing_date, (
             SELECT st.name AS status
             FROM submits s 
             JOIN submit_results sr ON s.id = sr.submit_id

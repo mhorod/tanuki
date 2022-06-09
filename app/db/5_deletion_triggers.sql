@@ -1,16 +1,19 @@
+--Triggers that are responsible for deleting things without causing any errors related to foreign keys
+
 CREATE OR REPLACE FUNCTION delete_user() RETURNS trigger AS $$
 BEGIN
-    DELETE FROM contest_permissions WHERE user_id = old.id;
-    DELETE FROM task_results WHERE submit_id IN(
-        SELECT s.id FROM submits s WHERE s.user_id = old.id 
-    );
-    DELETE FROM submit_results WHERE submit_id IN(
-        SELECT s.id FROM submits s WHERE s.user_id = old.id 
-    );
+    DELETE FROM contest_permissions WHERE user_id = OLD.id;
 
-    DELETE FROM submits WHERE user_id = old.id;
+    DELETE 
+        FROM task_results 
+        WHERE submit_id IN (SELECT s.id FROM submits s WHERE s.user_id = OLD.id);
 
-    DELETE FROM administrators WHERE user_id = old.id;
+    DELETE 
+        FROM submit_results 
+        WHERE submit_id IN (SELECT s.id FROM submits s WHERE s.user_id = OLD.id);
+
+    DELETE FROM submits WHERE user_id = OLD.id;
+    DELETE FROM administrators WHERE user_id = OLD.id;
 
     RETURN OLD;
 END;
@@ -18,39 +21,39 @@ $$ LANGUAGE plpgsql;
  
 
 CREATE OR REPLACE FUNCTION delete_contest() RETURNS trigger AS $$
-    BEGIN
-        DELETE FROM contest_permissions WHERE contest_id = OLD.id;
-        DELETE FROM problems WHERE contest_id = OLD.id;
+BEGIN
+    DELETE FROM contest_permissions WHERE contest_id = OLD.id;
+    DELETE FROM problems WHERE contest_id = OLD.id;
 
-        RETURN OLD;
-    END;
+    RETURN OLD;
+END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION delete_problem() RETURNS trigger AS $$
-    BEGIN
-        DELETE FROM problem_languages WHERE problem_id = OLD.id;
-        DELETE FROM submits WHERE problem_id = OLD.id;
-        DELETE FROM task_groups WHERE problem_id = OLD.id;
+BEGIN
+    DELETE FROM problem_languages WHERE problem_id = OLD.id;
+    DELETE FROM submits WHERE problem_id = OLD.id;
+    DELETE FROM task_groups WHERE problem_id = OLD.id;
 
-        RETURN OLD;
-    END;
+    RETURN OLD;
+END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION delete_submit() RETURNS trigger AS $$
-    BEGIN
-        DELETE FROM submit_results WHERE submit_id = OLD.id;
-        DELETE FROM task_results WHERE submit_id = OLD.id;
+BEGIN
+    DELETE FROM submit_results WHERE submit_id = OLD.id;
+    DELETE FROM task_results WHERE submit_id = OLD.id;
 
-        RETURN OLD;
-    END;
+    RETURN OLD;
+END;
 $$ LANGUAGE plpgsql;
 
 
 CREATE OR REPLACE FUNCTION delete_task_group() RETURNS trigger AS $$
-    BEGIN
-        DELETE FROM tasks WHERE task_group = OLD.id;
-        RETURN OLD;
-    END;
+BEGIN
+    DELETE FROM tasks WHERE task_group = OLD.id;
+    RETURN OLD;
+END;
 $$ LANGUAGE plpgsql;
 
 

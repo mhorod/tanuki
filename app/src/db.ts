@@ -41,10 +41,9 @@ interface Problem {
   contest_id: number,
   statement_uri: string,
   uses_points: boolean,
-  position: number,
   points: number,
-  due_date: Date | null,
-  closing_date: Date | null,
+  due_date: Date,
+  closing_date: Date,
   published: boolean,
   scoring_method: number,
   source_limit: number,
@@ -55,7 +54,6 @@ interface GraphicalProblem {
   name: string,
   statement_uri: string,
   short_name: string,
-  position: number,
   due_date: Date | null,
   closing_date: Date | null,
   status: string
@@ -98,7 +96,6 @@ interface NewProblem {
   contest_id: number,
   statement_uri: string,
   uses_points: boolean,
-  position: number,
   points: number,
   due_date: Date | null,
   closing_date: Date | null,
@@ -134,6 +131,10 @@ enum SubmitResult {
 interface ContestDB {
   getUserContests(user_id: number): Promise<Array<Contest>>;
   getAllContests(): Promise<Array<Contest>>;
+
+  getTeacherContests(user_id: number): Promise<Array<Contest>>;
+  getStudentContests(user_id: number): Promise<Array<Contest>>;
+
   getUserSubmits(user_id: number, limit: number): Promise<Array<Submit>>;
   getContestById(id: number): Promise<Contest | null>;
   addNewContest(contest: NewContest): Promise<Contest | null>;
@@ -148,6 +149,7 @@ interface UserDB {
   getUserById(id: number): Promise<User | null>;
   editUser(id: number, user: EditedUser): Promise<boolean>
   deleteUser(id: number): Promise<boolean>
+  editUserPassword(id: number, new_hash: string): Promise<boolean>;
 }
 
 interface CredentialDB {

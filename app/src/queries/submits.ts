@@ -11,11 +11,7 @@ async function getAllNewestSubmitsInAContest(client: Client, contest_id: number)
     `;
 
     const queryResult = await client.queryObject<GraphicalProblemStatus>(query, [contest_id]);
-    //console.log(queryResult);
-
-
     return queryResult.rows;
-    //return null;
 }
 
 export { getAllNewestSubmitsInAContest }

@@ -1,4 +1,480 @@
+DROP SCHEMA IF EXISTS tanuki CASCADE;
+
+CREATE SCHEMA IF NOT EXISTS tanuki;
+
+CREATE  TABLE tanuki.contests ( 
+	name                 varchar(64) ,
+	short_name           varchar(16) UNIQUE NOT NULL  ,
+	is_active            boolean  NOT NULL  ,
+	id                   serial  PRIMARY KEY
+ );
+
+CREATE  TABLE tanuki.languages ( 
+	name                 varchar(50) NOT NULL  ,
+	id                   serial  PRIMARY KEY
+ );
+
+CREATE  TABLE tanuki.permissions_for_contests ( 
+	name                 varchar(64) UNIQUE NOT NULL  ,
+	description          varchar(256)    ,
+	id                   serial PRIMARY KEY
+ );
+
+CREATE  TABLE tanuki.scoring_methods ( 
+	name                 varchar(32) UNIQUE NOT NULL ,
+	id                   serial PRIMARY KEY
+ );
+
+CREATE  TABLE tanuki.statuses ( 
+	name                 char(5)  NOT NULL  ,
+	description          varchar(128)    ,
+	priority             integer  NOT NULL  ,
+	id                   serial PRIMARY KEY
+ );
+
+CREATE  TABLE tanuki.users ( 
+	login                varchar(32)  NOT NULL UNIQUE ,
+	name                 varchar(64)  NOT NULL  ,
+	surname              varchar(64)  NOT NULL  ,
+	password_hash        varchar(256)  NOT NULL  ,
+	email                varchar(64)  NOT NULL  ,
+	id                   serial PRIMARY KEY
+ );
+
+CREATE  TABLE tanuki.administrators ( 
+	user_id              integer PRIMARY KEY REFERENCES tanuki.users
+ );
+
+CREATE  TABLE tanuki.contest_permissions (
+	user_id              integer  NOT NULL REFERENCES tanuki.users ,
+	permission_id        integer  NOT NULL REFERENCES tanuki.permissions_for_contests ,
+	contest_id           integer  NOT NULL REFERENCES tanuki.contests,
+	UNIQUE ( user_id, permission_id, contest_id )
+ );
+
+CREATE  TABLE tanuki.extensions ( 
+	extension            char(8)  NOT NULL  ,
+	language_id          integer  NOT NULL REFERENCES tanuki.languages ,
+	UNIQUE ( extension, language_id )
+ );
+
+CREATE  TABLE tanuki.problems ( 
+	name                 varchar(64)  NOT NULL  ,
+	short_name            varchar(16)  NOT NULL  ,
+	contest_id           integer  NOT NULL REFERENCES tanuki.contests ,
+	statement_uri        varchar(256)  NOT NULL  ,
+	uses_points          boolean  NOT NULL  ,
+	points               numeric    ,
+	due_date             timestamptz  NOT NULL,
+	closing_date         timestamptz  NOT NULL,
+	published            boolean  NOT NULL  ,
+	scoring_method       integer REFERENCES tanuki.scoring_methods ,
+	source_limit         integer    ,
+	id                   serial  PRIMARY KEY,
+	UNIQUE (contest_id, short_name),
+	CHECK ( due_date <= closing_date )
+ );
+
+CREATE  TABLE tanuki.submits ( 
+	source_uri           char(128)  NOT NULL  ,
+	user_id              integer  NOT NULL REFERENCES tanuki.users ,
+	problem_id           integer  NOT NULL REFERENCES tanuki.problems ,
+	language_id          integer  REFERENCES tanuki.languages,
+	submission_time      timestamptz NOT NULL  ,
+	id                   serial  PRIMARY KEY
+ );
+
+CREATE  TABLE tanuki.task_groups ( 
+	problem_id           integer  NOT NULL REFERENCES tanuki.problems ,
+	name                 varchar(32)  NOT NULL  ,
+	requires_all_ok      boolean  NOT NULL  ,
+	id                   serial PRIMARY KEY
+ );
+
+CREATE  TABLE tanuki.tasks ( 
+	task_group           integer  NOT NULL  REFERENCES tanuki.task_groups ,
+	name                 varchar(32) NOT NULL ,
+	test_uri             varchar(256)  NOT NULL ,
+	points               numeric  NOT NULL  ,
+	time_limit           numeric  NOT NULL  ,
+	memory_limit         integer  NOT NULL  ,
+	show_output          boolean  NOT NULL  ,
+	id                   serial PRIMARY KEY
+ );
+
+CREATE  TABLE tanuki.problem_languages ( 
+	problem_id           integer  NOT NULL REFERENCES tanuki.problems ,
+	language_id          integer  NOT NULL REFERENCES tanuki.languages,
+	UNIQUE ( problem_id, language_id )
+ );
+
+CREATE  TABLE tanuki.submit_results ( 
+	submit_id            integer  PRIMARY KEY REFERENCES tanuki.submits,
+	score                numeric  NOT NULL  ,
+	status               integer  NOT NULL  REFERENCES tanuki.statuses
+ );
+
+CREATE  TABLE tanuki.task_results ( 
+	submit_id            integer NOT NULL REFERENCES tanuki.submits ,
+	task_id              integer NOT NULL REFERENCES tanuki.tasks ,
+	status_id            integer NOT NULL REFERENCES tanuki.statuses ,
+	points               numeric NOT NULL ,
+	summary              varchar,
+	execution_time       numeric(6,3)  NOT NULL  ,
+	used_memory          integer    ,
+	PRIMARY KEY ( submit_id, task_id ),
+	CHECK ( points >= 0 ),
+	CHECK ( used_memory >= 0 ),
+	CHECK ( execution_time >= 0 )
+ );
+
+
+COMMENT ON COLUMN tanuki.contests.short_name IS 'abbreviated name of the contest';
+
+COMMENT ON COLUMN tanuki.statuses.priority IS 'in case of multiple statuses in group the one with highest priority is displayed';
+
+COMMENT ON COLUMN tanuki.problems.short_name IS 'abbreviated name of the problem';
+
+COMMENT ON COLUMN tanuki.problems.statement_uri IS 'link to statement that is rendered on the problem page';
+
+COMMENT ON COLUMN tanuki.problems.source_limit IS 'Limits the size of submitted file (in bytes).';
+
+COMMENT ON COLUMN tanuki.submits.source_uri IS 'link to submitted source file';
+
+COMMENT ON COLUMN tanuki.task_groups.requires_all_ok IS 'has every task to be completed for group to have points';
+
+COMMENT ON COLUMN tanuki.tasks.test_uri IS 'link to test that is invoked on submit';
+
+COMMENT ON COLUMN tanuki.tasks.time_limit IS 'time limit in seconds';
+
+COMMENT ON COLUMN tanuki.tasks.memory_limit IS 'memory limit (in bytes)';
+
+COMMENT ON COLUMN tanuki.task_results.summary IS 'additional description of the results e.g. expected output';
+
+COMMENT ON COLUMN tanuki.task_results.execution_time IS 'execution time in seconds';
+
+COMMENT ON COLUMN tanuki.task_results.used_memory IS 'used memory (in bytes)';
+
 SET search_path TO tanuki;
+-- A custom comparator, tasked with comparing results in a way that prioritizes status that's NOT OK (and then sorting by timestamp)
+CREATE OR REPLACE FUNCTION compare_submits(result INTEGER, submission_time TIMESTAMPTZ)
+RETURNS TIMESTAMPTZ AS
+$$
+BEGIN
+    -- 4 is id of OK
+    IF result = 4 THEN 
+        RETURN TIMESTAMPTZ 'infinity'; 
+    END IF;
+    RETURN submission_time;
+END;
+$$ 
+LANGUAGE plpgsql;-- For each submit retrieves basic information about it
+CREATE OR REPLACE VIEW all_submits AS 
+SELECT 
+    s.id, 
+    s.problem_id, 
+    (
+        SELECT sr.status
+        FROM submit_results sr
+        WHERE sr.submit_id = s.id
+    ) 
+    AS result, 
+    s.user_id, 
+    s.submission_time
+FROM 
+    submits s;
+--A view that for each (user, problem) pair shows the newest submit (or a submit with an OK status)
+CREATE VIEW newest_submits_in_problems AS
+SELECT 
+    a1.user_id, 
+    a1.problem_id, 
+    a1.id, 
+    result
+FROM all_submits a1
+WHERE 
+    a1.id = (
+    SELECT a2.id
+    FROM all_submits a2
+    WHERE a2.user_id = a1.user_id AND a2.problem_id = a1.problem_id
+    ORDER BY compare_submits(a2.result, a2.submission_time) DESC
+    LIMIT 1
+);
+-- For each user find contests they can access
+CREATE OR REPLACE VIEW user_contests AS 
+    SELECT 
+    DISTINCT 
+        u.id "user_id", 
+        c.contest_id
+    FROM 
+        users u 
+        JOIN contest_permissions c ON u.id = c.user_id;
+
+
+-- Find contests where user is a teacher i.e. has management permissions
+CREATE OR REPLACE VIEW teacher_contests AS 
+    SELECT 
+    DISTINCT 
+        u.id "user_id", 
+        c.contest_id
+    FROM 
+        users u 
+        JOIN contest_permissions c ON u.id = c.user_id
+    WHERE
+        c.permission_id = 1; -- MANAGE
+
+
+-- Find contests where user is a student i.e. has submission permissions
+CREATE OR REPLACE VIEW student_contests AS 
+    SELECT 
+    DISTINCT 
+        u.id "user_id", 
+        c.contest_id
+    FROM 
+        users u 
+        JOIN contest_permissions c ON u.id = c.user_id
+    WHERE
+        c.permission_id = 2; -- SUBMIT--Triggers that are responsible for deleting things without causing any errors related to foreign keys
+
+CREATE OR REPLACE FUNCTION delete_user() RETURNS trigger AS $$
+BEGIN
+    DELETE FROM contest_permissions WHERE user_id = OLD.id;
+
+    DELETE 
+        FROM task_results 
+        WHERE submit_id IN (SELECT s.id FROM submits s WHERE s.user_id = OLD.id);
+
+    DELETE 
+        FROM submit_results 
+        WHERE submit_id IN (SELECT s.id FROM submits s WHERE s.user_id = OLD.id);
+
+    DELETE FROM submits WHERE user_id = OLD.id;
+    DELETE FROM administrators WHERE user_id = OLD.id;
+
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+ 
+
+CREATE OR REPLACE FUNCTION delete_contest() RETURNS trigger AS $$
+BEGIN
+    DELETE FROM contest_permissions WHERE contest_id = OLD.id;
+    DELETE FROM problems WHERE contest_id = OLD.id;
+
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION delete_problem() RETURNS trigger AS $$
+BEGIN
+    DELETE FROM problem_languages WHERE problem_id = OLD.id;
+    DELETE FROM submits WHERE problem_id = OLD.id;
+    DELETE FROM task_groups WHERE problem_id = OLD.id;
+
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION delete_submit() RETURNS trigger AS $$
+BEGIN
+    DELETE FROM submit_results WHERE submit_id = OLD.id;
+    DELETE FROM task_results WHERE submit_id = OLD.id;
+
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION delete_task_group() RETURNS trigger AS $$
+BEGIN
+    DELETE FROM tasks WHERE task_group = OLD.id;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER delete_user
+BEFORE DELETE ON users FOR EACH ROW EXECUTE PROCEDURE delete_user();
+
+CREATE TRIGGER delete_contest
+BEFORE DELETE ON contests FOR EACH ROW EXECUTE PROCEDURE delete_contest();
+
+CREATE TRIGGER delete_problem
+BEFORE DELETE ON problems FOR EACH ROW EXECUTE PROCEDURE delete_problem();
+
+CREATE TRIGGER delete_submit
+BEFORE DELETE ON submits FOR EACH ROW EXECUTE PROCEDURE delete_submit();
+
+CREATE TRIGGER delete_task_group
+BEFORE DELETE ON task_groups FOR EACH ROW EXECUTE PROCEDURE delete_task_group();-- Finds status_id of given group for given submit
+-- Essentially it retrieves status with the highest priority from results of all tasks that belong to this group
+CREATE OR REPLACE FUNCTION task_group_status(submit_id INT, task_group_id INT) 
+RETURNS INT AS 
+$$
+    SELECT 
+        tr.status_id 
+    FROM 
+        tasks t
+        LEFT JOIN (SELECT * FROM task_results tr WHERE tr.submit_id = $1) tr ON (tr.task_id = t.id)
+        LEFT JOIN statuses s ON (tr.status_id = s.id)
+    WHERE t.task_group = $2
+    ORDER BY s.priority DESC NULLS FIRST
+    LIMIT 1;
+$$
+LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION task_group_points(submit_id INT, task_group_id INT)
+RETURNS NUMERIC AS $$
+    SELECT 
+        CASE
+            WHEN (SELECT requires_all_ok FROM task_groups WHERE id = $2) AND task_group_status($1, $2) != 4 THEN 0
+            ELSE 
+            (
+                SELECT SUM(
+                CASE
+                    WHEN tr.status_id IS NULL THEN NULL
+                    WHEN tr.status_id = 4 THEN t.points -- OK
+                    ELSE 0
+                END
+                )
+            FROM tasks t
+            LEFT JOIN (SELECT * FROM task_results tr WHERE tr.submit_id = $1) tr ON (tr.task_id = t.id)
+            WHERE t.task_group = $2
+            )
+        END 
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION submit_status(submit_id INT)
+RETURNS INT AS $$
+    WITH tg_statuses AS (
+        SELECT tg.id AS "id", task_group_status($1, tg.id) AS "status"
+        FROM submits s
+        JOIN task_groups tg USING(problem_id)
+        WHERE s.id = $1
+    )
+    SELECT tgs.status 
+    FROM tg_statuses tgs 
+    JOIN statuses s ON(tgs.status = s.id)
+    ORDER BY s.priority DESC NULLS FIRST
+    LIMIT 1;
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION submit_points(submit_id INT)
+RETURNS NUMERIC AS $$
+    SELECT  SUM (
+        CASE 
+            WHEN task_group_status($1, tg.id) IS NULL THEN NULL
+            ELSE task_group_points($1, tg.id)
+        END
+    )
+    FROM submits s
+    JOIN task_groups tg USING(problem_id)
+    WHERE s.id = $1
+$$ LANGUAGE SQL;
+
+
+
+CREATE OR REPLACE FUNCTION max_task_group_points(group_id INT)
+RETURNS NUMERIC AS $$
+    SELECT SUM(points) 
+    FROM tasks t 
+    JOIN task_groups tg ON (t.task_group = tg.id)
+    WHERE tg.id = $1
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION max_points(problem_id INT)
+RETURNS NUMERIC AS $$
+    SELECT SUM(max_task_group_points(tg.id)) 
+    FROM
+    task_groups tg 
+    WHERE tg.problem_id = $1;
+$$ LANGUAGE SQL;
+
+
+CREATE OR REPLACE FUNCTION score_multiplier(due_date timestamptz, closing_date timestamptz, submit_time timestamptz, scoring_method INT)
+RETURNS NUMERIC AS $$
+    SELECT CASE scoring_method 
+        WHEN 1 THEN CASE -- ZERO
+            WHEN submit_time < due_date THEN 1.0::numeric
+            ELSE 0::numeric
+        END
+        WHEN 2 THEN CASE -- LINEAR_TO_ZERO
+            WHEN submit_time < due_date THEN 1.0::numeric
+            WHEN submit_time < closing_date THEN (EXTRACT(EPOCH FROM (closing_date - submit_time)) / EXTRACT(EPOCH FROM (closing_date - due_date)))::numeric
+            ELSE 0::numeric
+        END
+        WHEN 3 THEN CASE -- LINEAR_TO_NEGATIVE
+            WHEN submit_time < due_date THEN 1.0::numeric
+            ELSE (EXTRACT(EPOCH FROM (closing_date - submit_time)) / EXTRACT(EPOCH FROM (closing_date - due_date)))::numeric
+        END
+    END
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION submit_score(submit_id INT)
+RETURNS NUMERIC AS $$
+    SELECT 
+    CASE p.uses_points
+        WHEN true THEN p.points * submit_points(s.id) / max_points(p.id) * score_multiplier(p.due_date, p.closing_date, s.submission_time, p.scoring_method)
+        ELSE CASE submit_status(submit_id) 
+            WHEN 4 THEN p.points  -- 4 is OK
+            ELSE 0
+        END
+    END
+    FROM submits s JOIN problems p ON (p.id = s.problem_id)
+    WHERE s.id = $1;
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE VIEW task_scores AS 
+    SELECT 
+        tr.submit_id, tr.task_id, tr.status_id, tr.points AS points,
+        tr.summary, tr.execution_time, tr.used_memory,
+        t.task_group, t.name, t.test_uri, t.points AS max_points,
+        t.memory_limit, t.show_output
+    FROM task_results tr
+    JOIN tasks t ON tr.task_id = t.id;
+-- Information needed to display a single row representing the submit
+-- e.g. in the table of all submits
+CREATE OR REPLACE VIEW short_submit_results AS 
+    SELECT 
+        s.id,
+
+        s.problem_id,
+        p.short_name "short_problem_name",
+
+        p.contest_id,
+        c.short_name "short_contest_name",
+
+        s.user_id,
+        CONCAT(u.name, ' ', u.surname) "user_name",
+
+        submission_time,
+
+        statuses.id "status_id",
+        statuses.name "status_name",
+        submit_points(s.id) "points",
+        max_points(s.problem_id) "max_points",
+        sr.score
+
+    FROM
+        submits s
+        LEFT JOIN submit_results sr ON s.id = sr.submit_id
+        LEFT JOIN statuses ON statuses.id = sr.status
+        JOIN problems p ON s.problem_id = p.id
+        JOIN contests c ON p.contest_id = c.id
+        JOIN users u ON s.user_id = u.id
+    ORDER BY
+        submission_time DESC;
+
+-- Information for rendering an invididual submit
+-- In addition to all short information we also need the language and path to the source file
+CREATE OR REPLACE VIEW full_submit_results AS 
+    SELECT
+        short.*,
+        l.name "language_name",
+        s.source_uri
+    FROM
+        short_submit_results short
+        JOIN submits s ON short.id = s.id
+        JOIN languages l ON s.language_id = l.id;SET search_path TO tanuki;
 COPY users (login, name, surname, password_hash, email) FROM STDIN;
 jamesvaughan	Wanda	Mason	$2b$12$oU2wDsn/XB3CHlxlSAY62OVcXeA/qQtb8Cd5xApvE512uhe1W7L32	lisa57@example.net
 dmatthews	Monica	Mason	$2b$12$JQpF2GtA6fN8zk83cX60YeZyU95xYBgDLkIp.dHHG403ECX9G1gka	dennis70@example.com
@@ -6858,3 +7334,137 @@ COPY submit_results (submit_id, score, status) FROM STDIN;
 183	15.1	10
 233	8.0	9
 \.
+CREATE OR REPLACE FUNCTION erase_all_task_results(problem_id INT) RETURNS VOID AS 
+$$
+DELETE 
+FROM task_results
+WHERE submit_id IN (SELECT id FROM submits WHERE problem_id = $1);
+$$ LANGUAGE SQL;
+
+
+-- This function checks two things:
+-- 1. Every task of the submit's problem has a result
+-- 2. Every task result that references this submit belongs to the submit's problem
+CREATE OR REPLACE FUNCTION check_results_integrity(submit_id INT) RETURNS BOOLEAN AS 
+$$
+-- We select id of task two times:
+-- first we find all tasks that have a result for this submit
+-- second we find all task that should have a result
+-- If those two sets are not equal we get a pair (id, NULL) or (NULL, id) thanks to the full outer join.
+-- Collation handles case where problem has no tasks at all and both subqueries return NULL
+SELECT 
+  COALESCE(bool_and(tr.id IS NOT NULL AND t.id IS NOT NULL), True)
+FROM (
+    -- task results assigned to the submit
+    SELECT task_id AS id 
+    FROM task_results 
+    WHERE submit_id = $1
+) tr 
+FULL OUTER JOIN 
+(
+    -- tasks that are assigned to the status' problem
+    -- i.e. all tasks that should have results
+    SELECT t.id AS id 
+    FROM tasks t 
+    JOIN task_groups tg ON (t.task_group = tg.id) 
+    JOIN submits s ON (tg.problem_id = s.problem_id)
+    WHERE s.id = $1
+) t 
+ON (t.id = tr.id)
+$$ 
+LANGUAGE SQL;
+
+-- Upon adding results for tasks validate that all of them are added
+-- Since we need to insert many tasks we do it with a transaction
+-- and thus we create constraint trigger that is deferred
+CREATE OR REPLACE FUNCTION validate_results_integrity() RETURNS trigger AS 
+$$ 
+BEGIN 
+  IF NOT (SELECT check_results_integrity(NEW.submit_id)) THEN 
+    RAISE EXCEPTION 'Insertion that compromises data integrity';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE CONSTRAINT TRIGGER validate_results_integrity
+AFTER INSERT ON task_results 
+DEFERRABLE INITIALLY DEFERRED 
+FOR EACH ROW EXECUTE PROCEDURE validate_results_integrity();
+
+
+-- Pretty self explanatory - results cannot have more points than maximum
+CREATE OR REPLACE FUNCTION task_result_points_cannot_exceed_max() RETURNS TRIGGER AS 
+$$ 
+BEGIN 
+  IF NEW.points > (SELECT points FROM tasks WHERE id = NEW.task_id) THEN 
+    RAISE EXCEPTION 'Insertion that compromises data integrity';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER task_points_have_to_be_in_range
+BEFORE INSERT ON task_results 
+FOR EACH ROW EXECUTE PROCEDURE task_result_points_cannot_exceed_max();
+
+-- This function is meant to be called after successful insertion of all task results for given submits
+-- Basing on those it calculates score and status using default methods
+CREATE OR REPLACE FUNCTION add_submit_results(submit_id int) RETURNS VOID AS 
+$$
+INSERT INTO submit_results
+VALUES (
+    submit_id,
+    submit_score(submit_id),
+    submit_status(submit_id)
+);
+$$ 
+LANGUAGE SQL;-- Indexes on some things that are looked up often
+
+-- Contests
+CREATE INDEX contests_activity
+ON contests (is_active);
+
+-- Problems
+CREATE INDEX problems_closing_date
+ON problems(closing_date);
+
+CREATE INDEX problems_due_date
+ON problems(due_date);
+
+CREATE INDEX problems_contest_id
+ON problems(contest_id);
+
+-- Submits
+CREATE INDEX submits_subbmision_time
+ON submits(submission_time);
+
+CREATE INDEX submits_user_id
+ON submits(user_id);
+
+CREATE INDEX submits_problem_id
+ON submits(problem_id);
+
+-- Task groups
+CREATE INDEX task_groups_problem_id
+ON task_groups(problem_id);
+
+-- Tasks
+CREATE INDEX tasks_task_group
+ON tasks(task_group);
+
+-- Submit results
+CREATE INDEX submit_results_status
+ON submit_results(status);
+
+-- Task results
+CREATE INDEX task_results_submit_id
+ON task_results(submit_id);
+
+CREATE INDEX task_results_task_id
+ON task_results(task_id);
+
+CREATE INDEX task_results_status_id
+ON task_results(status_id);
+
+

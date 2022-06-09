@@ -27,20 +27,20 @@ class MockChecker implements Checker {
         return new Promise((resolve, reject) =>
             setTimeout(async () => {
                 const tasks = await this.config?.taskDB.getTasks(submit.problem_id);
-                console.log(tasks);
                 const results: NewTaskResult[] = [];
                 if (!tasks) throw Error("taski nie dziamają");
+                const is_lucky = Math.random() < 0.5;
                 for (const group of tasks.groups) {
                     for (const task of group.tasks) {
                         if (!task.id)
                             throw Error("Task id should not be null")
                         results.push({
                             task_id: task.id,
-                            points: Math.round(Math.random() * task.points * 10) / 10,
+                            points: is_lucky ? task.points : Math.round(Math.random() * task.points * 10) / 10,
                             summary: "",
                             execution_time: Math.random(),
                             used_memory: Math.round(Math.random() * 10000),
-                            status_id: statuses[Math.floor(Math.random() * statuses.length)]
+                            status_id: is_lucky ? 4 : statuses[Math.floor(Math.random() * statuses.length)]
 
                         })
                     }

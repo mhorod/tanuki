@@ -11,7 +11,7 @@
         </thead>
         <% for(const problem of problems) { %>
             <tr class="hover:bg-slate-700 hover:cursor-pointer even:bg-slate-900 odd:bg-slate-800 text-center"
-                onclick="location.href='/contest/<%= contest.id %>/problem/<%= problem.id %>'">
+                onclick="location.href='/teacher/contest/<%= contest.id %>/problem/<%= problem.id %>/edit'">
                 <td class="p-2">
                     <%= problem.short_name %>
                 </td>
@@ -25,10 +25,7 @@
                     <%= new Date(problem.closing_date).toISOString().split('T')[0] %>
                 </td>
                 <td class="p-2 flex flex-row gap-5 justify-center">
-                    <a href="/contest/<%= contest.id %>/problem/<%= problem.id %>/edit" class="text-link">edit</a>
-                    <a href="/contest/<%= contest.id %>/problem/<%= problem.id %>/delete">
-                        <ion-icon style="color: red" name="trash-outline"></ion-icon>
-                    </a>
+                    <a href="/teacher/contest/<%= contest.id %>/problem/<%= problem.id %>" class="submit-btn">view</a>
                 </td>
             </tr>
             <% } %>

@@ -21,50 +21,12 @@ class PostgresProblemDB implements ProblemDB {
     }
 
     async getProblemById(id: number): Promise<Problem | null> {
-
-        const query = `
-        select
-        p.id,
-        p.name,
-        short_name,
-        contest_id,
-        statement_uri,
-        uses_points,
-        position,
-        points,
-        due_date,
-        closing_date,
-        published,
-        sm.name "scoring_method",
-        source_limit
-        from problems p
-        join scoring_methods sm on p.scoring_method = sm.id
-        where p.id = $1
-        `;
+        const query = `SELECT * FROM problems WHERE id = $1`;
         const rows = (await this.client.queryObject<Problem>(query, [id])).rows;
         return rows.length != 1 ? null : rows[0];
     }
     async getProblemsInContest(contest_id: number): Promise<Problem[]> {
-        const query = `
-        select
-        p.id,
-        p.name,
-        short_name,
-        contest_id,
-        statement_uri,
-        uses_points,
-        position,
-        points,
-        due_date,
-        closing_date,
-        published,
-        sm.name "scoring_method",
-        source_limit
-        from problems p
-        join scoring_methods sm on p.scoring_method = sm.id
-        where contest_id = $1
-        order by position
-        `
+        const query = `SELECT * FROM problems WHERE contest_id=$1 ORDER BY short_name`
         return (await this.client.queryObject<Problem>(query, [contest_id])).rows;
     }
 
@@ -79,7 +41,6 @@ class PostgresProblemDB implements ProblemDB {
                 problem.contest_id,
                 problem.statement_uri,
                 problem.uses_points,
-                problem.position,
                 problem.points,
                 problem.due_date,
                 problem.closing_date,
@@ -105,13 +66,12 @@ class PostgresProblemDB implements ProblemDB {
                 contest_id = $4,
                 statement_uri = $5,
                 uses_points = $6,
-                position = $7,
-                points = $8,
-                due_date = $9,
-                closing_date = $10,
-                published = $11,
-                scoring_method = $12,
-                source_limit = $13
+                points = $7,
+                due_date = $8,
+                closing_date = $9,
+                published = $10,
+                scoring_method = $11,
+                source_limit = $12
             WHERE id = $1
         `;
 
@@ -123,7 +83,6 @@ class PostgresProblemDB implements ProblemDB {
             newVersion.contest_id,
             newVersion.statement_uri,
             newVersion.uses_points,
-            newVersion.position,
             newVersion.points,
             newVersion.due_date,
             newVersion.closing_date,

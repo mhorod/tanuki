@@ -12,66 +12,93 @@
     <%- await include("views/nav.ejs", {user: user}); %>
 
         <div class=" container mx-auto p-6 divide-x ">
-            <div class="flex place-content-center gap-10">
-                <form method="post" enctype="application/x-www-form-urlencoded"
-                    action="/admin/edit-contest/<%= contest.id %>" class="flex justify-center">
-                    <div class="flex flex-col gap-4">
-                        <h1 class="text-2xl">Editing: <%= contest.short_name %>
-                        </h1>
-                        <div class="grid grid-cols-2 auto-rows-min gap-4 flex-col max-w-sm align-middle">
-                            Name:
-                            <input type="text" name="name" value="<%= contest.name %> " />
-                            Short name:
-                            <input type="text" name="short_name" value="<%= contest.short_name %>" />
-                            Is Active:
-                            <input type="checkbox" name="is_active" <%=contest.is_active ? " checked" : "" %> />
+            <div class="flex flex-col gap-7">
+                <div class="flex">
+                    <div class="grow">
+                        <a href="/admin/contests" class="normal-btn" style="max-width: 150px;">Return</a>
+                    </div>
 
-                            <span class=" text-red-500">
+                    <form method="post" action="/admin/delete-contest/<%= contest.id %>">
+                        <button class="critical-btn" type="submit"
+                            onclick="return confirm('Do you really want to delete contest <%= contest.short_name %>?');">
+                            Delete contest
+                        </button>
+                    </form>
+                </div>
+
+                <div class="flex place-content-center gap-10">
+                    <form method="post" enctype="application/x-www-form-urlencoded"
+                        action="/admin/edit-contest/<%= contest.id %>" class="flex justify-center">
+                        <div class="flex flex-col gap-4">
+                            <h1 class="text-2xl">Editing: <%= contest.short_name %>
+                            </h1>
+                            <div class="grid grid-cols-2 auto-rows-min gap-4 flex-col max-w-sm align-middle">
+                                Name:
+                                <input type="text" name="name" value="<%= contest.name %> " />
+                                Short name:
+                                <input type="text" name="short_name" value="<%= contest.short_name %>" />
+                                Is Active:
+                                <input type="checkbox" name="is_active" <%=contest.is_active ? " checked" : "" %> />
+
+                                <span class=" text-red-500">
+                                    <% if (typeof(error) !='undefined' ) { %>
+                                        <%= error %>
+                                            <% } %>
+                                </span>
+                            </div>
+                            <span class="text-red-500">
                                 <% if (typeof(error) !='undefined' ) { %>
                                     <%= error %>
                                         <% } %>
                             </span>
+                            <span class="text-lime-500">
+                                <% if (typeof(success) !='undefined' ) { %>
+                                    <%= success %>
+                                        <% } %>
+                            </span>
+                            <button type="submit" class="submit-btn">
+                                Edit
+                            </button>
                         </div>
-                        <button type="submit" class="submit-btn">
-                            Edit
-                        </button>
+
+                    </form>
+                    <div class="flex flex-col mb-4">
+                        <h1 class="text-2xl"> Owners </h1>
+                        <% if(owners.length !=0) { %>
+                            <table class="table-auto w-full">
+                                <thead>
+                                    <tr class="border-b border-white">
+                                        <th>login</th>
+                                        <th>name</th>
+                                        <th>surname</th>
+                                    </tr>
+                                </thead>
+                                <% for (const user of owners) { %>
+                                    <tr class="hover:bg-slate-700 hover:cursor-pointer even:bg-slate-900 odd:bg-slate-800 text-center"
+                                        onclick="location.href='/admin/user/<%= user.id %>'">
+                                        <td class="p-2">
+                                            <%= user.login%>
+                                        </td>
+                                        <td class="p-2">
+                                            <%= user.name%>
+                                        </td>
+                                        <td class="p-2">
+                                            <%= user.surname%>
+                                        </td>
+                                        <td class="p-2">
+                                            <a href="/admin/delete-owner/<%= contest.id %>/<%= user.id %>"
+                                                onclick="return confirm('Do you really want to delete owner <%= user.name %> <%= user.surname %> from contest <%= contest.short_name %>?');">
+                                                <ion-icon style="color: red" name="trash-outline" class="pt-2">
+                                                </ion-icon>
+                                            </a>
+                                        </td>
+
+                                    </tr>
+                                    <% } %>
+                            </table>
+                            <% } %>
+                                <a href="/admin/add-owner/<%= contest.id %>" class="normal-btn"> add owner</a>
                     </div>
-
-                </form>
-                <div class="flex flex-col mb-4">
-                    <h1 class="text-2xl"> Owners </h1>
-                    <% if(owners.length !=0) { %>
-                        <table class="table-auto w-full">
-                            <thead>
-                                <tr class="border-b border-white">
-                                    <th>login</th>
-                                    <th>name</th>
-                                    <th>surname</th>
-                                </tr>
-                            </thead>
-                            <% for (const user of owners) { %>
-                                <tr class="hover:bg-slate-700 hover:cursor-pointer even:bg-slate-900 odd:bg-slate-800 text-center"
-                                    onclick="location.href='/admin/user/<%= user.id %>'">
-                                    <td class="p-2">
-                                        <%= user.login%>
-                                    </td>
-                                    <td class="p-2">
-                                        <%= user.name%>
-                                    </td>
-                                    <td class="p-2">
-                                        <%= user.surname%>
-                                    </td>
-                                    <td class="p-2">
-                                        <a href="/admin/delete-owner/<%= contest.id %>/<%= user.id %>">
-                                            <ion-icon style="color: red" name="trash-outline" class="pt-2"></ion-icon>
-                                        </a>
-                                    </td>
-
-                                </tr>
-                                <% } %>
-                        </table>
-                        <% } %>
-                            <a href="/admin/add-owner/<%= contest.id %>" class="normal-btn"> add owner</a>
                 </div>
             </div>
         </div>

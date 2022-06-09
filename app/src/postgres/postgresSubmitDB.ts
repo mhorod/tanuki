@@ -24,7 +24,6 @@ class PostgresSubmitDB implements SubmitDB {
         `;
         const submit_id = (await this.client.queryObject<{ id: number }>(query, insertTable)).rows[0].id;
         const submit = await this.getSubmitById(submit_id);
-        console.log(submit);
 
         return submit;
     }

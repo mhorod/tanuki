@@ -16,7 +16,6 @@ class Problem:
     contest_id: int
     statement_uri: str
     uses_points: bool
-    position: int
     points: float
     due_date: Union[str, None]
     closing_date: Union[str, None]
@@ -51,14 +50,10 @@ class Problems:
         due = due.strftime('%Y-%m-%d, %H:%M:%S')
         close = close.strftime('%Y-%m-%d, %H:%M:%S')
 
-        if random.random() < 0.1:
-            due = close = None
-
         statement_uri = "/problems/dummy"
         uses_points = random.random() < 0.5
 
         contest_id = -1
-        position = -1
         scoring_method = -1
         published = random.random() < 0.75
         # Between 5 and 100kB
@@ -69,7 +64,6 @@ class Problems:
             contest_id,
             statement_uri,
             uses_points,
-            position,
             points,
             due,
             close,
@@ -114,7 +108,6 @@ def populate_contest_problems(db, contest_id, count):
     for i in range(count):
         problem = db.problems.new()
         problem.contest_id = contest_id
-        problem.position = i
         problem.scoring_method = random.choice(scoring_methods).id
         problem.short_name = chr(ord('A') + i)
         assign_languages(db, problem.id, random.randint(1, 3))

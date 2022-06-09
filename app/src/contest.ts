@@ -76,7 +76,6 @@ function setUpProblemPage(router: IRouter, config: ContestRouterConfig) {
             }
             renderWithUserData(config.authenticator, "student/problem", { contest: contest, problem: p })(req, res, next);
         });
-
 }
 
 export { setUpContestRouter }

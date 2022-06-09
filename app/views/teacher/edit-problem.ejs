@@ -12,50 +12,72 @@
     <%- await include("views/nav.ejs", {user: user}); %>
 
         <div class=" container mx-auto p-6 divide-x">
-            <div class="flex flex-col md:flex-row gap-10">
-                <form method="post" action="/contest/<%= contest.id %>/problem/<%= problem.id%>/edit"
-                    class="flex justify-center">
-                    <div class="flex flex-col gap-4">
-                        <h1 class="text-3xl">Information</h1>
-                        <div class="grid grid-cols-2 auto-rows-min gap-4 flex-col max-w-sm align-middle">
-                            Name:
-                            <input type="text" name="name" value="<%= problem.name %>" />
-                            Short name:
-                            <input type="text" name="short_name" value="<%= problem.short_name %>" />
-                            URI:
-                            <input type="text" name="statement-uri" value="<%= problem.statement_uri %>" />
-                            Uses points:
-                            <input type="checkbox" name="uses-points" <%=problem.uses_points ? "checked" : "" %>/>
-                            Points:
-                            <input type="number" step="0.1" min="0" name="points" value="<%= problem.points %>" />
-                            Due date:
-                            <input type="date" name="due-date"
-                                value="<%= new Date(problem.due_date).toISOString().split('T')[0] %>" />
-                            Closing date:
-                            <input type="date" name="closing-date"
-                                value="<%= new Date(problem.closing_date).toISOString().split('T')[0] %>" />
-                            Published:
-                            <input type="checkbox" name="published" <%=problem.published ? "checked" : "" %>/>
-                            <input type="text" id="tests-input" name="tests" class="hidden" />
-
-                        </div>
-                        <span class="text-red-500">
-                            <% if (typeof(error) !='undefined' ) { %>
-                                <%= error %>
-                                    <% } %>
-                        </span>
-                        <button type="submit" class="submit-btn">
-                            Edit
-                        </button>
+            <div class="flex flex-col gap-7">
+                <div class="flex">
+                    <div class="grow">
+                        <a href="/teacher/contest/<%=contest.id%>" class="normal-btn"
+                            style="max-width: 150px;">Return</a>
                     </div>
-                </form>
-                <div class="flex flex-col gap-4 grow">
-                    <h1 class="text-3xl">Tests</h1>
-                    <script type='text/javascript'>
-                        const tasks = JSON.parse('<%- JSON.stringify(tasks) %>');
-                        console.log(tasks);
-                    </script>
-                    <%- await include("views/teacher/test-editor.ejs"); %>
+
+                    <form method="post" action="/teacher/contest/<%= contest.id %>/problem/<%= problem.id %>/delete">
+
+                        <button class="critical-btn" type="submit"
+                            onclick="return confirm('Do you really want to delete problem <%= problem.short_name %> from contest <%= contest.short_name %>?');">
+                            Delete problem
+                        </button>
+                    </form>
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-10">
+                    <form id="problem-form" method="post"
+                        action="/teacher/contest/<%= contest.id %>/problem/<%= problem.id%>/edit"
+                        class="flex justify-center">
+                        <div class="flex flex-col gap-4">
+                            <h1 class="text-3xl">Information</h1>
+                            <div class="grid grid-cols-2 auto-rows-min gap-4 flex-col max-w-sm align-middle">
+                                Name:
+                                <input type="text" name="name" value="<%= problem.name %>" />
+                                Short name:
+                                <input type="text" name="short_name" value="<%= problem.short_name %>" />
+                                Statement URI:
+                                <input type="text" name="statement-uri" value="<%= problem.statement_uri %>" />
+                                Uses points:
+                                <input type="checkbox" name="uses-points" <%=problem.uses_points ? "checked" : "" %>/>
+                                Points:
+                                <input type="number" step="0.1" min="0" name="points" value="<%= problem.points %>" />
+                                Due date:
+                                <input type="date" name="due-date"
+                                    value="<%= new Date(problem.due_date).toISOString().split('T')[0] %>" />
+                                Closing date:
+                                <input type="date" name="closing-date"
+                                    value="<%= new Date(problem.closing_date).toISOString().split('T')[0] %>" />
+                                Published:
+                                <input type="checkbox" name="published" <%=problem.published ? "checked" : "" %>/>
+                                <input type="text" id="tests-input" name="tests" class="hidden" />
+
+                            </div>
+                            <span class="text-red-500">
+                                <% if (typeof(error) !='undefined' ) { %>
+                                    <%= error %>
+                                        <% } %>
+                            </span>
+                            <span class="text-lime-500">
+                                <% if (typeof(success) !='undefined' ) { %>
+                                    <%= success %>
+                                        <% } %>
+                            </span>
+                            <button type="submit" class="submit-btn">
+                                Edit
+                            </button>
+                        </div>
+                    </form>
+                    <div class="flex flex-col gap-4 grow">
+                        <h1 class="text-3xl">Tests</h1>
+                        <script type='text/javascript'>
+                            const tasks = JSON.parse('<%- JSON.stringify(tasks) %>');
+                        </script>
+                        <%- await include("views/teacher/test-editor.ejs"); %>
+                    </div>
                 </div>
             </div>
         </div>

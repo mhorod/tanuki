@@ -1,8 +1,10 @@
 ![logo](logo.png)
 
-# Tanuki - Simple judge system
+# Tanuki - Simple programming contests system
 
 Project made as an assignment project for Data Engineering course 2021/22
+
+Project has website: https://mhorod.ninja
 
 # Installation
 
@@ -22,6 +24,44 @@ cd tanuki
 
 You can then access the app on http://localhost:3000
 
+# Usage
+
+## Accessing the database
+
+First `docker ps` to lista active containers
+
+Then run `docker exec -it {container} bash` where `{container}` is id of
+postgres container
+
+Finally inside container run `psql -U tanuki` to log into the database
+
+## Navigation
+
+Most of the times navigation on the page should be intuitive.
+
+Main things that may be useful:
+
+- There is `admin` account which also has passowrd `admin123`. After logging
+  into it you will be able to list contests and users
+
+- Every user in the database has password `admin123` so you can explore website
+  as a randomly generated user
+
+- By default new users are not assigned to any contests.
+- To add your new user to a contest follow:
+  1. Log into `admin`
+  2. click `edit contests` and choose contests of your interest
+  3. add `admin` as owner and press `edit`
+  4. go to the main page by clicking the logo in top left corner
+  5. From managed contests select added contest Now you should see a blue
+     teacher panel
+  6. Click on `Users`, then `add user`
+  7. Select deisred user from the list
+  8. you can now log out and log in as your user
+
+- Student's page is grey, teacher's and admin's are blue
+- Clicking on logo will redirect you back to the main page
+
 # Development
 
 ### Prerequisites
@@ -37,81 +77,6 @@ To start app in development mode run `bash run-dev.sh`. It builds the image with
 
 App runs on port `3000` and postgres runs on port `5433`
 
-# TODO
-
-## Server
-
-- [x] user system
-- [ ] permissions
-- [ ] redirect to log-in page, then redirect back if user is not logged in
-
-### Problems
-
-- [ ] statement loading
-- [ ] most recent status
-
-### Submits
-
-- [x] file upload
-- [ ] filetype detection
-- [ ] binary files
-- [x] submit authorization
-- [ ] result loading
-- [x] display problem and contest name when submitting
-- [ ] verify extension
-
----
-
-## Database
-
-- [ ] user system
-- [ ] results
-- [ ] permissions
-
-### Contests
-
-- [ ] contest participants
-- [ ] submits for contest for all and single user
-- [ ] scoreboard
-
-### Problems
-
-- [ ] view of 'decorated' problems i.e. with contest and status name
-- [ ] deadlines and recent statuses
-- [x] all problems in a contest
-- [x] find problem by id
-
-### Submits
-
-- [ ] allowed extensions
-- [ ] results, QUE if there are no found
-- [ ] trigger that checks that contest is active
-
-### Results
-
-- [ ] status is obligatory, points are optional
-- [ ] problem of task results for given submit has to match the problem of the
-      submit
-
----
-
-## Frontend
-
-- [x] logo
-- [x] log in and sign-up
-- [ ] navbar
-- [ ] admin panel
-- [ ] dashboard
-- [ ] problem page
-- [ ] results page
-- [x] syntax highlighting
-- [x] contest management
-- [ ] scoreboard
-
-- [ ] adding contests
-- [ ] editing contests
-- [x] adding problems
-- [x] editing problems
-- [ ] showing student results
-- [ ] editing users
-- [x] adding users to contest
+We are aware of permission problem related to the fact that docker connects
+container files with local ones which makes programs running inside containers
+have no access to the files.

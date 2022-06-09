@@ -10,8 +10,8 @@ import { setUpTeacherRouter } from "./teacher.ts"
 import { setUpAuthRouter } from "./auth.ts"
 import { setUpStudentRouter } from "./student.ts"
 import { setUpAdminRouter } from "./admin.ts"
+import { setUpDashboardRouter } from "./dashboard.ts"
 
-import { redirectIfUnauthenticated } from "./auth.ts"
 
 export default function (router: IRouter, config: any) {
     [
@@ -22,19 +22,6 @@ export default function (router: IRouter, config: any) {
         setUpTeacherRouter,
         setUpAdminRouter,
         setUpStudentRouter,
-        setUpDashboardRouter
+        setUpDashboardRouter,
     ].forEach(f => f(router, config))
-}
-
-function setUpDashboardRouter(router: IRouter, config: any) {
-    router.get("/dashboard",
-        redirectIfUnauthenticated(config.authenticator, "/"),
-        async (req, res, next) => {
-            const user = await config.authenticator.authenticateRequest(req);
-            if (!user) throw Error();
-            if (await config.permissionDB.isAdmin(user.id))
-                res.redirect("/dashboard/admin")
-            else
-                res.redirect("/dashboard/student")
-        })
 }

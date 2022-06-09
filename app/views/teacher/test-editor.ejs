@@ -19,7 +19,8 @@
             <div class="flex flex-row items-center gap-2">
                 <span class="inline"> all ok? </span>
                 <input class="whitespace-nowrap" type="checkbox" />
-                <button class="focus:outline-none" type="button">
+                <button class="focus:outline-none" type="button"
+                    onclick="return confirm('Do you really want to delete this group?');">
                     <ion-icon style="color: red;" name="trash-outline"></ion-icon>
                 </button>
             </div>
@@ -58,7 +59,7 @@
         </td>
         <td class="p-2"> <input class="text-lg" type="checkbox" /></td>
         <td class="p-2"> <span class="p-1" contenteditable="true"></span></td>
-        <td class="p-2"> <button type="button">
+        <td class="p-2"> <button type="button" onclick="return confirm('Do you really want to delete this task?');">
                 <ion-icon style="color: red;" name="trash-outline"></ion-icon>
             </button></td>
     </tr>

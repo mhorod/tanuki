@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- await include("views/common-head.ejs"); %>
+        <title>
+            Tanuki
+        </title>
+</head>
+
+<body class="bg-slate-900 text-white">
+    <%- await include("views/nav.ejs", {user: user}); %>
+
+        <div class=" container mx-auto p-6 divide-x">
+            <div class="flex flex-col gap-7">
+                <a href="/dashboard/admin" class="normal-btn" style="max-width: 150px;">Return</a>
+                <div class="flex flex-col md:flex-row gap-5">
+                    <div class="grow">
+                        <h3 class="text-2xl font-semibold mt-0 mb-2 text-slate-100">Contests</h3>
+                        <div class="flex flex-col mb-4">
+                            <table class="table-auto w-full">
+                                <thead>
+                                    <tr class="border-b border-white">
+                                        <th>short_name</th>
+                                        <th>name</th>
+                                        <th>active</th>
+                                    </tr>
+                                </thead>
+                                <% for (const contest of contests) { %>
+                                    <tr class="hover:bg-slate-700 hover:cursor-pointer even:bg-slate-900 odd:bg-slate-800 text-center"
+                                        onclick="location.href='/admin/contest/<%= contest.id %>'">
+                                        <td class="p-2">
+                                            <%= contest.short_name%>
+                                        </td>
+                                        <td class="p-2">
+                                            <%= contest.name%>
+                                        </td>
+                                        <td class="p-2">
+                                            <% if(contest.is_active){ %>
+                                                <ion-icon style="color:lime" name="checkmark-outline" class="pt-2">
+                                                </ion-icon>
+                                                <% } else { %>
+                                                    <ion-icon style="color:red" name="close-outline" class="pt-2">
+                                                    </ion-icon>
+                                                    <% } %>
+
+                                        </td>
+                                    </tr>
+                                    <% } %>
+                            </table>
+                            <a href="/admin/add-contest" class="normal-btn"> add contest</a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <%- await include("views/common-scripts.ejs"); %>
+</body>
+
+</html>

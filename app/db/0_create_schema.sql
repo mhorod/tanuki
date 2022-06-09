@@ -42,7 +42,7 @@ CREATE  TABLE tanuki.users (
  );
 
 CREATE  TABLE tanuki.administrators ( 
-	user_id              integer  NOT NULL REFERENCES tanuki.users
+	user_id              integer PRIMARY KEY REFERENCES tanuki.users
  );
 
 CREATE  TABLE tanuki.contest_permissions (
@@ -64,10 +64,9 @@ CREATE  TABLE tanuki.problems (
 	contest_id           integer  NOT NULL REFERENCES tanuki.contests ,
 	statement_uri        varchar(256)  NOT NULL  ,
 	uses_points          boolean  NOT NULL  ,
-	"position"           integer  NOT NULL  ,
 	points               numeric    ,
-	due_date             timestamptz    ,
-	closing_date         timestamptz    ,
+	due_date             timestamptz  NOT NULL,
+	closing_date         timestamptz  NOT NULL,
 	published            boolean  NOT NULL  ,
 	scoring_method       integer REFERENCES tanuki.scoring_methods ,
 	source_limit         integer    ,
