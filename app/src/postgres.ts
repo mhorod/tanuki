@@ -275,6 +275,7 @@ class PostgresGraphicalProblemDB implements GraphicalProblemDB {
         )
         FROM problems p
         WHERE contest_id = $1
+        ORDER BY short_name
         `;
         const result = await this.client.queryObject<GraphicalProblem>(query, [contest_id, user_id]);
 
