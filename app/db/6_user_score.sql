@@ -87,17 +87,17 @@ CREATE OR REPLACE FUNCTION score_multiplier(due_date timestamptz, closing_date t
 RETURNS NUMERIC AS $$
     SELECT CASE scoring_method 
         WHEN 1 THEN CASE -- ZERO
-            WHEN submit_time < due_date THEN 1.0
-            ELSE 0
+            WHEN submit_time < due_date THEN 1.0::numeric
+            ELSE 0::numeric
         END
         WHEN 2 THEN CASE -- LINEAR_TO_ZERO
-            WHEN submit_time < due_date THEN 1.0
-            WHEN submit_time < closing_date THEN EXTRACT(EPOCH FROM (closing_date - submit_time)) / EXTRACT(EPOCH FROM (closing_date - due_date))
-            ELSE 0
+            WHEN submit_time < due_date THEN 1.0::numeric
+            WHEN submit_time < closing_date THEN (EXTRACT(EPOCH FROM (closing_date - submit_time)) / EXTRACT(EPOCH FROM (closing_date - due_date)))::numeric
+            ELSE 0::numeric
         END
         WHEN 3 THEN CASE -- LINEAR_TO_NEGATIVE
-            WHEN submit_time < due_date THEN 1.0
-            ELSE EXTRACT(EPOCH FROM (closing_date - submit_time)) / EXTRACT(EPOCH FROM (closing_date - due_date))
+            WHEN submit_time < due_date THEN 1.0::numeric
+            ELSE (EXTRACT(EPOCH FROM (closing_date - submit_time)) / EXTRACT(EPOCH FROM (closing_date - due_date)))::numeric
         END
     END
 $$ LANGUAGE SQL;
