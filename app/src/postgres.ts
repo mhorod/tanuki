@@ -226,7 +226,19 @@ class PostgresUserDB implements UserDB {
         } catch {
             return false;
         }
+    }
 
+    async editUserPassword(id: number, new_hash: string): Promise<boolean> {
+        const query = `
+            UPDATE users SET password_hash=$2 WHERE id=$1 
+        `
+        const vals = [id, new_hash];
+        try {
+            await this.client.queryObject(query, vals);
+            return true;
+        } catch {
+            return false;
+        }
     }
 
     async addNewUser(user: NewUser): Promise<User | null> {

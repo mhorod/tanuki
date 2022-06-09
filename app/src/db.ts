@@ -149,6 +149,7 @@ interface UserDB {
   getUserById(id: number): Promise<User | null>;
   editUser(id: number, user: EditedUser): Promise<boolean>
   deleteUser(id: number): Promise<boolean>
+  editUserPassword(id: number, new_hash: string): Promise<boolean>;
 }
 
 interface CredentialDB {
