@@ -80,3 +80,6 @@ App runs on port `3000` and postgres runs on port `5433`
 We are aware of permission problem related to the fact that docker connects
 container files with local ones which makes programs running inside containers
 have no access to the files.
+
+# Database layout
+![db](diagram.png)
