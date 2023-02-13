@@ -4,7 +4,6 @@
 
 Project made as an assignment project for Data Engineering course 2021/22
 
-Project has website: https://mhorod.ninja
 
 # Installation
 
